@@ -1,0 +1,98 @@
+{
+  "common": {
+    "appName": "Tindera",
+    "create": "Create",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "add": "Add",
+    "adding": "Adding...",
+    "saving": "Saving...",
+    "required": "Required",
+    "optional": "Optional",
+    "default": "Default",
+    "option": "option",
+    "options": "options"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "order": "Order",
+    "products": "Products",
+    "catalog": "Catalog",
+    "modifiers": "Modifiers",
+    "sales": "Sales",
+    "inventory": "Inventory",
+    "reports": "Reports",
+    "settings": "Settings",
+    "switchShop": "Switch Shop"
+  },
+  "home": {
+    "welcome": "Welcome, {{name}}!",
+    "shopCount": "You have access to {{count}} shop(s)",
+    "getStarted": "Get started by setting up your first shop",
+    "setupShop": {
+      "title": "Set Up Your Shop",
+      "description": "You don't have any shops yet. Create your first shop to start managing products, inventory, and sales.",
+      "createButton": "Create Shop"
+    },
+    "createShopModal": {
+      "title": "Create Shop",
+      "shopName": "Shop Name",
+      "shopNamePlaceholder": "Enter shop name",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter description (optional)",
+      "location": "Location",
+      "locationPlaceholder": "Enter location (optional)",
+      "createButton": "Create Shop",
+      "validation": {
+        "nameRequired": "Please enter a shop name"
+      },
+      "success": "Shop created successfully!",
+      "error": "Failed to create shop"
+    },
+    "tiles": {
+      "newOrder": "New Order",
+      "inProgress": "In Progress",
+      "products": "Products",
+      "inventory": "Inventory",
+      "todaysSales": "Today's Sales",
+      "reports": "Reports",
+      "settings": "Settings"
+    }
+  },
+  "products": {
+    "modifierGroups": "Modifier Groups",
+    "addModifierGroup": "Add Modifier Group",
+    "editModifierGroup": "Edit Modifier Group",
+    "modifierGroupName": "Group Name",
+    "modifierGroupNamePlaceholder": "e.g., Size, Toppings",
+    "minSelections": "Minimum Selections",
+    "maxSelections": "Maximum Selections",
+    "sequence": "Display Order",
+    "selections": "Selections",
+    "noModifierGroups": "No modifier groups configured",
+    "noModifierGroupsHint": "Click \"Add Modifier Group\" to create required or optional modifier selections",
+    "modifierGroup": "modifier group",
+    "noModifiersInGroup": "No modifiers in this group",
+    "addModifier": "Add Modifier",
+    "editModifier": "Edit Modifier",
+    "modifierName": "Modifier Name",
+    "modifierNamePlaceholder": "e.g., Straight Cut, BBQ Flavor",
+    "priceAdjustment": "Price Adjustment",
+    "priceAdjustmentPlaceholder": "Can be positive, negative, or zero",
+    "linkToInventory": "Link to Inventory",
+    "inventoryItem": "Inventory Item",
+    "selectInventoryItem": "Select an item",
+    "quantityUsed": "Quantity Used ({{uom}})",
+    "quantityUsedPlaceholder": "Amount of {{name}} used",
+    "modifierAdded": "Modifier added successfully",
+    "modifierUpdated": "Modifier updated successfully",
+    "modifierAddFailed": "Failed to add modifier",
+    "modifierUpdateFailed": "Failed to update modifier",
+    "usesUnits": "uses {{count}} units"
+  }
+}

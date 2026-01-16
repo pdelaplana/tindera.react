@@ -1,0 +1,111 @@
+/* ImageUpload Component Styles */
+
+.image-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.image-upload-input {
+  display: none;
+}
+
+.image-upload-area {
+  position: relative;
+  width: 100%;
+  border: 2px dashed var(--ion-color-medium);
+  border-radius: 8px;
+  background: var(--ion-color-light);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  padding: 0;
+}
+
+.image-upload-area:hover:not(:disabled) {
+  border-color: var(--ion-color-primary);
+  background: var(--ion-color-light-tint);
+}
+
+.image-upload-area:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.image-upload-area.dragging {
+  border-color: var(--ion-color-primary);
+  background: var(--ion-color-primary-tint);
+}
+
+.image-upload-area.error {
+  border-color: var(--ion-color-danger);
+}
+
+.image-upload-area.has-image {
+  border-style: solid;
+  padding: 0;
+}
+
+.image-upload-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.image-upload-remove-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  --background: rgba(0, 0, 0, 0.5);
+  --color: white;
+}
+
+.image-upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px;
+  gap: 12px;
+}
+
+.image-upload-icon {
+  font-size: 48px;
+  color: var(--ion-color-medium);
+  transition: all 0.2s ease;
+}
+
+.image-upload-icon.dragging {
+  color: var(--ion-color-primary);
+  transform: scale(1.1);
+}
+
+.image-upload-text-primary {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ion-color-dark);
+}
+
+.image-upload-text-secondary {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ion-color-medium);
+}
+
+.image-upload-error {
+  padding: 8px 12px;
+  background: var(--ion-color-danger-tint);
+  color: var(--ion-color-danger-shade);
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.image-upload-help {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+}

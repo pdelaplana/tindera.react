@@ -1,0 +1,937 @@
+// Inventory Service - Supabase Inventory Operations
+
+import type {
+	ApiResponse,
+	InventoryCategory,
+	InventoryCount,
+	InventoryItem,
+	InventoryItemInsert,
+	InventoryItemUpdate,
+	InventoryItemWithCategory,
+	InventoryTransaction,
+	PackageSize,
+	PackageSizeInsert,
+	PackageSizeUpdate,
+	UnitOfMeasure,
+} from '@/types';
+import { logger } from './sentry';
+import { supabase } from './supabase';
+
+export interface InventoryFilters {
+	categoryId?: string;
+	search?: string;
+}
+
+export interface InventoryTransactionFilters {
+	transactionType?: string;
+}
+
+export const inventoryService = {
+	/**
+	 * Get all inventory items for a shop with optional filtering
+	 */
+	async getInventoryItems(
+		shopId: string,
+		filters?: InventoryFilters
+	): Promise<ApiResponse<InventoryItemWithCategory[]>> {
+		try {
+			let query = supabase
+				.from('inventory_items')
+				.select(`
+          *,
+          category:inventory_categories (
+            id,
+            shop_id,
+            name,
+            description,
+            sequence
+          )
+        `)
+				.eq('shop_id', shopId)
+				.order('name');
+
+			// Apply filters
+			if (filters?.categoryId) {
+				query = query.eq('category_id', filters.categoryId);
+			}
+
+			if (filters?.search) {
+				query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+			}
+
+			const { data, error } = await query;
+
+			if (error) {
+				logger.error(new Error(error.message), { context: 'getInventoryItems', shopId });
+				return { data: null, error: new Error(error.message) };
+			}
+
+			// Transform the data to match our interface
+			const items = (data || []).map((item) => ({
+				...item,
+				category: item.category as unknown as InventoryCategory | null,
+			})) as InventoryItemWithCategory[];
+
+			return { data: items, error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'getInventoryItems', shopId });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Get a single inventory item by ID
+	 */
+	async getInventoryItem(itemId: string): Promise<ApiResponse<InventoryItemWithCategory>> {
+		try {
+			const { data: item, error: itemError } = await supabase
+				.from('inventory_items')
+				.select(`
+          *,
+          category:inventory_categories (
+            id,
+            shop_id,
+            name,
+            description,
+            sequence
+          )
+        `)
+				.eq('id', itemId)
+				.single();
+
+			if (itemError) {
+				logger.error(new Error(itemError.message), { context: 'getInventoryItem', itemId });
+				return { data: null, error: new Error(itemError.message) };
+			}
+
+			const itemWithCategory = {
+				...item,
+				category: item.category as unknown as InventoryCategory | null,
+			} as InventoryItemWithCategory;
+
+			return { data: itemWithCategory, error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'getInventoryItem', itemId });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Create a new inventory item
+	 */
+	async createInventoryItem(
+		itemData: InventoryItemInsert,
+		userId: string
+	): Promise<ApiResponse<InventoryItem>> {
+		try {
+			const { data, error } = await supabase
+				.from('inventory_items')
+				.insert({
+					...itemData,
+					created_by: userId,
+					updated_by: userId,
+				})
+				.select()
+				.single();
+
+			if (error) {
+				logger.error(new Error(error.message), { context: 'createInventoryItem' });
+				return { data: null, error: new Error(error.message) };
+			}
+
+			return { data: data as InventoryItem, error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'createInventoryItem' });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Update an existing inventory item
+	 */
+	async updateInventoryItem(
+		itemId: string,
+		updates: InventoryItemUpdate,
+		userId: string
+	): Promise<ApiResponse<InventoryItem>> {
+		try {
+			const { data, error } = await supabase
+				.from('inventory_items')
+				.update({
+					...updates,
+					updated_at: new Date().toISOString(),
+					updated_by: userId,
+				})
+				.eq('id', itemId)
+				.select()
+				.single();
+
+			if (error) {
+				logger.error(new Error(error.message), { context: 'updateInventoryItem', itemId });
+				return { data: null, error: new Error(error.message) };
+			}
+
+			return { data: data as InventoryItem, error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'updateInventoryItem', itemId });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Delete an inventory item
+	 */
+	async deleteInventoryItem(itemId: string): Promise<{ error: Error | null }> {
+		try {
+			const { error } = await supabase.from('inventory_items').delete().eq('id', itemId);
+
+			if (error) {
+				logger.error(new Error(error.message), { context: 'deleteInventoryItem', itemId });
+				return { error: new Error(error.message) };
+			}
+
+			return { error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'deleteInventoryItem', itemId });
+			return { error };
+		}
+	},
+
+	// ===== Inventory Categories =====
+
+	/**
+	 * Get all inventory categories for a shop
+	 */
+	async getInventoryCategories(shopId: string): Promise<ApiResponse<InventoryCategory[]>> {
+		try {
+			const { data, error } = await supabase
+				.from('inventory_categories')
+				.select('*')
+				.eq('shop_id', shopId)
+				.order('sequence');
+
+			if (error) {
+				logger.error(new Error(error.message), {
+					context: 'getInventoryCategories',
+					shopId,
+				});
+				return { data: null, error: new Error(error.message) };
+			}
+
+			return { data: data as InventoryCategory[], error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'getInventoryCategories', shopId });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Create an inventory category
+	 */
+	async createInventoryCategory(
+		category: Omit<InventoryCategory, 'id'>
+	): Promise<ApiResponse<InventoryCategory>> {
+		try {
+			const { data, error } = await supabase
+				.from('inventory_categories')
+				.insert(category)
+				.select()
+				.single();
+
+			if (error) {
+				logger.error(new Error(error.message), { context: 'createInventoryCategory' });
+				return { data: null, error: new Error(error.message) };
+			}
+
+			return { data: data as InventoryCategory, error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'createInventoryCategory' });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Update an inventory category
+	 */
+	async updateInventoryCategory(
+		categoryId: string,
+		updates: Partial<InventoryCategory>
+	): Promise<ApiResponse<InventoryCategory>> {
+		try {
+			const { data, error } = await supabase
+				.from('inventory_categories')
+				.update(updates)
+				.eq('id', categoryId)
+				.select()
+				.single();
+
+			if (error) {
+				logger.error(new Error(error.message), {
+					context: 'updateInventoryCategory',
+					categoryId,
+				});
+				return { data: null, error: new Error(error.message) };
+			}
+
+			return { data: data as InventoryCategory, error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'updateInventoryCategory', categoryId });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Delete an inventory category
+	 */
+	async deleteInventoryCategory(categoryId: string): Promise<{ error: Error | null }> {
+		try {
+			const { error } = await supabase.from('inventory_categories').delete().eq('id', categoryId);
+
+			if (error) {
+				logger.error(new Error(error.message), {
+					context: 'deleteInventoryCategory',
+					categoryId,
+				});
+				return { error: new Error(error.message) };
+			}
+
+			return { error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'deleteInventoryCategory', categoryId });
+			return { error };
+		}
+	},
+
+	// ===== Units of Measure =====
+
+	/**
+	 * Get all custom units of measure for a shop
+	 * Note: Does NOT include system defaults (those are in UnitOfMeasure enum)
+	 */
+	async getUnitsOfMeasure(shopId: string): Promise<ApiResponse<UnitOfMeasure[]>> {
+		try {
+			const { data, error } = await supabase
+				.from('units_of_measure')
+				.select('*')
+				.eq('shop_id', shopId)
+				.order('sequence');
+
+			if (error) {
+				logger.error(new Error(error.message), {
+					context: 'getUnitsOfMeasure',
+					shopId,
+				});
+				return { data: null, error: new Error(error.message) };
+			}
+
+			return { data: data as UnitOfMeasure[], error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'getUnitsOfMeasure', shopId });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Create a custom unit of measure
+	 */
+	async createUnitOfMeasure(uom: Omit<UnitOfMeasure, 'id'>): Promise<ApiResponse<UnitOfMeasure>> {
+		try {
+			const { data, error } = await supabase.from('units_of_measure').insert(uom).select().single();
+
+			if (error) {
+				logger.error(new Error(error.message), { context: 'createUnitOfMeasure' });
+				return { data: null, error: new Error(error.message) };
+			}
+
+			return { data: data as UnitOfMeasure, error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'createUnitOfMeasure' });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Update a custom unit of measure
+	 */
+	async updateUnitOfMeasure(
+		uomId: string,
+		updates: Partial<UnitOfMeasure>
+	): Promise<ApiResponse<UnitOfMeasure>> {
+		try {
+			const { data, error } = await supabase
+				.from('units_of_measure')
+				.update(updates)
+				.eq('id', uomId)
+				.select()
+				.single();
+
+			if (error) {
+				logger.error(new Error(error.message), {
+					context: 'updateUnitOfMeasure',
+					uomId,
+				});
+				return { data: null, error: new Error(error.message) };
+			}
+
+			return { data: data as UnitOfMeasure, error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'updateUnitOfMeasure', uomId });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Note: No delete method - UOMs are permanent once created
+	 * If soft deletion is needed later, add is_active field and update method
+	 */
+
+	// ===== Package Sizes =====
+
+	/**
+	 * Get all package sizes for an inventory item
+	 */
+	async getPackageSizes(itemId: string): Promise<ApiResponse<PackageSize[]>> {
+		try {
+			const { data, error } = await supabase
+				.from('package_sizes')
+				.select('*')
+				.eq('item_id', itemId)
+				.order('sequence', { ascending: true });
+
+			if (error) {
+				logger.error(new Error(error.message), {
+					context: 'getPackageSizes',
+					itemId,
+				});
+				return { data: null, error: new Error(error.message) };
+			}
+
+			return { data: data as PackageSize[], error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'getPackageSizes', itemId });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Get a single package size by ID
+	 */
+	async getPackageSize(packageId: string): Promise<ApiResponse<PackageSize>> {
+		try {
+			const { data, error } = await supabase
+				.from('package_sizes')
+				.select('*')
+				.eq('id', packageId)
+				.single();
+
+			if (error) {
+				logger.error(new Error(error.message), {
+					context: 'getPackageSize',
+					packageId,
+				});
+				return { data: null, error: new Error(error.message) };
+			}
+
+			return { data: data as PackageSize, error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'getPackageSize', packageId });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Create a new package size for an inventory item
+	 */
+	async createPackageSize(
+		packageData: PackageSizeInsert,
+		userId: string
+	): Promise<ApiResponse<PackageSize>> {
+		try {
+			const { data, error } = await supabase
+				.from('package_sizes')
+				.insert({
+					...packageData,
+					created_by: userId,
+					updated_by: userId,
+				})
+				.select()
+				.single();
+
+			if (error) {
+				logger.error(new Error(error.message), {
+					context: 'createPackageSize',
+					packageData,
+				});
+				return { data: null, error: new Error(error.message) };
+			}
+
+			return { data: data as PackageSize, error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'createPackageSize', packageData });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Update a package size
+	 */
+	async updatePackageSize(
+		packageId: string,
+		updates: PackageSizeUpdate,
+		userId: string
+	): Promise<ApiResponse<PackageSize>> {
+		try {
+			const { data, error } = await supabase
+				.from('package_sizes')
+				.update({
+					...updates,
+					updated_by: userId,
+					updated_at: new Date().toISOString(),
+				})
+				.eq('id', packageId)
+				.select()
+				.single();
+
+			if (error) {
+				logger.error(new Error(error.message), {
+					context: 'updatePackageSize',
+					packageId,
+					updates,
+				});
+				return { data: null, error: new Error(error.message) };
+			}
+
+			return { data: data as PackageSize, error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'updatePackageSize', packageId, updates });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Delete a package size
+	 */
+	async deletePackageSize(packageId: string): Promise<{ error: Error | null }> {
+		try {
+			const { error } = await supabase.from('package_sizes').delete().eq('id', packageId);
+
+			if (error) {
+				logger.error(new Error(error.message), {
+					context: 'deletePackageSize',
+					packageId,
+				});
+				return { error: new Error(error.message) };
+			}
+
+			return { error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'deletePackageSize', packageId });
+			return { error };
+		}
+	},
+
+	// ===== Inventory Transactions =====
+
+	/**
+	 * Get all transactions for an inventory item with optional filtering
+	 */
+	async getInventoryTransactions(
+		itemId: string,
+		filters?: InventoryTransactionFilters
+	): Promise<ApiResponse<InventoryTransaction[]>> {
+		try {
+			let query = supabase
+				.from('inventory_transactions')
+				.select('*')
+				.eq('item_id', itemId)
+				.order('transaction_on', { ascending: false });
+
+			// Apply transaction type filter
+			if (filters?.transactionType) {
+				query = query.eq('transaction_type', filters.transactionType);
+			}
+
+			const { data, error } = await query;
+
+			if (error) {
+				logger.error(new Error(error.message), {
+					context: 'getInventoryTransactions',
+					itemId,
+				});
+				return { data: null, error: new Error(error.message) };
+			}
+
+			return { data: data as InventoryTransaction[], error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'getInventoryTransactions', itemId });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Get a single inventory transaction by ID with user profile information
+	 */
+	async getInventoryTransaction(
+		transactionId: string
+	): Promise<ApiResponse<InventoryTransaction & { user_profile?: { display_name: string } }>> {
+		try {
+			// Fetch transaction
+			const { data: transaction, error: transactionError } = await supabase
+				.from('inventory_transactions')
+				.select('*')
+				.eq('id', transactionId)
+				.single();
+
+			if (transactionError) {
+				logger.error(new Error(transactionError.message), {
+					context: 'getInventoryTransaction',
+					transactionId,
+				});
+				return { data: null, error: new Error(transactionError.message) };
+			}
+
+			// Fetch user profile for the transaction creator
+			const { data: userProfile } = await supabase
+				.from('user_profiles')
+				.select('display_name')
+				.eq('id', transaction.user_id)
+				.single();
+
+			// Combine transaction with user profile
+			const result = {
+				...transaction,
+				user_profile: userProfile ? { display_name: userProfile.display_name } : undefined,
+			} as InventoryTransaction & { user_profile?: { display_name: string } };
+
+			return { data: result, error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'getInventoryTransaction', transactionId });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Create a receipt transaction (receiving inventory)
+	 * Supports both direct base unit receipts and package-based receipts
+	 */
+	async createReceiptTransaction(
+		transactionData: {
+			shop_id: string;
+			item_id: string;
+			item_name: string;
+
+			// Option 1: Direct base unit receipt
+			quantity_in?: number;
+			unit_cost?: number;
+
+			// Option 2: Package-based receipt
+			package_size_id?: string | null;
+			package_quantity?: number;
+			package_cost_per_unit?: number;
+
+			// Common fields
+			supplier?: string | null;
+			reference?: string | null;
+			notes?: string | null;
+			transaction_on: string;
+		},
+		userId: string
+	): Promise<ApiResponse<InventoryTransaction>> {
+		try {
+			let finalQuantityIn: number;
+			let finalUnitCost: number;
+			let packageSizeId: string | null = null;
+			let packageQuantity: number | null = null;
+			let packageCostPerUnit: number | null = null;
+
+			// Determine receipt type and calculate base quantity and unit cost
+			if (transactionData.package_size_id && transactionData.package_quantity) {
+				// Package-based receipt - fetch package details and calculate
+				const { data: packageSize, error: pkgError } = await supabase
+					.from('package_sizes')
+					.select('*')
+					.eq('id', transactionData.package_size_id)
+					.single();
+
+				if (pkgError || !packageSize) {
+					logger.error(new Error(pkgError?.message || 'Package size not found'), {
+						context: 'createReceiptTransaction_fetchPackage',
+					});
+					return { data: null, error: new Error(pkgError?.message || 'Package size not found') };
+				}
+
+				// Calculate base quantity: package_quantity × units_per_package
+				finalQuantityIn = transactionData.package_quantity * packageSize.units_per_package;
+
+				// Calculate unit cost: package_cost ÷ units_per_package
+				finalUnitCost = (transactionData.package_cost_per_unit || 0) / packageSize.units_per_package;
+
+				// Store package information
+				packageSizeId = transactionData.package_size_id;
+				packageQuantity = transactionData.package_quantity;
+				packageCostPerUnit = transactionData.package_cost_per_unit || 0;
+			} else {
+				// Direct base unit receipt
+				finalQuantityIn = transactionData.quantity_in || 0;
+				finalUnitCost = transactionData.unit_cost || 0;
+			}
+
+			// 1. Create transaction record with all fields
+			const { data: transaction, error: txnError } = await supabase
+				.from('inventory_transactions')
+				.insert({
+					shop_id: transactionData.shop_id,
+					item_id: transactionData.item_id,
+					item_name: transactionData.item_name,
+					transaction_type: 'receipt',
+					quantity_in: finalQuantityIn,
+					quantity_out: 0,
+					unit_cost: finalUnitCost,
+					package_size_id: packageSizeId,
+					package_quantity: packageQuantity,
+					package_cost_per_unit: packageCostPerUnit,
+					supplier: transactionData.supplier,
+					reference: transactionData.reference,
+					notes: transactionData.notes,
+					transaction_on: transactionData.transaction_on,
+					user_id: userId,
+					created_by: userId,
+					updated_by: userId,
+				})
+				.select()
+				.single();
+
+			if (txnError) {
+				logger.error(new Error(txnError.message), { context: 'createReceiptTransaction' });
+				return { data: null, error: new Error(txnError.message) };
+			}
+
+			// 2. Update inventory item counts
+			// First, fetch current values
+			const { data: currentItem, error: fetchError } = await supabase
+				.from('inventory_items')
+				.select('current_count, qty_received_to_date, cost_of_qty_received_to_date')
+				.eq('id', transactionData.item_id)
+				.single();
+
+			if (fetchError || !currentItem) {
+				logger.error(new Error(fetchError?.message || 'Item not found'), {
+					context: 'createReceiptTransaction_fetchItem',
+				});
+				return {
+					data: null,
+					error: new Error(fetchError?.message || 'Item not found'),
+				};
+			}
+
+			// Then update with new calculated values (using finalQuantityIn and finalUnitCost)
+			const { error: updateError } = await supabase
+				.from('inventory_items')
+				.update({
+					current_count: (currentItem.current_count || 0) + finalQuantityIn,
+					qty_received_to_date: (currentItem.qty_received_to_date || 0) + finalQuantityIn,
+					cost_of_qty_received_to_date:
+						(currentItem.cost_of_qty_received_to_date || 0) + finalQuantityIn * finalUnitCost,
+					updated_at: new Date().toISOString(),
+					updated_by: userId,
+				})
+				.eq('id', transactionData.item_id);
+
+			if (updateError) {
+				logger.error(new Error(updateError.message), {
+					context: 'createReceiptTransaction_updateItem',
+				});
+				return { data: null, error: new Error(updateError.message) };
+			}
+
+			return { data: transaction as InventoryTransaction, error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'createReceiptTransaction' });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Create an adjustment transaction (increase or decrease inventory)
+	 */
+	async createAdjustmentTransaction(
+		transactionData: {
+			shop_id: string;
+			item_id: string;
+			item_name: string;
+			adjustment_type: 'increase' | 'decrease';
+			quantity: number;
+			adjustment_reason_code?: string | null;
+			adjustment_reason_other?: string | null;
+			notes?: string | null;
+			transaction_on: string;
+		},
+		userId: string
+	): Promise<ApiResponse<InventoryTransaction>> {
+		try {
+			const quantity_in =
+				transactionData.adjustment_type === 'increase' ? transactionData.quantity : 0;
+			const quantity_out =
+				transactionData.adjustment_type === 'decrease' ? transactionData.quantity : 0;
+
+			// 1. Create transaction record
+			const { data: transaction, error: txnError } = await supabase
+				.from('inventory_transactions')
+				.insert({
+					shop_id: transactionData.shop_id,
+					item_id: transactionData.item_id,
+					item_name: transactionData.item_name,
+					transaction_type: 'adjustment',
+					quantity_in,
+					quantity_out,
+					adjustment_reason_code: transactionData.adjustment_reason_code || null,
+					adjustment_reason_other: transactionData.adjustment_reason_other || null,
+					notes: transactionData.notes,
+					transaction_on: transactionData.transaction_on,
+					unit_cost: 0,
+					user_id: userId,
+					created_by: userId,
+					updated_by: userId,
+				})
+				.select()
+				.single();
+
+			if (txnError) {
+				logger.error(new Error(txnError.message), { context: 'createAdjustmentTransaction' });
+				return { data: null, error: new Error(txnError.message) };
+			}
+
+			// 2. Update inventory item count
+			// First, fetch current count
+			const { data: currentItem, error: fetchError } = await supabase
+				.from('inventory_items')
+				.select('current_count')
+				.eq('id', transactionData.item_id)
+				.single();
+
+			if (fetchError || !currentItem) {
+				logger.error(new Error(fetchError?.message || 'Item not found'), {
+					context: 'createAdjustmentTransaction_fetchItem',
+				});
+				return {
+					data: null,
+					error: new Error(fetchError?.message || 'Item not found'),
+				};
+			}
+
+			// Then update with new calculated value
+			const countChange =
+				transactionData.adjustment_type === 'increase'
+					? transactionData.quantity
+					: -transactionData.quantity;
+
+			const { error: updateError } = await supabase
+				.from('inventory_items')
+				.update({
+					current_count: (currentItem.current_count || 0) + countChange,
+					updated_at: new Date().toISOString(),
+					updated_by: userId,
+				})
+				.eq('id', transactionData.item_id);
+
+			if (updateError) {
+				logger.error(new Error(updateError.message), {
+					context: 'createAdjustmentTransaction_updateItem',
+				});
+				return { data: null, error: new Error(updateError.message) };
+			}
+
+			return { data: transaction as InventoryTransaction, error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'createAdjustmentTransaction' });
+			return { data: null, error };
+		}
+	},
+
+	// ===== Inventory Counts =====
+
+	/**
+	 * Get inventory counts for a shop
+	 */
+	async getInventoryCounts(shopId: string): Promise<ApiResponse<InventoryCount[]>> {
+		try {
+			const { data, error } = await supabase
+				.from('inventory_counts')
+				.select('*')
+				.eq('shop_id', shopId)
+				.order('count_date', { ascending: false });
+
+			if (error) {
+				logger.error(new Error(error.message), {
+					context: 'getInventoryCounts',
+					shopId,
+				});
+				return { data: null, error: new Error(error.message) };
+			}
+
+			return { data: data as InventoryCount[], error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'getInventoryCounts', shopId });
+			return { data: null, error };
+		}
+	},
+
+	/**
+	 * Create a new inventory count
+	 */
+	async createInventoryCount(
+		countData: {
+			shop_id: string;
+			count_date: string;
+			count_type: string;
+			notes?: string | null;
+		},
+		userId: string
+	): Promise<ApiResponse<InventoryCount>> {
+		try {
+			const { data, error } = await supabase
+				.from('inventory_counts')
+				.insert({
+					...countData,
+					status: 'pending',
+					created_by: userId,
+					updated_by: userId,
+				})
+				.select()
+				.single();
+
+			if (error) {
+				logger.error(new Error(error.message), { context: 'createInventoryCount' });
+				return { data: null, error: new Error(error.message) };
+			}
+
+			return { data: data as InventoryCount, error: null };
+		} catch (err) {
+			const error = err as Error;
+			logger.error(error, { context: 'createInventoryCount' });
+			return { data: null, error };
+		}
+	},
+};

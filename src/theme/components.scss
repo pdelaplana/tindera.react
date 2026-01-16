@@ -1,0 +1,782 @@
+// Tindera Design System - Component Styles
+
+// ===== Card Styles =====
+ion-card {
+  --background: var(--ion-card-background, var(--color-gray-50));
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.card-elevated {
+  box-shadow: var(--shadow-lg);
+}
+
+// Flat card variant - no shadow, subtle border
+.flat-card {
+  box-shadow: none;
+  border: 1px solid var(--color-gray-200);
+  background: var(--ion-card-background, var(--color-surface-elevated));
+}
+
+// ===== Button Variants =====
+// Only style full-width block buttons, not all buttons globally
+ion-button[expand="block"],
+ion-button[expand="full"] {
+  --border-radius: var(--radius-md);
+  font-weight: var(--font-weight-semibold);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+ion-button.btn-primary {
+  --background: var(--color-brand-primary);
+}
+
+ion-button.btn-secondary {
+  --background: transparent;
+  --color: var(--color-brand-primary);
+  --border-width: 1px;
+  --border-style: solid;
+  --border-color: var(--color-brand-primary);
+}
+
+ion-button.btn-ghost {
+  --background: transparent;
+  --color: var(--ion-text-color);
+}
+
+// ===== Charge Button (primary CTA - Minimalist) =====
+ion-button.btn-charge {
+  --background: var(--color-brand-primary);
+  --background-hover: var(--color-brand-primary-dark);
+  --color: #ffffff;
+  --border-radius: var(--radius-lg);
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-lg);
+  min-height: 56px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+// ===== Form Inputs =====
+ion-input,
+ion-textarea,
+ion-select {
+  --padding-start: var(--space-4);
+  --padding-end: var(--space-4);
+  --border-radius: var(--radius-md);
+}
+
+ion-item {
+  --padding-start: var(--space-4);
+  --padding-end: var(--space-4);
+  --inner-padding-end: 0;
+  --border-radius: var(--radius-md);
+}
+
+// Transparent searchbar for card headers
+.searchBar {
+  --background: transparent;
+  --box-shadow: none;
+  --border-radius: 8px;
+  padding: 0;
+  flex: 1;
+}
+
+// ===== List Styles =====
+ion-list {
+  padding: 0;
+
+  &.list-inset {
+    margin: var(--space-4);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+}
+
+// ===== Typography Classes =====
+.text-heading {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.25;
+}
+
+.text-subheading {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.35;
+}
+
+.text-body {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.5;
+}
+
+.text-caption {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+  line-height: 1.5;
+}
+
+.text-muted {
+  color: var(--color-gray-400);
+}
+
+.text-primary {
+  color: var(--color-brand-primary);
+}
+
+.text-success {
+  color: var(--color-success);
+}
+
+.text-warning {
+  color: var(--color-warning);
+}
+
+.text-danger {
+  color: var(--color-danger);
+}
+
+// ===== Utility Classes =====
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-1 { gap: var(--space-1); }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }
+.gap-4 { gap: var(--space-4); }
+.gap-6 { gap: var(--space-6); }
+
+.p-1 { padding: var(--space-1); }
+.p-2 { padding: var(--space-2); }
+.p-3 { padding: var(--space-3); }
+.p-4 { padding: var(--space-4); }
+.p-6 { padding: var(--space-6); }
+
+.px-4 { padding-left: var(--space-4); padding-right: var(--space-4); }
+.py-4 { padding-top: var(--space-4); padding-bottom: var(--space-4); }
+
+.mt-2 { margin-top: var(--space-2); }
+.mt-4 { margin-top: var(--space-4); }
+.mb-2 { margin-bottom: var(--space-2); }
+.mb-4 { margin-bottom: var(--space-4); }
+
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+
+.rounded-md { border-radius: var(--radius-md); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-full { border-radius: var(--radius-full); }
+
+// ===== Page Layout =====
+.page-container {
+  padding: var(--space-4);
+  max-width: 100%;
+}
+
+.page-header {
+  margin-bottom: var(--space-6);
+}
+
+.section {
+  margin-bottom: var(--space-6);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+// ===== Empty State =====
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+
+
+  h3 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--ion-text-color);
+    margin-bottom: var(--space-2);
+  }
+
+  p {
+    color: var(--color-gray-500);
+    max-width: 300px;
+  }
+}
+
+// ===== Loading State =====
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+// ===== POS-Specific Styles =====
+
+// Price Display
+.text-price {
+  font-size: var(--font-size-price);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-brand-primary);
+}
+
+.text-total {
+  font-size: var(--font-size-total);
+  font-weight: var(--font-weight-bold);
+}
+
+// Status Badges
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+
+  &.status-paid {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--color-status-paid);
+  }
+
+  &.status-unpaid {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-status-unpaid);
+  }
+
+  &.status-pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--color-status-pending);
+  }
+
+  &.status-in-stock {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--color-status-in-stock);
+  }
+
+  &.status-low-stock {
+    background: rgba(249, 115, 22, 0.1);
+    color: var(--color-status-low-stock);
+  }
+
+  &.status-out-of-stock {
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--color-status-out-of-stock);
+  }
+}
+
+// Product Card Base (Minimalist)
+.product-card {
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-3);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  min-height: var(--space-tap-target);
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &__image {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    background: var(--color-gray-100);
+  }
+
+  &__name {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    margin-top: var(--space-2);
+    line-height: 1.2;
+  }
+
+  &__price {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-brand-primary);
+    margin-top: var(--space-1);
+  }
+}
+
+// Category Pill/Chip
+.category-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-surface-elevated);
+  color: var(--color-gray-600);
+  border: 1px solid var(--color-gray-200);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  min-height: 36px;
+
+  &:hover {
+    border-color: var(--color-brand-primary);
+    color: var(--color-brand-primary);
+  }
+
+  &.active {
+    background: var(--color-brand-primary);
+    color: #ffffff;
+    border-color: var(--color-brand-primary);
+  }
+}
+
+// Bento Tile (Minimalist)
+.bento-tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-elevated);
+  box-shadow: var(--shadow-md);
+  min-height: 120px;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &.bento-tile--large {
+    grid-column: span 2;
+    min-height: 140px;
+  }
+
+  &__icon {
+    font-size: 2rem;
+    color: var(--color-brand-primary);
+    margin-bottom: var(--space-2);
+  }
+
+  &__title {
+    font-size: var(--font-size-tile-label);
+    font-weight: var(--font-weight-semibold);
+    color: var(--ion-text-color);
+  }
+
+  &__value {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-brand-primary);
+  }
+
+  &__badge {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    background: var(--color-brand-primary);
+    color: #ffffff;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+  }
+}
+
+// Bento Grid Layout
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-card-gap);
+  padding: var(--space-4);
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+// POS Three-Panel Layout
+.pos-layout {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+
+  &__categories {
+    width: var(--panel-category-width);
+    flex-shrink: 0;
+    border-right: 1px solid var(--color-gray-200);
+    overflow-y: auto;
+    background: var(--color-surface-elevated);
+
+    @media (max-width: 767px) {
+      display: none;
+    }
+  }
+
+  &__products {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-4);
+  }
+
+  &__cart {
+    width: var(--panel-cart-width);
+    flex-shrink: 0;
+    border-left: 1px solid var(--color-gray-200);
+    display: flex;
+    flex-direction: column;
+    background: var(--color-surface-elevated);
+
+    @media (max-width: 767px) {
+      display: none;
+    }
+
+    @media (min-width: 1280px) {
+      width: var(--panel-cart-width-lg);
+    }
+  }
+}
+
+// Product Grid
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-card-gap);
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}
+
+// Category Pill Scroller (mobile)
+.category-scroller {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding: var(--space-2) var(--space-4);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// Cart Summary Bar (mobile)
+.cart-summary-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-brand-primary);
+  color: #ffffff;
+  cursor: pointer;
+  min-height: 56px;
+
+  @media (min-width: 768px) {
+    display: none;
+  }
+
+  &__info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  &__count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+  }
+
+  &__total {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+  }
+}
+
+// ===== Header =====
+ion-header ion-toolbar {
+  --border-color: transparent;
+}
+
+// ===== Side Menu =====
+ion-menu {
+  --background: var(--color-surface-elevated);
+
+  ion-item {
+    --padding-start: var(--space-4);
+    --padding-end: var(--space-4);
+    --min-height: var(--space-tap-target);
+    --border-radius: var(--radius-md);
+    margin: var(--space-1) var(--space-3);
+    font-weight: var(--font-weight-medium);
+
+    &.selected {
+      --background: var(--color-brand-primary);
+      --color: var(--ion-color-primary-contrast);
+      font-weight: var(--font-weight-semibold);
+
+      ion-icon {
+        color: var(--ion-color-primary-contrast);
+      }
+    }
+
+    ion-icon {
+      margin-inline-end: var(--space-3);
+      font-size: 1.5rem;
+    }
+  }
+
+  ion-toolbar {
+    --background: var(--color-brand-primary);
+    --color: var(--ion-color-primary-contrast);
+  }
+}
+
+/* === IONIC OVERRIDES FOR ZIP STYLE === */
+
+/* Clean white background for all pages */
+ion-content {
+  --background: var(--ion-color-light);
+}
+
+/* Card styling for clean elevation */
+ion-card {
+  --background: var(--card-background);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--card-shadow);
+  margin: var(--space-md);
+}
+
+/* MD mode card overrides */
+.md ion-card {
+  --background: var(--card-background);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--card-shadow);
+}
+
+/* Button styling - Scoped to specific button types */
+ion-button[expand="block"],
+ion-button[expand="full"],
+ion-button.btn-charge,
+ion-button.btn-primary,
+ion-button.btn-secondary {
+  --border-radius: var(--button-border-radius);
+  font-weight: var(--button-font-weight);
+}
+
+/* MD mode button overrides - Scoped */
+.md ion-button[expand="block"],
+.md ion-button[expand="full"],
+.md ion-button.btn-charge,
+.md ion-button.btn-primary,
+.md ion-button.btn-secondary {
+  --border-radius: var(--button-border-radius);
+  font-weight: var(--button-font-weight);
+  text-transform: none;
+}
+
+/* Primary button with Zip purple */
+ion-button[color="primary"] {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
+}
+
+.md ion-button[color="primary"] {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
+}
+
+/* Input styling */
+ion-input,
+ion-textarea,
+ion-select {
+  --border-radius: var(--input-border-radius);
+  --border-color: var(--input-border-color);
+  --highlight-color: var(--input-border-color-focus);
+}
+
+/* List styling for clean appearance */
+ion-list {
+  background: transparent;
+}
+
+.md ion-list {
+  background: transparent;
+}
+
+ion-item {
+  --background: transparent;
+  --border-color: var(--color-gray-200);
+}
+
+.md ion-item {
+  --background: transparent;
+  --border-color: var(--color-gray-200);
+  --min-height: 48px;
+}
+
+/* Header styling */
+ion-header ion-toolbar {
+  --color: var(--ion-color-dark);
+  --border-color: var(--color-gray-200);
+}
+
+/* MD (Material Design) mode overrides */
+ion-header.md.header-md {
+  -webkit-box-shadow: none!important;
+  box-shadow: none!important;
+  border-bottom: 1px solid var(--color-gray-200);
+  
+}
+
+/* iOS mode overrides */
+.ios ion-header ion-toolbar {
+  --background: var(--ion-color-light);
+  --color: var(--ion-color-dark);
+  --border-color: var(--color-gray-200);
+}
+
+/* Progress bar styling */
+ion-progress-bar {
+  --background: var(--progress-background);
+  --progress-background: var(--progress-fill);
+  height: var(--progress-height);
+  border-radius: var(--progress-border-radius);
+}
+
+/* Alert styling */
+ion-alert {
+  --background: var(--card-background);
+  --color: var(--ion-color-dark);
+  --max-width: 320px;
+  --border-radius: var(--radius-xl);
+  --box-shadow: var(--shadow-xl);
+}
+
+ion-alert .alert-wrapper {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+}
+
+ion-alert .alert-head {
+  padding: var(--space-lg) var(--space-lg) var(--space-md);
+}
+
+ion-alert .alert-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--ion-color-dark);
+  line-height: 1.2;
+}
+
+ion-alert .alert-message {
+  font-size: var(--font-size-base);
+  color: var(--color-gray-600);
+  line-height: 1.5;
+  padding: 0 var(--space-lg) var(--space-lg);
+}
+
+ion-alert .alert-button {
+  border-radius: var(--button-border-radius);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
+  min-height: 30px;
+  margin: 0;
+  min-width: 95px;
+}
+
+ion-alert .alert-button-inner {
+  justify-content: center !important;
+}
+
+ion-alert .alert-button.alert-button-role-cancel:hover {
+  background: var(--color-gray-200);
+}
+
+/* Confirm button styling */
+ion-alert .alert-button.alert-button-role-confirm {
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  border: none;
+}
+
+ion-alert .alert-button.alert-button-role-confirm:hover {
+  background: var(--ion-color-primary-shade);
+}
+
+/* Modal styling - Full viewport with centered content */
+ion-modal {
+  --height: 100%;
+  --width: 100%;
+  --border-radius: 0;
+}
+
+ion-modal ion-content {
+  --background: var(--ion-background-color);
+}
+
+/* Center modal content using max-width container */
+ion-modal ion-content > div,
+ion-modal ion-content > form {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 0;
+}

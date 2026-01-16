@@ -1,0 +1,159 @@
+// Tindera Global Styles
+
+// ===== Modern Sass Modules (@use must be first) =====
+@use './variables';
+@use './components';
+
+// ===== Ionic 8 Styles (plain CSS) =====
+@import '@ionic/react/css/core.css';
+@import '@ionic/react/css/normalize.css';
+@import '@ionic/react/css/structure.css';
+@import '@ionic/react/css/typography.css';
+
+// Ionic CSS utilities
+@import '@ionic/react/css/padding.css';
+@import '@ionic/react/css/float-elements.css';
+@import '@ionic/react/css/text-alignment.css';
+@import '@ionic/react/css/text-transformation.css';
+@import '@ionic/react/css/flex-utils.css';
+@import '@ionic/react/css/display.css';
+
+// Ionic Dark Mode palette
+@import '@ionic/react/css/palettes/dark.system.css';
+
+// ===== Global Reset/Base =====
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-base);
+}
+
+// ===== Focus States =====
+:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+}
+
+// ===== Selection =====
+::selection {
+  background-color: var(--color-brand-primary);
+  color: #ffffff;
+}
+
+// ===== Scrollbar (optional customization) =====
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}
+
+// ===== Ionic Overrides =====
+ion-content {
+  --background: var(--ion-background-color);
+}
+
+ion-page {
+  background: var(--ion-background-color);
+}
+
+ion-header {
+  --background: var(--ion-background-color);
+}
+
+ion-toolbar {
+  --background: var(--ion-background-color);
+}
+
+// Ensure safe area padding on mobile
+ion-content::part(scroll) {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+// Center align all IonTitle elements in IonHeader
+// Using absolute positioning to ensure true centering regardless of button placement
+ion-header ion-toolbar {
+  position: relative;
+}
+
+ion-header ion-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; // Allow clicks to pass through to buttons underneath
+  z-index: 0; // Keep title behind buttons
+}
+
+// Ensure buttons appear above the title
+ion-header ion-buttons {
+  position: relative;
+  z-index: 1;
+}
+
+// Align IonItem content to top
+ion-item {
+  --inner-padding-start: 0;
+  --inner-padding-end: 0;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  align-items: flex-start;
+}
+
+// Align item slots to top
+ion-item::part(native) {
+  align-items: flex-start;
+}
+
+// Align avatar to top with padding
+ion-item ion-avatar {
+  margin-top: 8px;
+}
+
+// Align detail icon (chevron) to top
+ion-item::part(detail-icon) {
+  margin-top: 12px;
+}
+
+// Alert button danger styling
+.alert-button-danger {
+  background-color: var(--ion-color-danger) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+// ===== Custom Utility Classes =====
+// Flex with default gap
+.ion-flex-gap {
+  display: flex;
+  gap: 8px;
+}

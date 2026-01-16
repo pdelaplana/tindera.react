@@ -1,0 +1,234 @@
+// Tindera Design System - Design Tokens
+// For information on how to create your own theme, please refer to:
+// http://ionicframework.com/docs/theming/
+
+:root {
+  // ===== Brand Colors (Dark Purple - Minimalist) =====
+  --color-brand-primary: #3D1B5B;       // Dark deep purple
+  --color-brand-primary-light: #B788DC; // Light purple (hover)
+  --color-brand-primary-dark: #2d1443;  // Darker purple (pressed)
+  --color-brand-secondary: #5D338C;     // Mid purple
+  --color-brand-accent: #DDD0E6;        // Light muted purple
+
+  // ===== Surface Colors (Clean White - Minimalist) =====
+  --color-surface-base: #fafafa;        // Main background (clean gray-white)
+  --color-surface-elevated: #ffffff;    // Cards, modals (pure white)
+  --color-surface-sunken: #f4f4f5;      // Inset areas (gray-100)
+
+  // ===== Semantic Colors =====
+  --color-success: #10B981;             // Emerald-500
+  --color-warning: #F59E0B;             // Amber-500
+  --color-danger: #EF4444;              // Red-500
+  --color-info: #3B82F6;                // Blue-500
+
+  // ===== Status Colors (POS-specific) =====
+  --color-status-paid: #10B981;         // Emerald
+  --color-status-unpaid: #EF4444;       // Red
+  --color-status-pending: #F59E0B;      // Amber
+  --color-status-in-stock: #22C55E;     // Green
+  --color-status-low-stock: #F97316;    // Orange
+  --color-status-out-of-stock: #DC2626; // Red-600
+
+  // ===== Neutral Colors (Spendless Grays) =====
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f4f4f5;
+  --color-gray-200: #e4e4e7;
+  --color-gray-300: #d4d4d8;
+  --color-gray-400: #a1a1aa;
+  --color-gray-500: #71717a;
+  --color-gray-600: #52525b;
+  --color-gray-700: #3f3f46;
+  --color-gray-800: #27272a;
+  --color-gray-900: #18181b;
+
+  // ===== Typography =====
+  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-family-mono: 'SF Mono', Monaco, 'Consolas', 'Liberation Mono', monospace;
+
+  --font-size-xs: 0.75rem;    // 12px
+  --font-size-sm: 0.875rem;   // 14px
+  --font-size-base: 1rem;     // 16px
+  --font-size-lg: 1.125rem;   // 18px
+  --font-size-xl: 1.25rem;    // 20px
+  --font-size-2xl: 1.5rem;    // 24px
+  --font-size-3xl: 1.875rem;  // 30px
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  // ===== Spacing (8px-based scale) =====
+  // New naming (matching designSystem.ts)
+  --space-xs: 0.25rem;  // 4px
+  --space-sm: 0.5rem;   // 8px
+  --space-md: 1rem;     // 16px
+  --space-lg: 1.5rem;   // 24px
+  --space-xl: 2rem;     // 32px
+  --space-2xl: 3rem;    // 48px
+  --space-3xl: 4rem;    // 64px
+
+  // Legacy naming (for backwards compatibility during migration)
+  --space-1: var(--space-xs);
+  --space-2: var(--space-sm);
+  --space-3: 0.75rem;   // 12px
+  --space-4: var(--space-md);
+  --space-5: 1.25rem;   // 20px
+  --space-6: var(--space-lg);
+  --space-8: var(--space-xl);
+  --space-10: 2.5rem;   // 40px
+  --space-12: var(--space-2xl);
+
+  // ===== Border Radius =====
+  --radius-sm: 0.25rem;   // 4px
+  --radius-md: 0.5rem;    // 8px
+  --radius-lg: 0.75rem;   // 12px
+  --radius-xl: 1rem;      // 16px
+  --radius-full: 9999px;
+
+  // ===== Shadows (Minimalist - Clean and Subtle) =====
+  --shadow-none: none;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+
+  // ===== POS-Specific Spacing =====
+  --space-tap-target: 48px;             // Minimum touch target
+  --space-card-gap: 12px;               // Gap between product cards
+  --space-section-gap: 24px;            // Gap between sections
+
+  // ===== Panel Widths =====
+  --panel-category-width: 180px;        // Category sidebar (tablet)
+  --panel-cart-width: 320px;            // Cart panel (tablet)
+  --panel-cart-width-lg: 380px;         // Cart panel (large tablet)
+
+  // ===== POS Typography =====
+  --font-size-price: 1.75rem;           // 28px - Price display
+  --font-size-total: 2.25rem;           // 36px - Grand total
+  --font-size-tile-label: 1.125rem;     // 18px - Bento tile labels
+
+  // ===== Ionic Color Overrides (Dark Purple Brand) =====
+  --ion-color-primary: var(--color-brand-primary);
+  --ion-color-primary-rgb: 61, 27, 91;            // #3D1B5B
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #2d1443;             // Darker purple
+  --ion-color-primary-tint: #5D338C;              // Mid purple
+
+  --ion-color-secondary: var(--color-brand-secondary);
+  --ion-color-secondary-rgb: 93, 51, 140;         // #5D338C
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #3D1B5B;
+  --ion-color-secondary-tint: #B788DC;
+
+  --ion-color-success: var(--color-success);
+  --ion-color-success-rgb: 16, 185, 129;          // #10B981
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #059669;
+  --ion-color-success-tint: #34D399;
+
+  --ion-color-warning: var(--color-warning);
+  --ion-color-warning-rgb: 245, 158, 11;          // #F59E0B
+  --ion-color-warning-contrast: #000000;
+  --ion-color-warning-contrast-rgb: 0, 0, 0;
+  --ion-color-warning-shade: #D97706;
+  --ion-color-warning-tint: #FBBF24;
+
+  --ion-color-danger: var(--color-danger);
+  --ion-color-danger-rgb: 239, 68, 68;            // #EF4444
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #DC2626;
+  --ion-color-danger-tint: #F87171;
+
+  --ion-color-medium: var(--color-gray-500);
+  --ion-color-medium-rgb: 113, 113, 122;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #52525b;
+  --ion-color-medium-tint: #a1a1aa;
+
+  --ion-color-light: var(--color-gray-100);
+  --ion-color-light-rgb: 244, 244, 245;
+  --ion-color-light-contrast: #000000;
+  --ion-color-light-contrast-rgb: 0, 0, 0;
+  --ion-color-light-shade: #e4e4e7;
+  --ion-color-light-tint: #fafafa;
+
+  // ===== Ionic Typography =====
+  --ion-font-family: var(--font-family-base);
+  --ion-default-font: var(--font-family-base);
+
+  // ===== Ionic Background Colors =====
+  --ion-background-color: var(--color-surface-base);
+  --ion-background-color-rgb: 250, 250, 250;      // #fafafa
+  --ion-text-color: var(--color-gray-900);
+  --ion-text-color-rgb: 24, 24, 27;
+
+  // ===== Card & Item Backgrounds =====
+  --ion-card-background: var(--color-surface-elevated);
+  --ion-item-background: var(--color-surface-elevated);
+  --ion-toolbar-background: var(--color-surface-elevated);
+
+  /* === COMPONENT-SPECIFIC VARIABLES === */
+
+  /* Card Styling */
+  --card-background: #ffffff;
+  --card-border-radius: var(--radius-lg);
+  --card-shadow: var(--shadow-md);
+  --card-padding: var(--space-lg);
+
+  /* Button Styling */
+  --button-border-radius: var(--radius-md);
+  --button-padding-y: 12px;
+  --button-padding-x: var(--space-lg);
+  --button-font-weight: var(--font-weight-medium);
+
+  /* Form Styling */
+  --input-border-radius: var(--radius-md);
+  --input-border-color: var(--color-gray-300);
+  --input-border-color-focus: var(--color-brand-primary);
+  --input-padding-y: 12px;
+  --input-padding-x: var(--space-md);
+
+  /* Progress Bar */
+  --progress-height: 8px;
+  --progress-background: var(--color-gray-200);
+  --progress-fill: var(--color-brand-primary);
+  --progress-border-radius: 4px;
+}
+
+// ===== Dark Mode =====
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ion-background-color: #18181b;             // gray-900
+    --ion-background-color-rgb: 24, 24, 27;
+    --ion-text-color: #fafafa;                   // gray-50
+    --ion-text-color-rgb: 250, 250, 250;
+
+    --ion-color-step-50: #27272a;                // gray-800
+    --ion-color-step-100: #3f3f46;               // gray-700
+    --ion-color-step-150: #52525b;               // gray-600
+    --ion-color-step-200: #71717a;               // gray-500
+    --ion-color-step-250: #a1a1aa;               // gray-400
+    --ion-color-step-300: #d4d4d8;               // gray-300
+    --ion-color-step-350: #e4e4e7;               // gray-200
+    --ion-color-step-400: #f4f4f5;               // gray-100
+    --ion-color-step-450: #fafafa;               // gray-50
+    --ion-color-step-500: #ffffff;
+
+    --ion-card-background: #27272a;              // gray-800
+    --ion-item-background: #27272a;
+    --ion-toolbar-background: #18181b;
+    --ion-tab-bar-background: #18181b;
+  }
+  
+}
+
+
+
