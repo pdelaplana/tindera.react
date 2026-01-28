@@ -30,12 +30,15 @@ Enhance the POS system to properly record all sales data (tax, discount, tip) an
 #### `shop_taxes`
 Multiple tax rates per shop (e.g., State Tax 6%, City Tax 2%).
 
+System template defaults are created with blank rates (0%) when a new shop is set up.
+Shop owners fill in their local rates.
+
 ```sql
 CREATE TABLE shop_taxes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   shop_id UUID NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
   name TEXT NOT NULL,                    -- "State Tax", "VAT", "City Tax"
-  rate DECIMAL(5,4) NOT NULL,            -- 0.0600 for 6%
+  rate DECIMAL(5,4) NOT NULL DEFAULT 0,  -- 0.0600 for 6%, default 0 for templates
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now(),
@@ -43,6 +46,10 @@ CREATE TABLE shop_taxes (
   updated_by UUID REFERENCES auth.users(id),
   UNIQUE(shop_id, name)
 );
+
+-- Template defaults are created per shop (with rate = 0) when a new shop is created.
+-- Common templates: "Sales Tax", "VAT", "Service Tax"
+-- Shop owners update the rates in Settings > Taxes.
 ```
 
 #### `discount_types`
@@ -297,7 +304,7 @@ Navigation: "Sales" menu item (between Inventory and Settings, or as appropriate
 
 **Mobile (<768px):**
 - Full-width order list
-- Tapping order opens detail in modal
+- Tapping order navigates to a full detail page (with back button to return to list)
 
 ### Left Panel - Order List
 
@@ -407,6 +414,36 @@ Optional discount selection:
 
 ---
 
+## Settings Page - Configuration UI
+
+Tax, discount types, and void/refund reasons are managed in the existing Settings page with new sections.
+
+### Settings > Taxes
+- List of shop taxes with name, rate, and active toggle
+- Add new tax (name + rate)
+- Edit existing tax (name, rate, active status)
+- Delete custom taxes
+- System template taxes (Sales Tax, VAT, Service Tax) are pre-created with 0% rate for new shops; shop owner updates the rate
+
+### Settings > Discount Types
+- List of discount types (system defaults + shop custom)
+- Add new custom discount type
+- Edit custom types (name, active status)
+- System defaults cannot be deleted but can be deactivated
+- Toggle active/inactive for any type
+
+### Settings > Void/Refund Reasons
+- List of reasons (system defaults + shop custom)
+- Add new custom reason
+- Edit custom reasons (name, active status)
+- System defaults cannot be deleted but can be deactivated
+
+### Settings > Shop
+- Add `order_prefix` field to existing shop settings form
+- Used for order number display (e.g., #PC-0001)
+
+---
+
 ## Service Layer Changes
 
 ### Order Service Updates
@@ -455,16 +492,21 @@ Optional discount selection:
 ```
 src/
 ├── pages/
-│   └── Sales/
-│       ├── SalesListPage.tsx        # Main sales page with list
-│       ├── components/
-│       │   ├── OrderList.tsx        # Order list component
-│       │   ├── OrderCard.tsx        # Individual order card
-│       │   ├── OrderDetail.tsx      # Receipt-style detail view
-│       │   ├── OrderDetailModal.tsx # Mobile modal wrapper
-│       │   ├── RefundModal.tsx      # Refund flow modal
-│       │   └── VoidModal.tsx        # Void confirmation modal
-│       └── index.ts
+│   ├── Sales/
+│   │   ├── SalesListPage.tsx        # Main sales page with list
+│   │   ├── components/
+│   │   │   ├── OrderList.tsx        # Order list component
+│   │   │   ├── OrderCard.tsx        # Individual order card
+│   │   │   ├── OrderDetail.tsx      # Receipt-style detail view
+│   │   │   ├── OrderDetailPage.tsx  # Mobile full-page detail view
+│   │   │   ├── RefundModal.tsx      # Refund flow modal
+│   │   │   └── VoidModal.tsx        # Void confirmation modal
+│   │   └── index.ts
+│   └── Settings/                    # Update existing
+│       └── components/
+│           ├── TaxSettings.tsx      # Tax management section
+│           ├── DiscountTypeSettings.tsx  # Discount type management
+│           └── VoidRefundReasonSettings.tsx  # Reason management
 ├── services/
 │   ├── order.service.ts             # Update existing
 │   ├── shopTax.service.ts           # New
