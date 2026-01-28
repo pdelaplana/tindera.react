@@ -204,7 +204,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
         <IonCardHeader
           className={
             (title || showSearch) && action
-              ? 'ion-align-items-start ion-justify-content-between ion-flex-row ion-display-flex'
+              ? 'ion-align-items-center ion-justify-content-between ion-flex-row ion-display-flex'
               : ''
           }
         >

@@ -269,6 +269,8 @@ export interface InventoryItem extends Auditable {
   notes: string | null;
   qty_received_to_date: number;
   cost_of_qty_received_to_date: number;
+  sku: string | null;
+  image_url: string | null;
 }
 
 export interface InventoryItemWithCategory extends InventoryItem {

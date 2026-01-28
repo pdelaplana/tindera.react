@@ -12,6 +12,7 @@ import type {
   PackageSize,
   PackageSizeInsert,
   PackageSizeUpdate,
+  PaginatedResponse,
 } from '@/types';
 import { logger } from './sentry';
 import { supabase } from './supabase';
@@ -515,6 +516,61 @@ export const inventoryService = {
     } catch (err) {
       const error = err as Error;
       logger.error(error, { context: 'getInventoryTransactions', itemId });
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Get paginated transactions for an inventory item with optional filtering
+   */
+  async getInventoryTransactionsPaginated(
+    itemId: string,
+    page: number = 1,
+    pageSize: number = 20,
+    filters?: InventoryTransactionFilters
+  ): Promise<ApiResponse<PaginatedResponse<InventoryTransaction>>> {
+    try {
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      let query = supabase
+        .from('inventory_transactions')
+        .select('*', { count: 'exact' })
+        .eq('item_id', itemId)
+        .order('transaction_on', { ascending: false })
+        .range(from, to);
+
+      // Apply transaction type filter
+      if (filters?.transactionType) {
+        query = query.eq('transaction_type', filters.transactionType);
+      }
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        logger.error(new Error(error.message), {
+          context: 'getInventoryTransactionsPaginated',
+          itemId,
+        });
+        return { data: null, error: new Error(error.message) };
+      }
+
+      const transactions = (data || []) as InventoryTransaction[];
+      const totalCount = count || 0;
+
+      return {
+        data: {
+          data: transactions,
+          count: totalCount,
+          page,
+          pageSize,
+          hasMore: from + transactions.length < totalCount,
+        },
+        error: null,
+      };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'getInventoryTransactionsPaginated', itemId });
       return { data: null, error };
     }
   },

@@ -152,7 +152,7 @@ const ModifierGroupManagePage: React.FC = () => {
         }}
       >
         <CenteredLayout>
-          <Div style={{ maxWidth: '800px', width: '100%', padding: '16px' }}>
+          <Div style={{ maxWidth: '800px', width: '100%', padding: '16px', textAlign: 'center' }}>
             <h2 ref={groupNameRef} style={{ marginTop: 0, fontSize: '1.5rem' }}>
               {group.name}
             </h2>
@@ -162,7 +162,16 @@ const ModifierGroupManagePage: React.FC = () => {
               </IonText2>
             )}
 
-            <Div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+            <Div
+              style={{
+                display: 'flex',
+                gap: '12px',
+                marginBottom: '16px',
+                flexWrap: 'wrap',
+                textAlign: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <Div
                 style={{
                   padding: '8px 12px',

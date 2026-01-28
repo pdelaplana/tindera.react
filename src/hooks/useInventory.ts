@@ -1,6 +1,6 @@
 // useInventory Hook - TanStack Query hooks for inventory management
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useShopContext } from '@/contexts/ShopContext';
 import {
@@ -354,6 +354,39 @@ export function useInventoryTransactions(
 
 			if (error) throw error;
 			return data || [];
+		},
+		enabled: !!itemId,
+	});
+}
+
+/**
+ * Hook to fetch paginated transactions for an inventory item with infinite scrolling
+ */
+export function useInventoryTransactionsInfinite(
+	itemId: string | undefined,
+	filters?: InventoryTransactionFilters & { pageSize?: number }
+) {
+	const pageSize = filters?.pageSize || 20;
+
+	return useInfiniteQuery({
+		queryKey: [...inventoryKeys.transactions(itemId || '', filters), 'infinite'],
+		queryFn: async ({ pageParam = 1 }) => {
+			if (!itemId) {
+				return { data: [], count: 0, page: 1, pageSize, hasMore: false };
+			}
+			const { data, error } = await inventoryService.getInventoryTransactionsPaginated(
+				itemId,
+				pageParam,
+				pageSize,
+				filters
+			);
+			if (error) throw error;
+			return data!;
+		},
+		initialPageParam: 1,
+		getNextPageParam: (lastPage) => {
+			if (!lastPage.hasMore) return undefined;
+			return lastPage.page + 1;
 		},
 		enabled: !!itemId,
 	});

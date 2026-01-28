@@ -142,7 +142,7 @@ export const GlobalModifierGroupFormModal: React.FC<GlobalModifierGroupFormModal
       reset();
       onClose();
     } catch (error) {
-      logger.error('Error submitting modifier group:', error);
+      logger.error(error instanceof Error ? error : new Error(String(error)));
       showError(isEditMode ? 'Failed to update modifier group' : 'Failed to create modifier group');
     }
   };
@@ -156,7 +156,7 @@ export const GlobalModifierGroupFormModal: React.FC<GlobalModifierGroupFormModal
       reset();
       onClose();
     } catch (error) {
-      logger.error('Error deleting modifier group:', error);
+      logger.error(error instanceof Error ? error : new Error(String(error)));
       showError('Failed to delete modifier group');
     }
   };
@@ -224,7 +224,6 @@ export const GlobalModifierGroupFormModal: React.FC<GlobalModifierGroupFormModal
           error={errors.min_select}
           min={0}
           step={1}
-          helperText={`Customer must select at least ${minSelect} option${minSelect === 1 ? '' : 's'}`}
         />
 
         <NumberField
@@ -235,11 +234,6 @@ export const GlobalModifierGroupFormModal: React.FC<GlobalModifierGroupFormModal
           error={errors.max_select}
           min={minSelect}
           step={1}
-          helperText={
-            maxSelect
-              ? `Customer can select up to ${maxSelect} option${maxSelect === 1 ? '' : 's'}`
-              : 'No maximum limit'
-          }
         />
 
         <SaveButton

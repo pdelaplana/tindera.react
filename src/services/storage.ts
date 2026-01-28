@@ -201,3 +201,83 @@ export async function uploadProductImage(
 
 	return publicUrl;
 }
+
+/**
+ * Upload an inventory item image to Supabase storage
+ * @param file - The image file to upload
+ * @param shopId - The shop ID (used for folder structure)
+ * @param itemId - Optional inventory item ID (if undefined, generates random filename)
+ * @returns Public URL of the uploaded image
+ */
+export async function uploadInventoryItemImage(
+	file: File,
+	shopId: string,
+	itemId?: string
+): Promise<string> {
+	// Check authentication status
+	const {
+		data: { session },
+	} = await supabase.auth.getSession();
+
+	if (!session) {
+		throw new Error('User must be authenticated to upload images');
+	}
+
+	// Debug: Check if user has access to this shop
+	const { data: shopAccess, error: accessError } = await supabase
+		.from('shop_users')
+		.select('role')
+		.eq('shop_id', shopId)
+		.eq('user_id', session.user.id)
+		.single();
+
+	if (!shopAccess) {
+		throw new Error(
+			`User does not have access to shop ${shopId}. Access check failed: ${accessError?.message}`
+		);
+	}
+
+	// Validate file size
+	if (file.size > MAX_FILE_SIZE) {
+		throw new Error('File size exceeds 5MB limit');
+	}
+
+	// Validate file type
+	const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+	if (!allowedTypes.includes(file.type)) {
+		throw new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed');
+	}
+
+	// Get file extension
+	const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+
+	// Upload path: {shopId}/inventory/{itemId or timestamp}.{extension}
+	const filename = itemId || `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+	const filePath = `${shopId}/inventory/${filename}.${extension}`;
+
+	console.log('📂 Upload inventory item image:', {
+		bucketName: BUCKET_NAME,
+		filePath,
+		shopId,
+		itemId,
+	});
+
+	// Upload file
+	const { error: uploadError } = await supabase.storage.from(BUCKET_NAME).upload(filePath, file, {
+		cacheControl: '3600',
+		upsert: true, // Overwrite existing file
+	});
+
+	if (uploadError) {
+		console.error('Upload error:', uploadError);
+		throw new Error(`Failed to upload image: ${uploadError.message}`);
+	}
+
+	// Get public URL
+	const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+	const publicUrl = `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/${filePath}`;
+
+	console.log('Inventory item image upload successful:', { filePath, publicUrl });
+
+	return publicUrl;
+}

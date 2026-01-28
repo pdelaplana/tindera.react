@@ -175,11 +175,13 @@ export type Database = {
           current_count: number | null
           description: string | null
           id: string
+          image_url: string | null
           name: string
           notes: string | null
           qty_received_to_date: number | null
           reorder_level: number | null
           shop_id: string
+          sku: string | null
           unit_cost: number | null
           updated_at: string | null
           updated_by: string | null
@@ -193,11 +195,13 @@ export type Database = {
           current_count?: number | null
           description?: string | null
           id?: string
+          image_url?: string | null
           name: string
           notes?: string | null
           qty_received_to_date?: number | null
           reorder_level?: number | null
           shop_id: string
+          sku?: string | null
           unit_cost?: number | null
           updated_at?: string | null
           updated_by?: string | null
@@ -211,11 +215,13 @@ export type Database = {
           current_count?: number | null
           description?: string | null
           id?: string
+          image_url?: string | null
           name?: string
           notes?: string | null
           qty_received_to_date?: number | null
           reorder_level?: number | null
           shop_id?: string
+          sku?: string | null
           unit_cost?: number | null
           updated_at?: string | null
           updated_by?: string | null
