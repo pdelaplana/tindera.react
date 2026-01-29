@@ -46,3 +46,9 @@ export const INVENTORY_ADJUSTMENT_REASONS = [
 	'Stock Count In',
 	'Stock Count Out',
 ] as const;
+
+export enum OrderStatus {
+	Completed = 'completed',
+	Voided = 'voided',
+	Refunded = 'refunded',
+}

@@ -75,6 +75,7 @@ const Home: React.FC = () => {
 			location: shopLocation.trim() || null,
 			currency_code: 'USD', // Default currency, can be changed in settings later
 			image_url: null,
+			order_prefix: null,
 		});
 
 		if (result.success) {

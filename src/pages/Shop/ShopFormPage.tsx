@@ -136,6 +136,7 @@ const ShopFormPage: React.FC = () => {
 					description: data.description || null,
 					location: data.location || null,
 					image_url: null, // Set after upload
+					order_prefix: null,
 				};
 
 				// Create shop first

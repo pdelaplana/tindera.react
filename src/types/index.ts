@@ -45,6 +45,7 @@ export interface Shop extends Auditable {
   location: string | null;
   currency_code: string;
   image_url: string | null;
+  order_prefix: string | null;
 }
 
 export interface ShopUser {
@@ -59,6 +60,55 @@ export interface PaymentType {
   code: string;
   description: string | null;
   is_active: boolean;
+}
+
+// ===== Shop Tax Types =====
+
+export interface ShopTax extends Auditable {
+  id: string;
+  shop_id: string;
+  name: string;
+  rate: number;
+  is_active: boolean;
+}
+
+export type ShopTaxInsert = Omit<ShopTax, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>;
+export type ShopTaxUpdate = Partial<Omit<ShopTaxInsert, 'shop_id'>>;
+
+// ===== Discount Type Types =====
+
+export interface DiscountType extends Auditable {
+  id: string;
+  shop_id: string | null;
+  name: string;
+  is_system: boolean;
+  is_active: boolean;
+}
+
+export type DiscountTypeInsert = Omit<DiscountType, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by' | 'is_system'>;
+export type DiscountTypeUpdate = Partial<Omit<DiscountTypeInsert, 'shop_id'>>;
+
+// ===== Void/Refund Reason Types =====
+
+export interface VoidRefundReason extends Auditable {
+  id: string;
+  shop_id: string | null;
+  name: string;
+  is_system: boolean;
+  is_active: boolean;
+}
+
+export type VoidRefundReasonInsert = Omit<VoidRefundReason, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by' | 'is_system'>;
+
+// ===== Order Tax Types =====
+
+export interface OrderTax extends Auditable {
+  id: string;
+  order_id: string;
+  shop_tax_id: string | null;
+  tax_name: string;
+  tax_rate: number;
+  tax_amount: number;
 }
 
 // ===== Category Types =====
@@ -324,6 +374,8 @@ export interface Order extends Auditable {
   id: string;
   shop_id: string;
   order_date: string;
+  order_number: number | null;
+  status: string;  // 'completed' | 'voided' | 'refunded'
   total_sale: number;
   served_by_id: string | null;
   dispatched_by_id: string | null;
@@ -335,11 +387,34 @@ export interface Order extends Auditable {
   payment_received: boolean;
   payment_amount_received: number | null;
   payment_change: number | null;
+  // Discount fields
+  discount_type_id: string | null;
+  discount_method: string | null;  // 'percentage' | 'fixed'
+  discount_value: number | null;
+  discount_amount: number | null;
+  // Tip fields
+  tip_amount: number | null;
+  tip_recipient_id: string | null;
+  // Refund fields
+  refund_amount: number | null;
+  refund_reason_id: string | null;
+  refunded_at: string | null;
+  refunded_by: string | null;
+  // Void fields
+  void_reason_id: string | null;
+  voided_at: string | null;
+  voided_by: string | null;
+}
+
+export interface OrderItemWithDetails extends OrderItem {
+  modifiers: OrderItemModifier[];
+  addons: OrderItemAddon[];
 }
 
 export interface OrderWithDetails extends Order {
   payment_type: PaymentType | null;
-  order_items: OrderItem[];
+  order_items: OrderItemWithDetails[];
+  order_taxes: OrderTax[];
 }
 
 export interface OrderItem {
@@ -480,9 +555,21 @@ export interface CreateOrderData {
   payment_amount_received: number | null;
   payment_change: number | null;
   items: CartItem[];
-  tax: number;
-  discount: number;
-  tip: number;
+  // Tax breakdown
+  taxes: Array<{
+    shop_tax_id: string;
+    tax_name: string;
+    tax_rate: number;
+    tax_amount: number;
+  }>;
+  // Discount
+  discount_type_id: string | null;
+  discount_method: string | null;
+  discount_value: number | null;
+  discount_amount: number | null;
+  // Tip
+  tip_amount: number | null;
+  tip_recipient_id: string | null;
 }
 
 export interface OrderCreationResult {
