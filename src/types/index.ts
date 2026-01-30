@@ -52,6 +52,10 @@ export interface ShopUser {
   shop_id: string;
   user_id: string;
   role: string;
+  user_profiles?: {
+    display_name: string | null;
+    email: string;
+  };
 }
 
 export interface PaymentType {

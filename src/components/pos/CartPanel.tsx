@@ -19,7 +19,6 @@ interface CartPanelProps {
     tax_rate: number;
     tax_amount: number;
   }>;
-  discount?: number;
   total: number;
   currency?: string;
   customerName?: string;
@@ -113,7 +112,6 @@ export const CartPanel: React.FC<CartPanelProps> = ({
   items,
   subtotal,
   taxBreakdown = [],
-  discount = 0,
   total,
   currency = 'USD',
   customerName,
@@ -164,7 +162,6 @@ export const CartPanel: React.FC<CartPanelProps> = ({
           <OrderTotals
             subtotal={subtotal}
             taxBreakdown={taxBreakdown}
-            discount={discount}
             total={total}
             currency={currency}
           />

@@ -169,7 +169,13 @@ export const shopService = {
 	 */
 	async getShopUsers(shopId: string): Promise<ApiResponse<ShopUser[]>> {
 		try {
-			const { data, error } = await supabase.from('shop_users').select('*').eq('shop_id', shopId);
+			const { data, error } = await supabase
+				.from('shop_users')
+				.select(`
+					*,
+					user_profiles!inner(display_name, email)
+				`)
+				.eq('shop_id', shopId);
 
 			if (error) {
 				logger.error(new Error(error.message), { context: 'getShopUsers', shopId });

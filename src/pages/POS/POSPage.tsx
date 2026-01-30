@@ -231,7 +231,6 @@ const POSPage: React.FC = () => {
         items={items}
         subtotal={subtotal}
         taxBreakdown={totals.taxBreakdown}
-        discount={totals.discount}
         total={totals.total}
         currency={currency}
         customerName={customerName ?? undefined}
@@ -306,7 +305,6 @@ const POSPage: React.FC = () => {
             items={items}
             subtotal={subtotal}
             taxBreakdown={totals.taxBreakdown}
-            discount={totals.discount}
             total={totals.total}
             currency={currency}
             customerName={customerName ?? undefined}
