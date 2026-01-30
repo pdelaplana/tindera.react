@@ -8,6 +8,7 @@ import {
 	IonList,
 	IonPage,
 	IonSearchbar,
+	IonSpinner,
 } from '@ionic/react';
 import type React from 'react';
 import { useMemo, useState } from 'react';
@@ -69,10 +70,92 @@ const PlaceholderContainer = styled.div`
 	padding: 48px;
 	text-align: center;
 	color: var(--ion-color-medium);
+	gap: 8px;
 `;
 
 // Filter type definition
 type FilterType = 'all' | 'completed' | 'voided' | 'refunded';
+
+// Component interfaces
+interface OrderListProps {
+	orders: Order[] | undefined;
+	onSelect: (orderId: string) => void;
+	selectedOrderId: string | null;
+	isDesktop: boolean;
+	isLoading: boolean;
+}
+
+interface OrderDetailProps {
+	order: Order | null;
+}
+
+// Placeholder OrderList component - simple list of order numbers
+const OrderList: React.FC<OrderListProps> = ({
+	orders,
+	onSelect,
+	selectedOrderId,
+	isDesktop,
+	isLoading
+}) => {
+	if (isLoading) {
+		return (
+			<PlaceholderContainer>
+				<IonSpinner />
+				<p>Loading orders...</p>
+			</PlaceholderContainer>
+		);
+	}
+
+	if (!orders || orders.length === 0) {
+		return (
+			<PlaceholderContainer>
+				<p>No orders found</p>
+			</PlaceholderContainer>
+		);
+	}
+
+	return (
+		<IonList>
+			{orders.map((order) => (
+				<IonItem
+					key={order.id}
+					button
+					onClick={() => onSelect(order.id)}
+					detail={!isDesktop}
+					color={isDesktop && selectedOrderId === order.id ? 'light' : undefined}
+				>
+					<IonLabel>
+						<h2>Order #{order.order_number || 'N/A'}</h2>
+						<p>{order.status}</p>
+					</IonLabel>
+				</IonItem>
+			))}
+		</IonList>
+	);
+};
+
+// Placeholder OrderDetail component - simple detail view
+const OrderDetail: React.FC<OrderDetailProps> = ({ order }) => {
+	if (!order) {
+		return (
+			<PlaceholderContainer>
+				<h2>Select an Order</h2>
+				<p>Choose an order from the list to view details</p>
+			</PlaceholderContainer>
+		);
+	}
+
+	return (
+		<div style={{ padding: '16px' }}>
+			<h2>Order #{order.order_number || 'N/A'}</h2>
+			<p>Status: {order.status}</p>
+			<p>Total: ${order.total_sale}</p>
+			<p style={{ marginTop: '16px', color: 'var(--ion-color-medium)' }}>
+				This is a placeholder. Tasks 23-28 will create the full OrderDetail component.
+			</p>
+		</div>
+	);
+};
 
 const SalesListPage: React.FC = () => {
 	const history = useHistory();
@@ -90,7 +173,7 @@ const SalesListPage: React.FC = () => {
 	}, [selectedFilter]);
 
 	// Fetch orders with filters
-	const { data: orders } = useOrders({
+	const { data: orders, error, isLoading } = useOrders({
 		status: statusFilter,
 		search: searchText || undefined,
 	});
@@ -151,58 +234,20 @@ const SalesListPage: React.FC = () => {
 		/>
 	);
 
-	// Placeholder OrderList component - simple list of order numbers
-	const OrderList: React.FC<{ onSelect: (orderId: string) => void }> = ({ onSelect }) => {
-		if (!orders || orders.length === 0) {
-			return (
-				<PlaceholderContainer>
-					<p>No orders found</p>
-				</PlaceholderContainer>
-			);
-		}
-
+	// Error state
+	if (error) {
 		return (
-			<IonList>
-				{orders.map((order) => (
-					<IonItem
-						key={order.id}
-						button
-						onClick={() => onSelect(order.id)}
-						detail={!isDesktop}
-						color={isDesktop && selectedOrderId === order.id ? 'light' : undefined}
-					>
-						<IonLabel>
-							<h2>Order #{order.order_number || 'N/A'}</h2>
-							<p>{order.status}</p>
-						</IonLabel>
-					</IonItem>
-				))}
-			</IonList>
+			<IonPage>
+				<PageHeader title="Sales" />
+				<IonContent>
+					<PlaceholderContainer>
+						<h2>Error Loading Orders</h2>
+						<p>{error instanceof Error ? error.message : 'An unknown error occurred'}</p>
+					</PlaceholderContainer>
+				</IonContent>
+			</IonPage>
 		);
-	};
-
-	// Placeholder OrderDetail component - simple detail view
-	const OrderDetail: React.FC<{ order: Order | null }> = ({ order }) => {
-		if (!order) {
-			return (
-				<PlaceholderContainer>
-					<h2>Select an Order</h2>
-					<p>Choose an order from the list to view details</p>
-				</PlaceholderContainer>
-			);
-		}
-
-		return (
-			<div style={{ padding: '16px' }}>
-				<h2>Order #{order.order_number || 'N/A'}</h2>
-				<p>Status: {order.status}</p>
-				<p>Total: ${order.total_sale}</p>
-				<p style={{ marginTop: '16px', color: 'var(--ion-color-medium)' }}>
-					Detailed order information will be displayed here in future tasks.
-				</p>
-			</div>
-		);
-	};
+	}
 
 	// Desktop layout with split pane
 	if (isDesktop) {
@@ -214,7 +259,13 @@ const SalesListPage: React.FC = () => {
 						<LeftPanel>
 							{renderSearchBar()}
 							{renderFilterTabs()}
-							<OrderList onSelect={handleOrderSelect} />
+							<OrderList
+								orders={orders}
+								onSelect={handleOrderSelect}
+								selectedOrderId={selectedOrderId}
+								isDesktop={isDesktop}
+								isLoading={isLoading}
+							/>
 						</LeftPanel>
 						<RightPanel>
 							<OrderDetail order={selectedOrder} />
@@ -233,7 +284,13 @@ const SalesListPage: React.FC = () => {
 				<MobileContainer>
 					{renderSearchBar()}
 					{renderFilterTabs()}
-					<OrderList onSelect={handleOrderSelect} />
+					<OrderList
+						orders={orders}
+						onSelect={handleOrderSelect}
+						selectedOrderId={selectedOrderId}
+						isDesktop={isDesktop}
+						isLoading={isLoading}
+					/>
 				</MobileContainer>
 			</IonContent>
 		</IonPage>
