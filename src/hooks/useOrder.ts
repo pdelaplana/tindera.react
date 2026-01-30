@@ -3,14 +3,66 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useShopContext } from '@/contexts/ShopContext';
+import { useUI } from '@/contexts/UIContext';
 import { orderService } from '@/services/order.service';
 import type { CreateOrderData } from '@/types';
 
 // Query keys for order-related queries
 export const orderKeys = {
   all: ['orders'] as const,
+  lists: () => [...orderKeys.all, 'list'] as const,
+  list: (shopId: string, filters?: Record<string, unknown>) =>
+    [...orderKeys.lists(), shopId, filters] as const,
+  details: () => [...orderKeys.all, 'detail'] as const,
+  detail: (orderId: string) => [...orderKeys.details(), orderId] as const,
   paymentTypes: (shopId: string) => [...orderKeys.all, 'payment-types', shopId] as const,
 };
+
+/**
+ * Hook to fetch orders for current shop
+ * Supports optional filtering by status and search
+ */
+export function useOrders(options?: { status?: string; search?: string }) {
+  const { currentShop } = useShopContext();
+
+  return useQuery({
+    queryKey: orderKeys.list(currentShop?.id || '', options),
+    queryFn: async () => {
+      if (!currentShop) {
+        throw new Error('No shop selected');
+      }
+
+      const result = await orderService.getOrders(currentShop.id, options);
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      return result.data || [];
+    },
+    enabled: !!currentShop,
+  });
+}
+
+/**
+ * Hook to fetch a single order by ID
+ * Returns order with full details including items, taxes, discounts
+ */
+export function useOrderDetail(orderId: string) {
+  return useQuery({
+    queryKey: orderKeys.detail(orderId),
+    queryFn: async () => {
+      const result = await orderService.getOrder(orderId);
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      return result.data;
+    },
+    enabled: !!orderId,
+  });
+}
 
 /**
  * Hook to fetch payment types for current shop
@@ -54,6 +106,72 @@ export function useCreateOrder() {
     onSuccess: () => {
       // Invalidate orders list (for future order history feature)
       queryClient.invalidateQueries({ queryKey: orderKeys.all });
+    },
+  });
+}
+
+/**
+ * Hook to void an order
+ * Requires a void reason ID and automatically invalidates order queries
+ */
+export function useVoidOrder() {
+  const queryClient = useQueryClient();
+  const { user } = useAuthContext();
+  const { showSuccess, showError } = useUI();
+
+  return useMutation({
+    mutationFn: async ({ orderId, reasonId }: { orderId: string; reasonId: string }) => {
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      const result = await orderService.voidOrder(orderId, reasonId, user.id);
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderKeys.all });
+      showSuccess('Order voided successfully');
+    },
+    onError: (error: Error) => {
+      showError(error.message || 'Failed to void order');
+    },
+  });
+}
+
+/**
+ * Hook to refund an order
+ * Requires refund amount and reason ID
+ */
+export function useRefundOrder() {
+  const queryClient = useQueryClient();
+  const { user } = useAuthContext();
+  const { showSuccess, showError } = useUI();
+
+  return useMutation({
+    mutationFn: async ({ orderId, amount, reasonId }: { orderId: string; amount: number; reasonId: string }) => {
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      const result = await orderService.refundOrder(orderId, amount, reasonId, user.id);
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderKeys.all });
+      showSuccess('Order refunded successfully');
+    },
+    onError: (error: Error) => {
+      showError(error.message || 'Failed to refund order');
     },
   });
 }
