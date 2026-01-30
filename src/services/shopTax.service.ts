@@ -7,6 +7,7 @@ import { supabase } from './supabase';
 export const shopTaxService = {
   async getShopTaxes(shopId: string): Promise<ApiResponse<ShopTax[]>> {
     try {
+      // @ts-expect-error - shop_taxes table not in generated types yet (needs db:types regeneration)
       const { data, error } = await supabase
         .from('shop_taxes')
         .select('*')
@@ -29,6 +30,7 @@ export const shopTaxService = {
 
   async getAllShopTaxes(shopId: string): Promise<ApiResponse<ShopTax[]>> {
     try {
+      // @ts-expect-error - shop_taxes table not in generated types yet (needs db:types regeneration)
       const { data, error } = await supabase
         .from('shop_taxes')
         .select('*')
@@ -50,6 +52,7 @@ export const shopTaxService = {
 
   async createShopTax(shopId: string, name: string, rate: number, userId: string): Promise<ApiResponse<ShopTax>> {
     try {
+      // @ts-expect-error - shop_taxes table not in generated types yet (needs db:types regeneration)
       const { data, error } = await supabase
         .from('shop_taxes')
         .insert({
@@ -77,6 +80,7 @@ export const shopTaxService = {
 
   async updateShopTax(taxId: string, updates: ShopTaxUpdate, userId: string): Promise<ApiResponse<ShopTax>> {
     try {
+      // @ts-expect-error - shop_taxes table not in generated types yet (needs db:types regeneration)
       const { data, error } = await supabase
         .from('shop_taxes')
         .update({
@@ -103,6 +107,7 @@ export const shopTaxService = {
 
   async deleteShopTax(taxId: string): Promise<{ error: Error | null }> {
     try {
+      // @ts-expect-error - shop_taxes table not in generated types yet (needs db:types regeneration)
       const { error } = await supabase
         .from('shop_taxes')
         .delete()

@@ -169,11 +169,15 @@ export const shopService = {
 	 */
 	async getShopUsers(shopId: string): Promise<ApiResponse<ShopUser[]>> {
 		try {
+			// Join with user_profiles using the user_id field
+			// shop_users.user_id -> user_profiles.id
 			const { data, error } = await supabase
 				.from('shop_users')
 				.select(`
-					*,
-					user_profiles!inner(display_name, email)
+					shop_id,
+					user_id,
+					role,
+					user_profiles!user_id(display_name)
 				`)
 				.eq('shop_id', shopId);
 

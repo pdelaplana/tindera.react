@@ -286,6 +286,7 @@ interface NumberFieldProps<T extends FieldValues> {
 	min?: number;
 	max?: number;
 	step?: number | 'any';
+	rules?: object;
 }
 
 export function NumberField<T extends FieldValues>({
@@ -299,12 +300,14 @@ export function NumberField<T extends FieldValues>({
 	min,
 	max,
 	step = 1,
+	rules,
 }: NumberFieldProps<T>) {
 	return (
 		<div style={{ marginBottom: 'var(--space-md)' }}>
 			<Controller
 				name={name}
 				control={control}
+				rules={rules}
 				render={({ field: { onChange, onBlur, value } }) => (
 					<IonInput
 						fill="outline"

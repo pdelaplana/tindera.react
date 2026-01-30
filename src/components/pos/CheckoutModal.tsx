@@ -508,6 +508,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 placeholder="0"
                 min={0}
                 max={100}
+                rules={{ min: 0, max: 100 }}
                 error={errors.discount_value}
               />
             ) : (
@@ -554,7 +555,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             placeholder="Select staff member"
             options={shopUsers.map((su) => ({
               value: su.user_id,
-              label: su.user_profiles?.display_name || su.user_profiles?.email || su.user_id,
+              label: su.user_profiles?.display_name || su.user_id,
             }))}
             error={errors.tip_recipient_id}
           />

@@ -118,6 +118,7 @@ export const orderService = {
           updated_by: userId,
         }));
 
+        // @ts-expect-error - order_taxes table not in generated types yet (needs db:types regeneration)
         const { error: taxError } = await supabase
           .from('order_taxes')
           .insert(orderTaxes);
@@ -554,6 +555,7 @@ export const orderService = {
         .order('order_date', { ascending: false });
 
       if (options?.status) {
+        // @ts-expect-error - status column not in generated types yet (needs db:types regeneration)
         query = query.eq('status', options.status);
       }
 
@@ -625,6 +627,7 @@ export const orderService = {
    */
   async voidOrder(orderId: string, reasonId: string, userId: string): Promise<ApiResponse<Order>> {
     try {
+      // @ts-expect-error - status column not in generated types yet (needs db:types regeneration)
       const { data: existing, error: fetchError } = await supabase
         .from('orders')
         .select('status')
@@ -635,7 +638,9 @@ export const orderService = {
         return { data: null, error: new Error('Order not found') };
       }
 
+      // @ts-expect-error - status property not in generated types yet
       if (existing.status !== 'completed') {
+        // @ts-expect-error - status property not in generated types yet
         return { data: null, error: new Error(`Cannot void order with status: ${existing.status}`) };
       }
 
@@ -671,6 +676,7 @@ export const orderService = {
    */
   async refundOrder(orderId: string, amount: number, reasonId: string, userId: string): Promise<ApiResponse<Order>> {
     try {
+      // @ts-expect-error - status column not in generated types yet (needs db:types regeneration)
       const { data: existing, error: fetchError } = await supabase
         .from('orders')
         .select('status, total_sale')
@@ -681,10 +687,13 @@ export const orderService = {
         return { data: null, error: new Error('Order not found') };
       }
 
+      // @ts-expect-error - status property not in generated types yet
       if (existing.status !== 'completed') {
+        // @ts-expect-error - status property not in generated types yet
         return { data: null, error: new Error(`Cannot refund order with status: ${existing.status}`) };
       }
 
+      // @ts-expect-error - total_sale property exists in the query result
       if (amount > existing.total_sale) {
         return { data: null, error: new Error('Refund amount cannot exceed order total') };
       }

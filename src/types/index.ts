@@ -54,7 +54,6 @@ export interface ShopUser {
   role: string;
   user_profiles?: {
     display_name: string | null;
-    email: string;
   };
 }
 
