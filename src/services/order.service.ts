@@ -6,6 +6,9 @@ import type {
   CreateOrderData,
   Order,
   OrderCreationResult,
+  OrderWithDetails,
+  OrderItemWithDetails,
+  OrderTax,
   PaymentType,
 } from '@/types';
 import { inventoryService } from './inventory.service';
@@ -70,6 +73,13 @@ export const orderService = {
           payment_received: orderData.payment_received,
           payment_amount_received: orderData.payment_amount_received,
           payment_change: orderData.payment_change,
+          status: 'completed',
+          discount_type_id: orderData.discount_type_id,
+          discount_method: orderData.discount_method,
+          discount_value: orderData.discount_value,
+          discount_amount: orderData.discount_amount,
+          tip_amount: orderData.tip_amount,
+          tip_recipient_id: orderData.tip_recipient_id,
           created_at: now,
           updated_at: now,
           created_by: userId,
@@ -92,6 +102,30 @@ export const orderService = {
         // Rollback: Delete the order (cascades to items/modifiers/addons)
         await supabase.from('orders').delete().eq('id', order.id);
         return { data: null, error: orderItemsResult.error };
+      }
+
+      // STEP 3.5: Create order tax breakdown
+      if (orderData.taxes && orderData.taxes.length > 0) {
+        const orderTaxes = orderData.taxes.map(tax => ({
+          order_id: order.id,
+          shop_tax_id: tax.shop_tax_id,
+          tax_name: tax.tax_name,
+          tax_rate: tax.tax_rate,
+          tax_amount: tax.tax_amount,
+          created_at: now,
+          updated_at: now,
+          created_by: userId,
+          updated_by: userId,
+        }));
+
+        const { error: taxError } = await supabase
+          .from('order_taxes')
+          .insert(orderTaxes);
+
+        if (taxError) {
+          await supabase.from('orders').delete().eq('id', order.id);
+          return { data: null, error: new Error(`Failed to create order taxes: ${taxError.message}`) };
+        }
       }
 
       // STEP 4: Decrement inventory
@@ -490,6 +524,195 @@ export const orderService = {
     } catch (err) {
       const error = err as Error;
       logger.error(error, { context: '_decrementInventory' });
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Get orders for a shop with optional filtering
+   */
+  async getOrders(shopId: string, options?: {
+    status?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<ApiResponse<OrderWithDetails[]>> {
+    try {
+      let query = supabase
+        .from('orders')
+        .select(`
+          *,
+          payment_type:payment_types(*),
+          order_items(
+            *,
+            modifiers:order_item_modifiers(*),
+            addons:order_item_addons(*)
+          ),
+          order_taxes(*)
+        `)
+        .eq('shop_id', shopId)
+        .order('order_date', { ascending: false });
+
+      if (options?.status) {
+        query = query.eq('status', options.status);
+      }
+
+      if (options?.search) {
+        const searchNum = parseInt(options.search, 10);
+        if (!isNaN(searchNum)) {
+          query = query.eq('order_number', searchNum);
+        }
+      }
+
+      if (options?.limit) {
+        query = query.limit(options.limit);
+      }
+
+      if (options?.offset) {
+        query = query.range(options.offset, options.offset + (options?.limit || 50) - 1);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        logger.error(new Error(error.message), { context: 'getOrders', shopId });
+        return { data: null, error: new Error(error.message) };
+      }
+
+      return { data: data as unknown as OrderWithDetails[], error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'getOrders', shopId });
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Get a single order with full details
+   */
+  async getOrder(orderId: string): Promise<ApiResponse<OrderWithDetails>> {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          payment_type:payment_types(*),
+          order_items(
+            *,
+            modifiers:order_item_modifiers(*),
+            addons:order_item_addons(*)
+          ),
+          order_taxes(*)
+        `)
+        .eq('id', orderId)
+        .single();
+
+      if (error) {
+        logger.error(new Error(error.message), { context: 'getOrder', orderId });
+        return { data: null, error: new Error(error.message) };
+      }
+
+      return { data: data as unknown as OrderWithDetails, error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'getOrder', orderId });
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Void an order
+   */
+  async voidOrder(orderId: string, reasonId: string, userId: string): Promise<ApiResponse<Order>> {
+    try {
+      const { data: existing, error: fetchError } = await supabase
+        .from('orders')
+        .select('status')
+        .eq('id', orderId)
+        .single();
+
+      if (fetchError || !existing) {
+        return { data: null, error: new Error('Order not found') };
+      }
+
+      if (existing.status !== 'completed') {
+        return { data: null, error: new Error(`Cannot void order with status: ${existing.status}`) };
+      }
+
+      const { data, error } = await supabase
+        .from('orders')
+        .update({
+          status: 'voided',
+          void_reason_id: reasonId,
+          voided_at: new Date().toISOString(),
+          voided_by: userId,
+          updated_at: new Date().toISOString(),
+          updated_by: userId,
+        })
+        .eq('id', orderId)
+        .select()
+        .single();
+
+      if (error) {
+        logger.error(new Error(error.message), { context: 'voidOrder', orderId });
+        return { data: null, error: new Error(error.message) };
+      }
+
+      return { data: data as Order, error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'voidOrder', orderId });
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Refund an order
+   */
+  async refundOrder(orderId: string, amount: number, reasonId: string, userId: string): Promise<ApiResponse<Order>> {
+    try {
+      const { data: existing, error: fetchError } = await supabase
+        .from('orders')
+        .select('status, total_sale')
+        .eq('id', orderId)
+        .single();
+
+      if (fetchError || !existing) {
+        return { data: null, error: new Error('Order not found') };
+      }
+
+      if (existing.status !== 'completed') {
+        return { data: null, error: new Error(`Cannot refund order with status: ${existing.status}`) };
+      }
+
+      if (amount > existing.total_sale) {
+        return { data: null, error: new Error('Refund amount cannot exceed order total') };
+      }
+
+      const { data, error } = await supabase
+        .from('orders')
+        .update({
+          status: 'refunded',
+          refund_amount: amount,
+          refund_reason_id: reasonId,
+          refunded_at: new Date().toISOString(),
+          refunded_by: userId,
+          updated_at: new Date().toISOString(),
+          updated_by: userId,
+        })
+        .eq('id', orderId)
+        .select()
+        .single();
+
+      if (error) {
+        logger.error(new Error(error.message), { context: 'refundOrder', orderId });
+        return { data: null, error: new Error(error.message) };
+      }
+
+      return { data: data as Order, error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'refundOrder', orderId });
       return { data: null, error };
     }
   },
