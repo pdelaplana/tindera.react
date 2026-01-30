@@ -43,6 +43,8 @@ interface TextFieldProps<T extends FieldValues> {
 	error?: FieldError;
 	type?: 'text' | 'email' | 'password' | 'tel' | 'url';
 	disabled?: boolean;
+	maxLength?: number;
+	helperText?: string;
 }
 
 export function TextField<T extends FieldValues>({
@@ -54,6 +56,8 @@ export function TextField<T extends FieldValues>({
 	error,
 	type = 'text',
 	disabled = false,
+	maxLength,
+	helperText,
 }: TextFieldProps<T>) {
 	return (
 		<div style={{ marginBottom: 'var(--space-md)' }}>
@@ -72,6 +76,8 @@ export function TextField<T extends FieldValues>({
 						placeholder={placeholder}
 						className={error ? 'ion-invalid' : ''}
 						disabled={disabled}
+						maxlength={maxLength}
+						helperText={helperText}
 					/>
 				)}
 			/>

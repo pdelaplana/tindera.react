@@ -20,6 +20,7 @@ import { CenteredLayout } from '@/components/layouts';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import PageHeader from '@/components/shared/PageHeader';
 import { useDeleteShop, useShop } from '@/hooks/useShop';
+import { DiscountTypeSettings, TaxSettings, VoidRefundReasonSettings } from './components';
 
 const SettingsPage: React.FC = () => {
 	const history = useHistory();
@@ -75,6 +76,18 @@ const SettingsPage: React.FC = () => {
 									</IonList>
 								</IonCardContent>
 							</IonCard>
+
+							{/* Tax Configuration */}
+							<IonTitle>Tax Configuration</IonTitle>
+							<TaxSettings />
+
+							{/* Discount Types */}
+							<IonTitle>Discount Types</IonTitle>
+							<DiscountTypeSettings />
+
+							{/* Void & Refund Reasons */}
+							<IonTitle>Void & Refund Reasons</IonTitle>
+							<VoidRefundReasonSettings />
 
 							<IonTitle>Danger Zone</IonTitle>
 							<IonCard

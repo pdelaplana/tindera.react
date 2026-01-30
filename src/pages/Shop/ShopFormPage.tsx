@@ -54,6 +54,7 @@ const shopSchema = z.object({
 	description: z.string().max(500, 'Description too long').optional().nullable(),
 	location: z.string().max(200, 'Location too long').optional().nullable(),
 	currency_code: z.string().min(3, 'Currency is required').max(3),
+	order_prefix: z.string().max(10, 'Prefix too long').optional().nullable(),
 	image_url: z.string().optional().nullable(),
 });
 
@@ -93,6 +94,7 @@ const ShopFormPage: React.FC = () => {
 			description: '',
 			location: '',
 			currency_code: 'USD',
+			order_prefix: '',
 			image_url: '',
 		},
 	});
@@ -110,6 +112,7 @@ const ShopFormPage: React.FC = () => {
 					description: shop.description || '',
 					location: shop.location || '',
 					currency_code: shop.currency_code,
+					order_prefix: shop.order_prefix || '',
 					image_url: shop.image_url || '',
 				});
 			}
@@ -135,8 +138,8 @@ const ShopFormPage: React.FC = () => {
 					...data,
 					description: data.description || null,
 					location: data.location || null,
+					order_prefix: data.order_prefix || null,
 					image_url: null, // Set after upload
-					order_prefix: null,
 				};
 
 				// Create shop first
@@ -202,6 +205,7 @@ const ShopFormPage: React.FC = () => {
 					...data,
 					description: data.description || null,
 					location: data.location || null,
+					order_prefix: data.order_prefix || null,
 					image_url: imageUrl || null,
 				};
 
@@ -254,6 +258,17 @@ const ShopFormPage: React.FC = () => {
 								required
 								error={errors.name}
 								disabled={isSaving}
+							/>
+							{/* Order Prefix */}
+							<TextField
+								name="order_prefix"
+								control={control}
+								label="Order Number Prefix"
+								placeholder="e.g., PC, CAFE (optional)"
+								maxLength={10}
+								error={errors.order_prefix}
+								disabled={isSaving}
+								helperText="Used for order numbers like #PC-0001"
 							/>
 							{/* Description */}
 							<TextAreaField
