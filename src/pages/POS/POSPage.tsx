@@ -36,6 +36,7 @@ import { useIsMobile, useIsTabletOrLarger } from '@/hooks/useBreakpoint';
 import { useCart } from '@/hooks/useCart';
 // Hooks
 import { useProductCategories, useProducts } from '@/hooks/useProduct';
+import { useShopTaxes } from '@/hooks/useShopTaxes';
 import { productService } from '@/services/product.service';
 import type { CartItemAddon, CartItemModifier, Product, ProductWithDetails } from '@/types';
 
@@ -44,7 +45,10 @@ const POSPage: React.FC = () => {
   const isMobile = useIsMobile();
   const isTablet = useIsTabletOrLarger();
 
-  // Cart state
+  // Fetch shop taxes
+  const { data: shopTaxes = [] } = useShopTaxes();
+
+  // Cart state with multi-tax support
   const {
     items,
     itemCount,
@@ -58,7 +62,7 @@ const POSPage: React.FC = () => {
     customerName,
     getItem,
     clearCart,
-  } = useCart();
+  } = useCart({ shopTaxes });
 
   // Category filter state
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
@@ -226,8 +230,7 @@ const POSPage: React.FC = () => {
       <CartPanel
         items={items}
         subtotal={subtotal}
-        tax={totals.tax}
-        taxRate={totals.taxRate}
+        taxBreakdown={totals.taxBreakdown}
         discount={totals.discount}
         total={totals.total}
         currency={currency}
@@ -302,8 +305,7 @@ const POSPage: React.FC = () => {
           <CartPanel
             items={items}
             subtotal={subtotal}
-            tax={totals.tax}
-            taxRate={totals.taxRate}
+            taxBreakdown={totals.taxBreakdown}
             discount={totals.discount}
             total={totals.total}
             currency={currency}
@@ -341,11 +343,7 @@ const POSPage: React.FC = () => {
           onClose={() => setCheckoutModalOpen(false)}
           items={items}
           subtotal={subtotal}
-          tax={totals.tax}
-          taxRate={totals.taxRate}
-          discount={totals.discount}
-          tip={totals.tip}
-          total={totals.total}
+          taxBreakdown={totals.taxBreakdown}
           currency={currency}
           onSuccess={() => {
             clearCart();

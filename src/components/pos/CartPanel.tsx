@@ -13,8 +13,12 @@ import { OrderTotals } from './OrderTotals';
 interface CartPanelProps {
   items: CartItemType[];
   subtotal: number;
-  tax?: number;
-  taxRate?: number;
+  taxBreakdown?: Array<{
+    shop_tax_id: string;
+    tax_name: string;
+    tax_rate: number;
+    tax_amount: number;
+  }>;
   discount?: number;
   total: number;
   currency?: string;
@@ -108,8 +112,7 @@ const ChargeButtonContainer = styled.div`
 export const CartPanel: React.FC<CartPanelProps> = ({
   items,
   subtotal,
-  tax = 0,
-  taxRate,
+  taxBreakdown = [],
   discount = 0,
   total,
   currency = 'USD',
@@ -160,8 +163,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
         <PanelFooter>
           <OrderTotals
             subtotal={subtotal}
-            tax={tax}
-            taxRate={taxRate}
+            taxBreakdown={taxBreakdown}
             discount={discount}
             total={total}
             currency={currency}

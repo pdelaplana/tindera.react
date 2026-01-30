@@ -540,6 +540,11 @@ export interface CheckoutFormData {
   customer_phone: string;
   payment_type_id: string;
   cash_received: number | null;
+  discount_type_id: string;
+  discount_method: string;
+  discount_value: number | null;
+  tip_amount: number | null;
+  tip_recipient_id: string;
 }
 
 export interface CreateOrderData {

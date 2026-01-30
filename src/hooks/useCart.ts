@@ -3,12 +3,16 @@
 import { useMemo } from 'react';
 import { CartProvider, useCartContext } from '@/contexts/CartContext';
 import { useShopContext } from '@/contexts/ShopContext';
-import type { CartItemAddon, CartItemModifier, Product } from '@/types';
+import type { CartItemAddon, CartItemModifier, Product, ShopTax } from '@/types';
 
 export interface CartTotals {
 	subtotal: number;
-	tax: number;
-	taxRate: number;
+	taxBreakdown: Array<{
+		shop_tax_id: string;
+		tax_name: string;
+		tax_rate: number;
+		tax_amount: number;
+	}>;
 	discount: number;
 	discountPercent: number;
 	tip: number;
@@ -16,7 +20,7 @@ export interface CartTotals {
 }
 
 interface UseCartOptions {
-	taxRate?: number; // Override shop tax rate
+	shopTaxes?: ShopTax[]; // Active shop taxes
 	discountPercent?: number; // Applied discount percentage
 	discountAmount?: number; // Fixed discount amount (takes precedence)
 	tipAmount?: number; // Tip amount
@@ -35,7 +39,7 @@ interface UseCartOptions {
  *     updateQuantity,
  *     totals,
  *     clearCart,
- *   } = useCart({ taxRate: 10 });
+ *   } = useCart({ shopTaxes: activeTaxes });
  *
  *   return (
  *     <div>
@@ -43,7 +47,7 @@ interface UseCartOptions {
  *       <CartPanel
  *         items={items}
  *         subtotal={totals.subtotal}
- *         tax={totals.tax}
+ *         taxBreakdown={totals.taxBreakdown}
  *         total={totals.total}
  *         onQuantityChange={updateQuantity}
  *         onRemove={removeFromCart}
@@ -56,9 +60,6 @@ interface UseCartOptions {
 export function useCart(options: UseCartOptions = {}) {
 	const cart = useCartContext();
 	const { currentShop } = useShopContext();
-
-	// Use shop's tax rate if not overridden
-	const taxRate = options.taxRate ?? 0; // Default to 0 if no shop settings
 
 	// Calculate totals
 	const totals: CartTotals = useMemo(() => {
@@ -78,25 +79,33 @@ export function useCart(options: UseCartOptions = {}) {
 		// Calculate taxable amount (after discount)
 		const taxableAmount = subtotal - discount;
 
-		// Calculate tax
-		const tax = taxableAmount * (taxRate / 100);
+		// Calculate tax breakdown (one entry per active shop tax)
+		const shopTaxes = options.shopTaxes ?? [];
+		const taxBreakdown = shopTaxes.map((shopTax) => ({
+			shop_tax_id: shopTax.id,
+			tax_name: shopTax.name,
+			tax_rate: shopTax.rate,
+			tax_amount: taxableAmount * (shopTax.rate / 100),
+		}));
+
+		// Calculate total tax
+		const totalTax = taxBreakdown.reduce((sum, tax) => sum + tax.tax_amount, 0);
 
 		// Tip
 		const tip = options.tipAmount ?? 0;
 
 		// Total
-		const total = taxableAmount + tax + tip;
+		const total = taxableAmount + totalTax + tip;
 
 		return {
 			subtotal,
-			tax,
-			taxRate,
+			taxBreakdown,
 			discount,
 			discountPercent,
 			tip,
 			total,
 		};
-	}, [cart.subtotal, taxRate, options.discountAmount, options.discountPercent, options.tipAmount]);
+	}, [cart.subtotal, options.shopTaxes, options.discountAmount, options.discountPercent, options.tipAmount]);
 
 	// Convenience methods with better names for POS context
 	const addToCart = (

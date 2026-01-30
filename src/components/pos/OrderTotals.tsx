@@ -7,8 +7,12 @@ import { designSystem } from '@/theme/designSystem';
 
 interface OrderTotalsProps {
 	subtotal: number;
-	tax?: number;
-	taxRate?: number;
+	taxBreakdown?: Array<{
+		shop_tax_id: string;
+		tax_name: string;
+		tax_rate: number;
+		tax_amount: number;
+	}>;
 	discount?: number;
 	tip?: number;
 	total: number;
@@ -62,8 +66,7 @@ const TotalAmount = styled.span`
 
 export const OrderTotals: React.FC<OrderTotalsProps> = ({
 	subtotal,
-	tax = 0,
-	taxRate,
+	taxBreakdown = [],
 	discount = 0,
 	tip = 0,
 	total,
@@ -88,11 +91,20 @@ export const OrderTotals: React.FC<OrderTotalsProps> = ({
 				</DiscountRow>
 			)}
 
-			{/* Tax */}
-			{tax > 0 && (
+			{/* Tax Breakdown */}
+			{taxBreakdown.length > 0 ? (
+				taxBreakdown.map((tax) => (
+					<MutedRow key={tax.shop_tax_id}>
+						<span>
+							{tax.tax_name} ({tax.tax_rate}%)
+						</span>
+						<PriceDisplay amount={tax.tax_amount} currency={currency} />
+					</MutedRow>
+				))
+			) : (
 				<MutedRow>
-					<span>Tax{taxRate ? ` (${taxRate}%)` : ''}</span>
-					<PriceDisplay amount={tax} currency={currency} />
+					<span>No taxes configured</span>
+					<span>-</span>
 				</MutedRow>
 			)}
 

@@ -8,12 +8,14 @@ import { useForm } from 'react-hook-form';
 import styled from 'styled-components';
 import { OrderTotals } from '@/components/pos/OrderTotals';
 import BaseModal from '@/components/shared/BaseModal';
-import { PriceField, TextField } from '@/components/shared/FormFields';
+import { NumberField, PriceField, SelectField, TextField } from '@/components/shared/FormFields';
 import { PriceDisplay } from '@/components/ui';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useShopContext } from '@/contexts/ShopContext';
 import { useUI } from '@/contexts/UIContext';
+import { useDiscountTypes } from '@/hooks/useDiscountTypes';
 import { useCreateOrder, usePaymentTypes } from '@/hooks/useOrder';
+import { useShopUsers } from '@/hooks/useShop';
 import { designSystem } from '@/theme/designSystem';
 import type { CartItem, CheckoutFormData, PaymentType } from '@/types';
 
@@ -22,11 +24,12 @@ interface CheckoutModalProps {
   onClose: () => void;
   items: CartItem[];
   subtotal: number;
-  tax: number;
-  taxRate?: number;
-  discount: number;
-  tip: number;
-  total: number;
+  taxBreakdown: Array<{
+    shop_tax_id: string;
+    tax_name: string;
+    tax_rate: number;
+    tax_amount: number;
+  }>;
   currency: string;
   onSuccess: () => void;
 }
@@ -175,16 +178,61 @@ const CartItemPrice = styled.div`
 	white-space: nowrap;
 `;
 
+const RadioGroup = styled.div`
+	display: flex;
+	gap: ${designSystem.spacing.md};
+	margin-bottom: ${designSystem.spacing.md};
+`;
+
+const RadioButton = styled.button<{ $isSelected: boolean }>`
+	flex: 1;
+	padding: ${designSystem.spacing.md};
+	background: ${(props) => (props.$isSelected ? designSystem.colors.primary : designSystem.colors.gray[50])};
+	color: ${(props) => (props.$isSelected ? '#fff' : designSystem.colors.text.primary)};
+	border: 2px solid ${(props) => (props.$isSelected ? designSystem.colors.primary : designSystem.colors.gray[200])};
+	border-radius: ${designSystem.borderRadius.md};
+	font-size: ${designSystem.typography.fontSize.base};
+	font-weight: ${designSystem.typography.fontWeight.medium};
+	cursor: pointer;
+	transition: all 0.2s ease;
+
+	&:hover {
+		border-color: ${designSystem.colors.primary};
+		background: ${(props) => (props.$isSelected ? designSystem.colors.primary : designSystem.colors.gray[100])};
+	}
+
+	&:active {
+		transform: scale(0.98);
+	}
+`;
+
+const DiscountAmountDisplay = styled.div`
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: ${designSystem.spacing.sm};
+	background: ${designSystem.colors.gray[50]};
+	border-radius: ${designSystem.borderRadius.sm};
+	margin-top: ${designSystem.spacing.sm};
+`;
+
+const DiscountLabel = styled.span`
+	font-size: ${designSystem.typography.fontSize.sm};
+	color: ${designSystem.colors.text.secondary};
+`;
+
+const DiscountValue = styled.span`
+	font-size: ${designSystem.typography.fontSize.base};
+	font-weight: ${designSystem.typography.fontWeight.semibold};
+	color: ${designSystem.colors.success};
+`;
+
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   isOpen,
   onClose,
   items,
   subtotal,
-  tax,
-  taxRate,
-  discount,
-  tip,
-  total,
+  taxBreakdown,
   currency,
   onSuccess,
 }) => {
@@ -192,8 +240,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const { user } = useAuthContext();
   const { showSuccess, showError } = useUI();
 
-  // Fetch payment types
+  // Fetch payment types, discount types, and shop users
   const { data: paymentTypes = [], isLoading: paymentTypesLoading } = usePaymentTypes();
+  const { data: discountTypes = [], isLoading: discountTypesLoading } = useDiscountTypes();
+  const { data: shopUsers = [], isLoading: shopUsersLoading } = useShopUsers(currentShop?.id);
 
   // Ensure Cash is always available
   const availablePaymentTypes = useMemo(() => {
@@ -234,12 +284,21 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       customer_phone: '',
       payment_type_id: '',
       cash_received: null,
+      discount_type_id: '',
+      discount_method: 'percentage',
+      discount_value: null,
+      tip_amount: null,
+      tip_recipient_id: '',
     },
   });
 
   // Watch form values for reactive UI
   const paymentTypeId = watch('payment_type_id');
   const cashReceived = watch('cash_received');
+  const discountTypeId = watch('discount_type_id');
+  const discountMethod = watch('discount_method');
+  const discountValue = watch('discount_value');
+  const tipAmount = watch('tip_amount');
 
   // Find selected payment type
   const selectedPaymentType = useMemo(
@@ -253,17 +312,39 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     [selectedPaymentType]
   );
 
+  // Calculate discount amount
+  const discountAmount = useMemo(() => {
+    if (!discountValue || discountValue <= 0) return 0;
+
+    if (discountMethod === 'percentage') {
+      return subtotal * (discountValue / 100);
+    } else {
+      return Math.min(discountValue, subtotal);
+    }
+  }, [discountValue, discountMethod, subtotal]);
+
+  // Calculate total tax
+  const totalTax = useMemo(() => {
+    return taxBreakdown.reduce((sum, tax) => sum + tax.tax_amount, 0);
+  }, [taxBreakdown]);
+
+  // Calculate grand total
+  const grandTotal = useMemo(() => {
+    const tip = tipAmount ?? 0;
+    return subtotal - discountAmount + totalTax + tip;
+  }, [subtotal, discountAmount, totalTax, tipAmount]);
+
   // Calculate change
   const change = useMemo(() => {
     if (!isCashPayment || !cashReceived) return 0;
-    return Math.max(0, cashReceived - total);
-  }, [isCashPayment, cashReceived, total]);
+    return Math.max(0, cashReceived - grandTotal);
+  }, [isCashPayment, cashReceived, grandTotal]);
 
   // Validation: cash received must be >= total
   const isCashSufficient = useMemo(() => {
     if (!isCashPayment) return true;
-    return cashReceived !== null && cashReceived >= total;
-  }, [isCashPayment, cashReceived, total]);
+    return cashReceived !== null && cashReceived >= grandTotal;
+  }, [isCashPayment, cashReceived, grandTotal]);
 
   // Complete button disabled state
   const isCompleteDisabled = useMemo(() => {
@@ -292,7 +373,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       const orderData = {
         shop_id: currentShop.id,
         order_date: new Date().toISOString(),
-        total_sale: total,
+        total_sale: grandTotal,
         served_by_id: user.id,
         customer_name: formData.customer_name || null,
         customer_email: formData.customer_email || null,
@@ -302,9 +383,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         payment_amount_received: isCashPayment ? formData.cash_received : null,
         payment_change: isCashPayment ? change : null,
         items,
-        tax,
-        discount,
-        tip,
+        taxes: taxBreakdown,
+        discount_type_id: formData.discount_type_id || null,
+        discount_method: formData.discount_type_id ? formData.discount_method : null,
+        discount_value: formData.discount_type_id && formData.discount_value ? formData.discount_value : null,
+        discount_amount: formData.discount_type_id ? discountAmount : null,
+        tip_amount: formData.tip_amount || null,
+        tip_recipient_id: formData.tip_recipient_id || null,
       };
 
       await createOrderMutation.mutateAsync(orderData);
@@ -328,8 +413,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       onFooterButtonClick={handleSubmit(onSubmit)}
       footerButtonDisabled={isCompleteDisabled}
       footerButtonLoading={createOrderMutation.isPending}
-      isLoading={paymentTypesLoading}
-      loadingMessage="Loading payment methods..."
+      isLoading={paymentTypesLoading || discountTypesLoading || shopUsersLoading}
+      loadingMessage="Loading checkout options..."
     >
       {/* Order Summary */}
       <Section>
@@ -375,13 +460,102 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
         <OrderTotals
           subtotal={subtotal}
-          tax={tax}
-          taxRate={taxRate}
-          discount={discount}
-          tip={tip}
-          total={total}
+          taxBreakdown={taxBreakdown}
+          discount={discountAmount}
+          tip={tipAmount ?? 0}
+          total={grandTotal}
           currency={currency}
         />
+      </Section>
+
+      {/* Discount */}
+      <Section>
+        <SectionTitle>Discount (Optional)</SectionTitle>
+
+        <SelectField
+          name="discount_type_id"
+          control={control}
+          label="Discount Type"
+          placeholder="Select discount type"
+          options={discountTypes.map((dt) => ({ value: dt.id, label: dt.name }))}
+          error={errors.discount_type_id}
+        />
+
+        {discountTypeId && (
+          <>
+            <RadioGroup>
+              <RadioButton
+                type="button"
+                $isSelected={discountMethod === 'percentage'}
+                onClick={() => setValue('discount_method', 'percentage', { shouldValidate: true })}
+              >
+                Percentage
+              </RadioButton>
+              <RadioButton
+                type="button"
+                $isSelected={discountMethod === 'fixed'}
+                onClick={() => setValue('discount_method', 'fixed', { shouldValidate: true })}
+              >
+                Fixed Amount
+              </RadioButton>
+            </RadioGroup>
+
+            {discountMethod === 'percentage' ? (
+              <NumberField
+                name="discount_value"
+                control={control}
+                label="Discount Percentage"
+                placeholder="0"
+                min={0}
+                max={100}
+                error={errors.discount_value}
+              />
+            ) : (
+              <PriceField
+                name="discount_value"
+                control={control}
+                label="Discount Amount"
+                placeholder="0.00"
+                currency={currency}
+                error={errors.discount_value}
+              />
+            )}
+
+            {discountAmount > 0 && (
+              <DiscountAmountDisplay>
+                <DiscountLabel>Calculated Discount</DiscountLabel>
+                <DiscountValue>
+                  -<PriceDisplay amount={discountAmount} currency={currency} />
+                </DiscountValue>
+              </DiscountAmountDisplay>
+            )}
+          </>
+        )}
+      </Section>
+
+      {/* Tip */}
+      <Section>
+        <SectionTitle>Tip (Optional)</SectionTitle>
+
+        <PriceField
+          name="tip_amount"
+          control={control}
+          label="Tip Amount"
+          placeholder="0.00"
+          currency={currency}
+          error={errors.tip_amount}
+        />
+
+        {tipAmount && tipAmount > 0 && (
+          <SelectField
+            name="tip_recipient_id"
+            control={control}
+            label="Tip Recipient"
+            placeholder="Select staff member"
+            options={shopUsers.map((su) => ({ value: su.user_id, label: su.user_id }))}
+            error={errors.tip_recipient_id}
+          />
+        )}
       </Section>
 
       {/* Payment Method */}
@@ -448,7 +622,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           />
           {!isCashSufficient && cashReceived !== null && (
             <IonText color="danger" style={{ fontSize: '0.875rem' }}>
-              Cash received must be at least <PriceDisplay amount={total} currency={currency} />
+              Cash received must be at least <PriceDisplay amount={grandTotal} currency={currency} />
             </IonText>
           )}
           <ChangeDisplay>
