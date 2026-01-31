@@ -98,7 +98,7 @@ const SideMenu: React.FC = () => {
     },
     {
       title: t('navigation.sales'),
-      url: '/sales',
+      url: currentShop ? `/shops/${currentShop.id}/sales` : '/sales',
       icon: statsChartOutline,
     },
     {

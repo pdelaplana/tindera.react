@@ -25,6 +25,7 @@ import {
   ProductManagePage,
   ProductsListPage,
 } from '@/pages/Products';
+import { SalesListPage, OrderDetailPage } from '@/pages/Sales';
 import { SettingsPage } from '@/pages/Settings';
 import { ShopFormPage, ShopSelectionPage } from '@/pages/Shop';
 // Pages
@@ -126,6 +127,17 @@ const App: React.FC = () => (
               <Route exact path="/pos">
                 <AuthGuard>
                   <POSPage />
+                </AuthGuard>
+              </Route>
+              {/* Sales Routes */}
+              <Route exact path="/shops/:shopId/sales">
+                <AuthGuard>
+                  <SalesListPage />
+                </AuthGuard>
+              </Route>
+              <Route exact path="/shops/:shopId/sales/:orderId">
+                <AuthGuard>
+                  <OrderDetailPage />
                 </AuthGuard>
               </Route>
               {/* Settings Routes */}
