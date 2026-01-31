@@ -141,12 +141,15 @@ const SalesListPage: React.FC = () => {
 
   // Render search bar
   const renderSearchBar = () => (
-    <IonSearchbar
-      value={searchText}
-      onIonInput={(e) => setSearchText(e.detail.value ?? '')}
-      placeholder="Search by order number..."
-      debounce={300}
-    />
+    <div className="ion-padding">
+      <IonSearchbar
+        value={searchText}
+        onIonInput={(e) => setSearchText(e.detail.value ?? '')}
+        placeholder="Search by order number..."
+        debounce={300}
+        className="searchBar"
+      />
+    </div>
   );
 
   // Error state
