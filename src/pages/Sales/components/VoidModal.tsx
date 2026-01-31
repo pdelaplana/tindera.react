@@ -1,11 +1,26 @@
 // VoidModal - Confirmation modal for voiding orders
 
-import { IonButton, IonSpinner } from '@ionic/react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonModal,
+  IonSpinner,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/react';
+import { close } from 'ionicons/icons';
 import type React from 'react';
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import styled from 'styled-components';
-import BaseModal from '@/components/shared/BaseModal';
+import { z } from 'zod';
+import { SelectField } from '@/components/shared/FormFields';
 import { useAuthContext } from '@/contexts/AuthContext';
+import { useShopContext } from '@/contexts/ShopContext';
 import { useVoidOrder } from '@/hooks/useOrder';
 import { useVoidRefundReasons } from '@/hooks/useVoidRefundReasons';
 import { designSystem } from '@/theme/designSystem';
@@ -18,17 +33,18 @@ interface VoidModalProps {
   onSuccess: () => void;
 }
 
-// Styled components
-const ModalContent = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: ${designSystem.spacing.lg};
-`;
+// Validation schema
+const voidSchema = z.object({
+  reason_id: z.string().min(1, 'Reason is required'),
+});
 
+type VoidFormData = z.infer<typeof voidSchema>;
+
+// Styled components
 const ConfirmationMessage = styled.p`
 	font-size: ${designSystem.typography.fontSize.base};
 	color: ${designSystem.colors.text.primary};
-	margin: 0;
+	margin: 0 0 ${designSystem.spacing.md} 0;
 	text-align: center;
 `;
 
@@ -40,58 +56,13 @@ const WarningNote = styled.div`
 	font-size: ${designSystem.typography.fontSize.sm};
 	color: ${designSystem.colors.text.primary};
 	line-height: 1.5;
-`;
-
-const FormField = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: ${designSystem.spacing.xs};
-`;
-
-const Label = styled.label`
-	font-size: ${designSystem.typography.fontSize.sm};
-	font-weight: ${designSystem.typography.fontWeight.medium};
-	color: ${designSystem.colors.text.primary};
-`;
-
-const RequiredIndicator = styled.span`
-	color: ${designSystem.colors.danger};
-	margin-left: ${designSystem.spacing.xs};
-`;
-
-const Select = styled.select`
-	width: 100%;
-	padding: ${designSystem.spacing.sm} ${designSystem.spacing.md};
-	font-size: ${designSystem.typography.fontSize.base};
-	color: ${designSystem.colors.text.primary};
-	background: ${designSystem.colors.surface.base};
-	border: 1px solid ${designSystem.colors.gray[300]};
-	border-radius: ${designSystem.borderRadius.md};
-	outline: none;
-	transition: border-color ${designSystem.transitions.base};
-
-	&:focus {
-		border-color: ${designSystem.colors.brand.primary};
-	}
-
-	&:disabled {
-		background: ${designSystem.colors.gray[100]};
-		cursor: not-allowed;
-	}
+	margin-bottom: ${designSystem.spacing.lg};
 `;
 
 const ButtonGroup = styled.div`
 	display: flex;
 	gap: ${designSystem.spacing.sm};
 	margin-top: ${designSystem.spacing.md};
-`;
-
-const CancelButton = styled(IonButton)`
-	flex: 1;
-`;
-
-const VoidButton = styled(IonButton)`
-	flex: 1;
 `;
 
 // Helper function to format order number
@@ -102,32 +73,46 @@ const formatOrderNumber = (order: OrderWithDetails, shopPrefix: string | null): 
 };
 
 export const VoidModal: React.FC<VoidModalProps> = ({ isOpen, onClose, order, onSuccess }) => {
-  const [selectedReason, setSelectedReason] = useState<string>('');
-  const { data: reasons, isLoading: loadingReasons } = useVoidRefundReasons();
+  const { currentShop } = useShopContext();
+  const { data: reasons } = useVoidRefundReasons();
   const voidOrderMutation = useVoidOrder();
   const { user } = useAuthContext();
 
-  // Get shop prefix from order context (assuming it's available)
-  // For now, we'll use null, but this should be passed as a prop if available
-  const shopPrefix = null; // TODO: Pass shop prefix as prop if needed
-  const orderNumber = formatOrderNumber(order, shopPrefix);
+  const orderNumber = formatOrderNumber(order, currentShop?.order_prefix || null);
+  const isSaving = voidOrderMutation.isPending;
 
-  const isLoading = voidOrderMutation.isPending;
-  const canSubmit = selectedReason && !isLoading;
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<VoidFormData>({
+    resolver: zodResolver(voidSchema),
+    defaultValues: {
+      reason_id: '',
+    },
+  });
 
-  const handleVoid = async () => {
-    if (!selectedReason || !user) return;
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        reason_id: '',
+      });
+    }
+  }, [isOpen, reset]);
+
+  const onSubmit = async (data: VoidFormData) => {
+    if (!user) return;
 
     try {
       await voidOrderMutation.mutateAsync({
         orderId: order.id,
-        reasonId: selectedReason,
+        reasonId: data.reason_id,
       });
 
-      // Success is handled by the mutation's onSuccess callback (shows toast)
       onSuccess();
-      onClose();
-      setSelectedReason(''); // Reset form
+      handleClose();
     } catch (error) {
       // Error is handled by the mutation's onError callback (shows toast)
       console.error('Failed to void order:', error);
@@ -135,54 +120,74 @@ export const VoidModal: React.FC<VoidModalProps> = ({ isOpen, onClose, order, on
   };
 
   const handleClose = () => {
-    if (!isLoading) {
-      setSelectedReason(''); // Reset form
+    if (!isSaving) {
+      reset({
+        reason_id: '',
+      });
       onClose();
     }
   };
 
   return (
-    <BaseModal isOpen={isOpen} onClose={handleClose} title="Void Order">
-      <ModalContent>
-        <ConfirmationMessage>
-          Are you sure you want to void order #{orderNumber}?
-        </ConfirmationMessage>
+    <IonModal
+      isOpen={isOpen}
+      onDidDismiss={handleClose}
+      initialBreakpoint={0.6}
+      breakpoints={[0, 0.6, 0.9]}
+    >
+      <IonHeader>
+        <IonToolbar>
+          <IonButtons slot="start" />
+          <IonTitle>Void Order</IonTitle>
+          <IonButtons slot="end">
+            <IonButton onClick={handleClose} disabled={isSaving}>
+              <IonIcon icon={close} />
+            </IonButton>
+          </IonButtons>
+        </IonToolbar>
+      </IonHeader>
 
-        <WarningNote>
-          This action cannot be undone. The order will be marked as cancelled.
-        </WarningNote>
+      <IonContent className="ion-padding" scrollY={true}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <ConfirmationMessage>
+            Are you sure you want to void order #{orderNumber}?
+          </ConfirmationMessage>
 
-        <FormField>
-          <Label>
-            Reason for Void
-            <RequiredIndicator>*</RequiredIndicator>
-          </Label>
-          <Select
-            value={selectedReason}
-            onChange={(e) => setSelectedReason(e.target.value)}
-            disabled={isLoading || loadingReasons}
+          <WarningNote>
+            This action cannot be undone. The order will be marked as cancelled.
+          </WarningNote>
+
+          {/* Reason */}
+          <SelectField
+            name="reason_id"
+            control={control}
+            label="Reason for Void"
+            placeholder="Select a reason..."
             required
-          >
-            <option value="">Select a reason...</option>
-            {reasons?.map((reason) => (
-              <option key={reason.id} value={reason.id}>
-                {reason.name}
-              </option>
-            ))}
-          </Select>
-        </FormField>
+            error={errors.reason_id}
+            options={[
+              { value: '', label: 'Select a reason...' },
+              ...(reasons?.map((reason) => ({
+                value: reason.id,
+                label: reason.name,
+              })) || []),
+            ]}
+            disabled={isSaving}
+          />
 
-        <ButtonGroup>
-          <CancelButton fill="outline" onClick={handleClose} disabled={isLoading}>
-            Cancel
-          </CancelButton>
-          <VoidButton color="danger" onClick={handleVoid} disabled={!canSubmit}>
-            {isLoading && <IonSpinner name="crescent" slot="start" />}
-            Void Order
-          </VoidButton>
-        </ButtonGroup>
-      </ModalContent>
-    </BaseModal>
+          {/* Action Buttons */}
+          <ButtonGroup>
+            <IonButton fill="outline" expand="block" onClick={handleClose} disabled={isSaving}>
+              Cancel
+            </IonButton>
+            <IonButton expand="block" type="submit" color="danger" disabled={isSaving}>
+              {isSaving && <IonSpinner slot="start" name="crescent" />}
+              {isSaving ? 'Voiding...' : 'Void Order'}
+            </IonButton>
+          </ButtonGroup>
+        </form>
+      </IonContent>
+    </IonModal>
   );
 };
 
