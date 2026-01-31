@@ -244,7 +244,14 @@ const TotalAmount = styled.span`
 const PaymentInfo = styled.div`
 	display: flex;
 	flex-direction: column;
-	gap: ${designSystem.spacing.xs};
+	gap: ${designSystem.spacing.sm};
+`;
+
+const PaymentRow = styled.div`
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: ${designSystem.spacing.md};
 `;
 
 const PaymentLabel = styled.span`
@@ -256,6 +263,7 @@ const PaymentValue = styled.span`
 	font-size: ${designSystem.typography.fontSize.base};
 	font-weight: ${designSystem.typography.fontWeight.medium};
 	color: ${designSystem.colors.text.primary};
+	text-align: right;
 `;
 
 const VoidRefundInfo = styled.div`
@@ -582,14 +590,14 @@ export const OrderDetail: React.FC<OrderDetailProps> = ({ order, shop, onVoid, o
           <Section>
             <SectionTitle>Payment</SectionTitle>
             <PaymentInfo>
-              <div>
+              <PaymentRow>
                 <PaymentLabel>Method</PaymentLabel>
                 <PaymentValue>{order.payment_type?.code || 'Not specified'}</PaymentValue>
-              </div>
+              </PaymentRow>
               {order.payment_received && (
                 <>
                   {order.payment_amount_received !== null && (
-                    <div>
+                    <PaymentRow>
                       <PaymentLabel>Amount Received</PaymentLabel>
                       <PaymentValue>
                         <PriceDisplay
@@ -597,15 +605,15 @@ export const OrderDetail: React.FC<OrderDetailProps> = ({ order, shop, onVoid, o
                           currency={shop.currency_code}
                         />
                       </PaymentValue>
-                    </div>
+                    </PaymentRow>
                   )}
                   {order.payment_change !== null && order.payment_change > 0 && (
-                    <div>
+                    <PaymentRow>
                       <PaymentLabel>Change</PaymentLabel>
                       <PaymentValue>
                         <PriceDisplay amount={order.payment_change} currency={shop.currency_code} />
                       </PaymentValue>
-                    </div>
+                    </PaymentRow>
                   )}
                 </>
               )}
