@@ -103,7 +103,9 @@ const SalesListPage: React.FC = () => {
       setSelectedOrderId(order.id);
     } else {
       // Mobile: navigate to detail page
-      history.push(`/sales/${order.id}`);
+      if (currentShop) {
+        history.push(`/shops/${currentShop.id}/sales/${order.id}`);
+      }
     }
   };
 

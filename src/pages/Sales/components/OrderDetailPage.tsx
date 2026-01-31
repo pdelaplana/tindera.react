@@ -120,7 +120,9 @@ export const OrderDetailPage: React.FC = () => {
         <IonHeader>
           <IonToolbar>
             <IonButtons slot="start">
-              <IonBackButton defaultHref="/sales" />
+              <IonBackButton
+                defaultHref={currentShop ? `/shops/${currentShop.id}/sales` : '/sales'}
+              />
             </IonButtons>
             <IonTitle>Order Details</IonTitle>
           </IonToolbar>
@@ -142,7 +144,9 @@ export const OrderDetailPage: React.FC = () => {
         <IonHeader>
           <IonToolbar>
             <IonButtons slot="start">
-              <IonBackButton defaultHref="/sales" />
+              <IonBackButton
+                defaultHref={currentShop ? `/shops/${currentShop.id}/sales` : '/sales'}
+              />
             </IonButtons>
             <IonTitle>Order Details</IonTitle>
           </IonToolbar>
@@ -164,7 +168,9 @@ export const OrderDetailPage: React.FC = () => {
         <IonHeader>
           <IonToolbar>
             <IonButtons slot="start">
-              <IonBackButton defaultHref="/sales" />
+              <IonBackButton
+                defaultHref={currentShop ? `/shops/${currentShop.id}/sales` : '/sales'}
+              />
             </IonButtons>
             <IonTitle>Order Details</IonTitle>
           </IonToolbar>
@@ -188,7 +194,9 @@ export const OrderDetailPage: React.FC = () => {
         <IonHeader>
           <IonToolbar>
             <IonButtons slot="start">
-              <IonBackButton defaultHref="/sales" />
+              <IonBackButton
+                defaultHref={currentShop ? `/shops/${currentShop.id}/sales` : '/sales'}
+              />
             </IonButtons>
             <IonTitle>Order Details</IonTitle>
           </IonToolbar>
@@ -209,7 +217,9 @@ export const OrderDetailPage: React.FC = () => {
       <IonHeader>
         <IonToolbar>
           <IonButtons slot="start">
-            <IonBackButton defaultHref="/sales" />
+            <IonBackButton
+              defaultHref={currentShop ? `/shops/${currentShop.id}/sales` : '/sales'}
+            />
           </IonButtons>
           <IonTitle>Order Details</IonTitle>
         </IonToolbar>
