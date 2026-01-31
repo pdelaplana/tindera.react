@@ -3,21 +3,19 @@
 import {
 	IonChip,
 	IonContent,
-	IonItem,
-	IonLabel,
-	IonList,
 	IonPage,
 	IonSearchbar,
-	IonSpinner,
 } from '@ionic/react';
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import PageHeader from '@/components/shared/PageHeader';
+import { useShopContext } from '@/contexts/ShopContext';
 import { useOrders } from '@/hooks/useOrder';
 import { useIsTabletOrLarger } from '@/hooks/useBreakpoint';
-import type { Order } from '@/types';
+import type { OrderWithDetails } from '@/types';
+import { OrderList, OrderDetail, VoidModal, RefundModal } from './components';
 
 // Styled components for split-pane layout
 const SplitPaneContainer = styled.div`
@@ -76,95 +74,17 @@ const PlaceholderContainer = styled.div`
 // Filter type definition
 type FilterType = 'all' | 'completed' | 'voided' | 'refunded';
 
-// Component interfaces
-interface OrderListProps {
-	orders: Order[] | undefined;
-	onSelect: (orderId: string) => void;
-	selectedOrderId: string | null;
-	isDesktop: boolean;
-	isLoading: boolean;
-}
-
-interface OrderDetailProps {
-	order: Order | null;
-}
-
-// Placeholder OrderList component - simple list of order numbers
-const OrderList: React.FC<OrderListProps> = ({
-	orders,
-	onSelect,
-	selectedOrderId,
-	isDesktop,
-	isLoading
-}) => {
-	if (isLoading) {
-		return (
-			<PlaceholderContainer>
-				<IonSpinner />
-				<p>Loading orders...</p>
-			</PlaceholderContainer>
-		);
-	}
-
-	if (!orders || orders.length === 0) {
-		return (
-			<PlaceholderContainer>
-				<p>No orders found</p>
-			</PlaceholderContainer>
-		);
-	}
-
-	return (
-		<IonList>
-			{orders.map((order) => (
-				<IonItem
-					key={order.id}
-					button
-					onClick={() => onSelect(order.id)}
-					detail={!isDesktop}
-					color={isDesktop && selectedOrderId === order.id ? 'light' : undefined}
-				>
-					<IonLabel>
-						<h2>Order #{order.order_number || 'N/A'}</h2>
-						<p>{order.status}</p>
-					</IonLabel>
-				</IonItem>
-			))}
-		</IonList>
-	);
-};
-
-// Placeholder OrderDetail component - simple detail view
-const OrderDetail: React.FC<OrderDetailProps> = ({ order }) => {
-	if (!order) {
-		return (
-			<PlaceholderContainer>
-				<h2>Select an Order</h2>
-				<p>Choose an order from the list to view details</p>
-			</PlaceholderContainer>
-		);
-	}
-
-	return (
-		<div style={{ padding: '16px' }}>
-			<h2>Order #{order.order_number || 'N/A'}</h2>
-			<p>Status: {order.status}</p>
-			<p>Total: ${order.total_sale}</p>
-			<p style={{ marginTop: '16px', color: 'var(--ion-color-medium)' }}>
-				This is a placeholder. Tasks 23-28 will create the full OrderDetail component.
-			</p>
-		</div>
-	);
-};
-
 const SalesListPage: React.FC = () => {
 	const history = useHistory();
 	const isDesktop = useIsTabletOrLarger();
+	const { currentShop } = useShopContext();
 
 	// Local state
 	const [searchText, setSearchText] = useState('');
 	const [selectedFilter, setSelectedFilter] = useState<FilterType>('all');
 	const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+	const [showVoidModal, setShowVoidModal] = useState(false);
+	const [showRefundModal, setShowRefundModal] = useState(false);
 
 	// Determine status filter for API
 	const statusFilter = useMemo(() => {
@@ -179,12 +99,12 @@ const SalesListPage: React.FC = () => {
 	});
 
 	// Handle order selection (desktop: set selected, mobile: navigate)
-	const handleOrderSelect = (orderId: string) => {
+	const handleOrderSelect = (order: OrderWithDetails) => {
 		if (isDesktop) {
-			setSelectedOrderId(orderId);
+			setSelectedOrderId(order.id);
 		} else {
-			// Mobile: navigate to detail page (will be implemented in later tasks)
-			history.push(`/sales/${orderId}`);
+			// Mobile: navigate to detail page
+			history.push(`/sales/${order.id}`);
 		}
 	};
 
@@ -260,18 +180,46 @@ const SalesListPage: React.FC = () => {
 							{renderSearchBar()}
 							{renderFilterTabs()}
 							<OrderList
-								orders={orders}
+								orders={orders || []}
 								onSelect={handleOrderSelect}
-								selectedOrderId={selectedOrderId}
-								isDesktop={isDesktop}
+								selectedOrderId={selectedOrderId ?? undefined}
 								isLoading={isLoading}
+								shopPrefix={currentShop?.order_prefix}
 							/>
 						</LeftPanel>
 						<RightPanel>
-							<OrderDetail order={selectedOrder} />
+							<OrderDetail
+								order={selectedOrder || null}
+								shop={currentShop!}
+								onVoid={() => setShowVoidModal(true)}
+								onRefund={() => setShowRefundModal(true)}
+							/>
 						</RightPanel>
 					</SplitPaneContainer>
 				</IonContent>
+				{selectedOrder && (
+					<>
+						<VoidModal
+							isOpen={showVoidModal}
+							onClose={() => setShowVoidModal(false)}
+							order={selectedOrder}
+							onSuccess={() => {
+								setShowVoidModal(false);
+								// Query will auto-refetch due to invalidation in the mutation
+							}}
+						/>
+
+						<RefundModal
+							isOpen={showRefundModal}
+							onClose={() => setShowRefundModal(false)}
+							order={selectedOrder}
+							onSuccess={() => {
+								setShowRefundModal(false);
+								// Query will auto-refetch due to invalidation in the mutation
+							}}
+						/>
+					</>
+				)}
 			</IonPage>
 		);
 	}
@@ -285,14 +233,37 @@ const SalesListPage: React.FC = () => {
 					{renderSearchBar()}
 					{renderFilterTabs()}
 					<OrderList
-						orders={orders}
+						orders={orders || []}
 						onSelect={handleOrderSelect}
-						selectedOrderId={selectedOrderId}
-						isDesktop={isDesktop}
+						selectedOrderId={selectedOrderId ?? undefined}
 						isLoading={isLoading}
+						shopPrefix={currentShop?.order_prefix}
 					/>
 				</MobileContainer>
 			</IonContent>
+			{selectedOrder && (
+				<>
+					<VoidModal
+						isOpen={showVoidModal}
+						onClose={() => setShowVoidModal(false)}
+						order={selectedOrder}
+						onSuccess={() => {
+							setShowVoidModal(false);
+							// Query will auto-refetch due to invalidation in the mutation
+						}}
+					/>
+
+					<RefundModal
+						isOpen={showRefundModal}
+						onClose={() => setShowRefundModal(false)}
+						order={selectedOrder}
+						onSuccess={() => {
+							setShowRefundModal(false);
+							// Query will auto-refetch due to invalidation in the mutation
+						}}
+					/>
+				</>
+			)}
 		</IonPage>
 	);
 };
