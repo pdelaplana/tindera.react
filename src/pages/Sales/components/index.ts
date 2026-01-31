@@ -2,4 +2,5 @@
 
 export { OrderCard } from './OrderCard';
 export { OrderDetail } from './OrderDetail';
+export { OrderDetailPage } from './OrderDetailPage';
 export { OrderList } from './OrderList';
