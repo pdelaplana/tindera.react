@@ -1,29 +1,29 @@
 /**
- * Design System - Minimalist Dark Purple Theme
+ * Design System - Vibrant Orange Theme
  * Ported from spendless.ionic.pwa with POS-specific additions
  */
 
 export const designSystem = {
   colors: {
-    // Brand Colors (Spendless dark purple)
+    // Brand Colors (Vibrant orange)
     brand: {
-      primary: '#3D1B5B', // Dark deep purple
-      secondary: '#5D338C', // Mid purple
-      accentLight: '#DDD0E6', // Light muted purple
+      primary: '#f27f0d', // Vibrant orange
+      secondary: '#fb923c', // Mid orange
+      accentLight: '#fed7aa', // Light muted orange
     },
 
-    // Full purple scale
+    // Full orange scale
     primary: {
-      50: '#faf5ff',
-      100: '#f3e8ff',
-      200: '#e9d5ff',
-      300: '#DDD0E6',
-      400: '#B788DC',
-      500: '#5D338C',
-      600: '#3D1B5B', // Primary brand
-      700: '#2d1443',
-      800: '#1d0d2b',
-      900: '#0d0513',
+      50: '#fff7ed',
+      100: '#ffedd5',
+      200: '#fed7aa',
+      300: '#fdba74',
+      400: '#fb923c',
+      500: '#f97316',
+      600: '#f27f0d', // Primary brand
+      700: '#d96d0a',
+      800: '#a0520a',
+      900: '#7c2d12',
     },
 
     // Gray scale (from spendless)

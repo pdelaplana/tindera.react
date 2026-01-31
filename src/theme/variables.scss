@@ -3,12 +3,12 @@
 // http://ionicframework.com/docs/theming/
 
 :root {
-  // ===== Brand Colors (Dark Purple - Minimalist) =====
-  --color-brand-primary: #3D1B5B;       // Dark deep purple
-  --color-brand-primary-light: #B788DC; // Light purple (hover)
-  --color-brand-primary-dark: #2d1443;  // Darker purple (pressed)
-  --color-brand-secondary: #5D338C;     // Mid purple
-  --color-brand-accent: #DDD0E6;        // Light muted purple
+  // ===== Brand Colors (Orange - Vibrant) =====
+  --color-brand-primary: #f27f0d;       // Vibrant orange
+  --color-brand-primary-light: #f59838; // Light orange (hover)
+  --color-brand-primary-dark: #d96d0a;  // Darker orange (pressed)
+  --color-brand-secondary: #fb923c;     // Mid orange
+  --color-brand-accent: #fed7aa;        // Light muted orange
 
   // ===== Surface Colors (Clean White - Minimalist) =====
   --color-surface-base: #fafafa;        // Main background (clean gray-white)
@@ -110,20 +110,20 @@
   --font-size-total: 2.25rem;           // 36px - Grand total
   --font-size-tile-label: 1.125rem;     // 18px - Bento tile labels
 
-  // ===== Ionic Color Overrides (Dark Purple Brand) =====
+  // ===== Ionic Color Overrides (Orange Brand) =====
   --ion-color-primary: var(--color-brand-primary);
-  --ion-color-primary-rgb: 61, 27, 91;            // #3D1B5B
+  --ion-color-primary-rgb: 242, 127, 13;          // #f27f0d
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #2d1443;             // Darker purple
-  --ion-color-primary-tint: #5D338C;              // Mid purple
+  --ion-color-primary-shade: #d96d0a;             // Darker orange
+  --ion-color-primary-tint: #f59838;              // Light orange
 
   --ion-color-secondary: var(--color-brand-secondary);
-  --ion-color-secondary-rgb: 93, 51, 140;         // #5D338C
+  --ion-color-secondary-rgb: 251, 146, 60;        // #fb923c
   --ion-color-secondary-contrast: #ffffff;
   --ion-color-secondary-contrast-rgb: 255, 255, 255;
-  --ion-color-secondary-shade: #3D1B5B;
-  --ion-color-secondary-tint: #B788DC;
+  --ion-color-secondary-shade: #f27f0d;
+  --ion-color-secondary-tint: #fdba74;
 
   --ion-color-success: var(--color-success);
   --ion-color-success-rgb: 16, 185, 129;          // #10B981
