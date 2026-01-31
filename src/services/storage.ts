@@ -10,88 +10,88 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
  * @returns Public URL of the uploaded image
  */
 export async function uploadShopLogo(file: File, shopId: string): Promise<string> {
-	// Check authentication status
-	const {
-		data: { session },
-		error: authError,
-	} = await supabase.auth.getSession();
+  // Check authentication status
+  const {
+    data: { session },
+    error: authError,
+  } = await supabase.auth.getSession();
 
-	console.log('🔐 Auth check before upload:', {
-		isAuthenticated: !!session,
-		userId: session?.user?.id,
-		hasAccessToken: !!session?.access_token,
-		authError: authError?.message,
-	});
+  console.log('🔐 Auth check before upload:', {
+    isAuthenticated: !!session,
+    userId: session?.user?.id,
+    hasAccessToken: !!session?.access_token,
+    authError: authError?.message,
+  });
 
-	if (!session) {
-		throw new Error('User must be authenticated to upload images');
-	}
+  if (!session) {
+    throw new Error('User must be authenticated to upload images');
+  }
 
-	// Debug: Check if user has access to this shop
-	const { data: shopAccess, error: accessError } = await supabase
-		.from('shop_users')
-		.select('role')
-		.eq('shop_id', shopId)
-		.eq('user_id', session.user.id)
-		.single();
+  // Debug: Check if user has access to this shop
+  const { data: shopAccess, error: accessError } = await supabase
+    .from('shop_users')
+    .select('role')
+    .eq('shop_id', shopId)
+    .eq('user_id', session.user.id)
+    .single();
 
-	console.log('🏪 Shop access check:', {
-		shopId,
-		userId: session.user.id,
-		hasAccess: !!shopAccess,
-		role: shopAccess?.role,
-		accessError: accessError?.message,
-	});
+  console.log('🏪 Shop access check:', {
+    shopId,
+    userId: session.user.id,
+    hasAccess: !!shopAccess,
+    role: shopAccess?.role,
+    accessError: accessError?.message,
+  });
 
-	if (!shopAccess) {
-		throw new Error(
-			`User does not have access to shop ${shopId}. Access check failed: ${accessError?.message}`
-		);
-	}
+  if (!shopAccess) {
+    throw new Error(
+      `User does not have access to shop ${shopId}. Access check failed: ${accessError?.message}`
+    );
+  }
 
-	// Validate file size
-	if (file.size > MAX_FILE_SIZE) {
-		throw new Error('File size exceeds 5MB limit');
-	}
+  // Validate file size
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error('File size exceeds 5MB limit');
+  }
 
-	// Validate file type
-	const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-	if (!allowedTypes.includes(file.type)) {
-		throw new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed');
-	}
+  // Validate file type
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed');
+  }
 
-	// Get file extension
-	const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  // Get file extension
+  const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
 
-	// Upload path: {shopId}/logo.{extension}
-	const filePath = `${shopId}/logo.${extension}`;
+  // Upload path: {shopId}/logo.{extension}
+  const filePath = `${shopId}/logo.${extension}`;
 
-	console.log('📂 Upload path details:', {
-		bucketName: BUCKET_NAME,
-		filePath,
-		shopId,
-		fullPath: `${BUCKET_NAME}/${filePath}`,
-	});
+  console.log('📂 Upload path details:', {
+    bucketName: BUCKET_NAME,
+    filePath,
+    shopId,
+    fullPath: `${BUCKET_NAME}/${filePath}`,
+  });
 
-	// Upload file (will overwrite if exists)
-	const { error: uploadError } = await supabase.storage.from(BUCKET_NAME).upload(filePath, file, {
-		cacheControl: '3600',
-		upsert: true, // Overwrite existing file
-	});
+  // Upload file (will overwrite if exists)
+  const { error: uploadError } = await supabase.storage.from(BUCKET_NAME).upload(filePath, file, {
+    cacheControl: '3600',
+    upsert: true, // Overwrite existing file
+  });
 
-	if (uploadError) {
-		console.error('Upload error:', uploadError);
-		throw new Error(`Failed to upload image: ${uploadError.message}`);
-	}
+  if (uploadError) {
+    console.error('Upload error:', uploadError);
+    throw new Error(`Failed to upload image: ${uploadError.message}`);
+  }
 
-	// Get public URL - manually construct to ensure correct format
-	// Format: https://[project].supabase.co/storage/v1/object/public/[bucket]/[path]
-	const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-	const publicUrl = `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/${filePath}`;
+  // Get public URL - manually construct to ensure correct format
+  // Format: https://[project].supabase.co/storage/v1/object/public/[bucket]/[path]
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const publicUrl = `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/${filePath}`;
 
-	console.log('Upload successful:', { filePath, publicUrl });
+  console.log('Upload successful:', { filePath, publicUrl });
 
-	return publicUrl;
+  return publicUrl;
 }
 
 /**
@@ -99,12 +99,12 @@ export async function uploadShopLogo(file: File, shopId: string): Promise<string
  * @param shopId - The shop ID
  */
 export async function deleteShopLogo(shopId: string): Promise<void> {
-	// Try to delete all possible extensions
-	const extensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-	const filePaths = extensions.map((ext) => `${shopId}/logo.${ext}`);
+  // Try to delete all possible extensions
+  const extensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+  const filePaths = extensions.map((ext) => `${shopId}/logo.${ext}`);
 
-	// Delete all possible logo files (ignore errors if file doesn't exist)
-	await supabase.storage.from(BUCKET_NAME).remove(filePaths);
+  // Delete all possible logo files (ignore errors if file doesn't exist)
+  await supabase.storage.from(BUCKET_NAME).remove(filePaths);
 }
 
 /**
@@ -114,11 +114,11 @@ export async function deleteShopLogo(shopId: string): Promise<void> {
  * @returns Public URL of the logo
  */
 export function getShopLogoUrl(shopId: string, extension = 'jpg'): string {
-	const filePath = `${shopId}/logo.${extension}`;
-	const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-	const publicUrl = `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/${filePath}`;
+  const filePath = `${shopId}/logo.${extension}`;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const publicUrl = `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/${filePath}`;
 
-	return publicUrl;
+  return publicUrl;
 }
 
 /**
@@ -129,77 +129,77 @@ export function getShopLogoUrl(shopId: string, extension = 'jpg'): string {
  * @returns Public URL of the uploaded image
  */
 export async function uploadProductImage(
-	file: File,
-	shopId: string,
-	productId?: string
+  file: File,
+  shopId: string,
+  productId?: string
 ): Promise<string> {
-	// Check authentication status
-	const {
-		data: { session },
-		error: authError,
-	} = await supabase.auth.getSession();
+  // Check authentication status
+  const {
+    data: { session },
+    error: authError,
+  } = await supabase.auth.getSession();
 
-	if (!session) {
-		throw new Error('User must be authenticated to upload images');
-	}
+  if (!session) {
+    throw new Error('User must be authenticated to upload images');
+  }
 
-	// Debug: Check if user has access to this shop
-	const { data: shopAccess, error: accessError } = await supabase
-		.from('shop_users')
-		.select('role')
-		.eq('shop_id', shopId)
-		.eq('user_id', session.user.id)
-		.single();
+  // Debug: Check if user has access to this shop
+  const { data: shopAccess, error: accessError } = await supabase
+    .from('shop_users')
+    .select('role')
+    .eq('shop_id', shopId)
+    .eq('user_id', session.user.id)
+    .single();
 
-	if (!shopAccess) {
-		throw new Error(
-			`User does not have access to shop ${shopId}. Access check failed: ${accessError?.message}`
-		);
-	}
+  if (!shopAccess) {
+    throw new Error(
+      `User does not have access to shop ${shopId}. Access check failed: ${accessError?.message}`
+    );
+  }
 
-	// Validate file size
-	if (file.size > MAX_FILE_SIZE) {
-		throw new Error('File size exceeds 5MB limit');
-	}
+  // Validate file size
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error('File size exceeds 5MB limit');
+  }
 
-	// Validate file type
-	const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-	if (!allowedTypes.includes(file.type)) {
-		throw new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed');
-	}
+  // Validate file type
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed');
+  }
 
-	// Get file extension
-	const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  // Get file extension
+  const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
 
-	// Upload path: {shopId}/products/{productId or timestamp}.{extension}
-	const filename = productId || `${Date.now()}-${Math.random().toString(36).substring(7)}`;
-	const filePath = `${shopId}/products/${filename}.${extension}`;
+  // Upload path: {shopId}/products/{productId or timestamp}.{extension}
+  const filename = productId || `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+  const filePath = `${shopId}/products/${filename}.${extension}`;
 
-	console.log('📂 Upload product image:', {
-		bucketName: BUCKET_NAME,
-		filePath,
-		shopId,
-		productId,
-	});
+  console.log('📂 Upload product image:', {
+    bucketName: BUCKET_NAME,
+    filePath,
+    shopId,
+    productId,
+  });
 
-	// Upload file
-	const { error: uploadError } = await supabase.storage.from(BUCKET_NAME).upload(filePath, file, {
-		cacheControl: '3600',
-		upsert: true, // Overwrite existing file
-	});
+  // Upload file
+  const { error: uploadError } = await supabase.storage.from(BUCKET_NAME).upload(filePath, file, {
+    cacheControl: '3600',
+    upsert: true, // Overwrite existing file
+  });
 
-	if (uploadError) {
-		console.error('Upload error:', uploadError);
-		throw new Error(`Failed to upload image: ${uploadError.message}`);
-	}
+  if (uploadError) {
+    console.error('Upload error:', uploadError);
+    throw new Error(`Failed to upload image: ${uploadError.message}`);
+  }
 
-	// Get public URL
-	const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-	const publicUrl = `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/${filePath}`;
+  // Get public URL
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const publicUrl = `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/${filePath}`;
 
-	console.log('Product image upload successful:', { filePath, publicUrl });
+  console.log('Product image upload successful:', { filePath, publicUrl });
 
-	return publicUrl;
+  return publicUrl;
 }
 
 /**
@@ -210,74 +210,74 @@ export async function uploadProductImage(
  * @returns Public URL of the uploaded image
  */
 export async function uploadInventoryItemImage(
-	file: File,
-	shopId: string,
-	itemId?: string
+  file: File,
+  shopId: string,
+  itemId?: string
 ): Promise<string> {
-	// Check authentication status
-	const {
-		data: { session },
-	} = await supabase.auth.getSession();
+  // Check authentication status
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-	if (!session) {
-		throw new Error('User must be authenticated to upload images');
-	}
+  if (!session) {
+    throw new Error('User must be authenticated to upload images');
+  }
 
-	// Debug: Check if user has access to this shop
-	const { data: shopAccess, error: accessError } = await supabase
-		.from('shop_users')
-		.select('role')
-		.eq('shop_id', shopId)
-		.eq('user_id', session.user.id)
-		.single();
+  // Debug: Check if user has access to this shop
+  const { data: shopAccess, error: accessError } = await supabase
+    .from('shop_users')
+    .select('role')
+    .eq('shop_id', shopId)
+    .eq('user_id', session.user.id)
+    .single();
 
-	if (!shopAccess) {
-		throw new Error(
-			`User does not have access to shop ${shopId}. Access check failed: ${accessError?.message}`
-		);
-	}
+  if (!shopAccess) {
+    throw new Error(
+      `User does not have access to shop ${shopId}. Access check failed: ${accessError?.message}`
+    );
+  }
 
-	// Validate file size
-	if (file.size > MAX_FILE_SIZE) {
-		throw new Error('File size exceeds 5MB limit');
-	}
+  // Validate file size
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error('File size exceeds 5MB limit');
+  }
 
-	// Validate file type
-	const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-	if (!allowedTypes.includes(file.type)) {
-		throw new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed');
-	}
+  // Validate file type
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed');
+  }
 
-	// Get file extension
-	const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  // Get file extension
+  const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
 
-	// Upload path: {shopId}/inventory/{itemId or timestamp}.{extension}
-	const filename = itemId || `${Date.now()}-${Math.random().toString(36).substring(7)}`;
-	const filePath = `${shopId}/inventory/${filename}.${extension}`;
+  // Upload path: {shopId}/inventory/{itemId or timestamp}.{extension}
+  const filename = itemId || `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+  const filePath = `${shopId}/inventory/${filename}.${extension}`;
 
-	console.log('📂 Upload inventory item image:', {
-		bucketName: BUCKET_NAME,
-		filePath,
-		shopId,
-		itemId,
-	});
+  console.log('📂 Upload inventory item image:', {
+    bucketName: BUCKET_NAME,
+    filePath,
+    shopId,
+    itemId,
+  });
 
-	// Upload file
-	const { error: uploadError } = await supabase.storage.from(BUCKET_NAME).upload(filePath, file, {
-		cacheControl: '3600',
-		upsert: true, // Overwrite existing file
-	});
+  // Upload file
+  const { error: uploadError } = await supabase.storage.from(BUCKET_NAME).upload(filePath, file, {
+    cacheControl: '3600',
+    upsert: true, // Overwrite existing file
+  });
 
-	if (uploadError) {
-		console.error('Upload error:', uploadError);
-		throw new Error(`Failed to upload image: ${uploadError.message}`);
-	}
+  if (uploadError) {
+    console.error('Upload error:', uploadError);
+    throw new Error(`Failed to upload image: ${uploadError.message}`);
+  }
 
-	// Get public URL
-	const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-	const publicUrl = `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/${filePath}`;
+  // Get public URL
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const publicUrl = `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/${filePath}`;
 
-	console.log('Inventory item image upload successful:', { filePath, publicUrl });
+  console.log('Inventory item image upload successful:', { filePath, publicUrl });
 
-	return publicUrl;
+  return publicUrl;
 }

@@ -75,7 +75,10 @@ export interface ShopTax extends Auditable {
   is_active: boolean;
 }
 
-export type ShopTaxInsert = Omit<ShopTax, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>;
+export type ShopTaxInsert = Omit<
+  ShopTax,
+  'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'
+>;
 export type ShopTaxUpdate = Partial<Omit<ShopTaxInsert, 'shop_id'>>;
 
 // ===== Discount Type Types =====
@@ -88,7 +91,10 @@ export interface DiscountType extends Auditable {
   is_active: boolean;
 }
 
-export type DiscountTypeInsert = Omit<DiscountType, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by' | 'is_system'>;
+export type DiscountTypeInsert = Omit<
+  DiscountType,
+  'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by' | 'is_system'
+>;
 export type DiscountTypeUpdate = Partial<Omit<DiscountTypeInsert, 'shop_id'>>;
 
 // ===== Void/Refund Reason Types =====
@@ -101,7 +107,10 @@ export interface VoidRefundReason extends Auditable {
   is_active: boolean;
 }
 
-export type VoidRefundReasonInsert = Omit<VoidRefundReason, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by' | 'is_system'>;
+export type VoidRefundReasonInsert = Omit<
+  VoidRefundReason,
+  'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by' | 'is_system'
+>;
 
 // ===== Order Tax Types =====
 
@@ -378,7 +387,7 @@ export interface Order extends Auditable {
   shop_id: string;
   order_date: string;
   order_number: number | null;
-  status: string;  // 'completed' | 'voided' | 'refunded'
+  status: string; // 'completed' | 'voided' | 'refunded'
   total_sale: number;
   served_by_id: string | null;
   dispatched_by_id: string | null;
@@ -392,7 +401,7 @@ export interface Order extends Auditable {
   payment_change: number | null;
   // Discount fields
   discount_type_id: string | null;
-  discount_method: string | null;  // 'percentage' | 'fixed'
+  discount_method: string | null; // 'percentage' | 'fixed'
   discount_value: number | null;
   discount_amount: number | null;
   // Tip fields

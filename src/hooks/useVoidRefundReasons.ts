@@ -72,7 +72,13 @@ export function useUpdateVoidRefundReason() {
   const { showSuccess, showError } = useUI();
 
   return useMutation({
-    mutationFn: async ({ reasonId, updates }: { reasonId: string; updates: { name?: string; is_active?: boolean } }) => {
+    mutationFn: async ({
+      reasonId,
+      updates,
+    }: {
+      reasonId: string;
+      updates: { name?: string; is_active?: boolean };
+    }) => {
       if (!user) {
         throw new Error('User not authenticated');
       }

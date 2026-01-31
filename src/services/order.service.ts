@@ -7,8 +7,6 @@ import type {
   Order,
   OrderCreationResult,
   OrderWithDetails,
-  OrderItemWithDetails,
-  OrderTax,
   PaymentType,
 } from '@/types';
 import { inventoryService } from './inventory.service';
@@ -106,7 +104,7 @@ export const orderService = {
 
       // STEP 3.5: Create order tax breakdown
       if (orderData.taxes && orderData.taxes.length > 0) {
-        const orderTaxes = orderData.taxes.map(tax => ({
+        const orderTaxes = orderData.taxes.map((tax) => ({
           order_id: order.id,
           shop_tax_id: tax.shop_tax_id,
           tax_name: tax.tax_name,
@@ -119,13 +117,14 @@ export const orderService = {
         }));
 
         // @ts-expect-error - order_taxes table not in generated types yet (needs db:types regeneration)
-        const { error: taxError } = await supabase
-          .from('order_taxes')
-          .insert(orderTaxes);
+        const { error: taxError } = await supabase.from('order_taxes').insert(orderTaxes);
 
         if (taxError) {
           await supabase.from('orders').delete().eq('id', order.id);
-          return { data: null, error: new Error(`Failed to create order taxes: ${taxError.message}`) };
+          return {
+            data: null,
+            error: new Error(`Failed to create order taxes: ${taxError.message}`),
+          };
         }
       }
 
@@ -532,12 +531,15 @@ export const orderService = {
   /**
    * Get orders for a shop with optional filtering
    */
-  async getOrders(shopId: string, options?: {
-    status?: string;
-    search?: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<ApiResponse<OrderWithDetails[]>> {
+  async getOrders(
+    shopId: string,
+    options?: {
+      status?: string;
+      search?: string;
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<ApiResponse<OrderWithDetails[]>> {
     try {
       let query = supabase
         .from('orders')
@@ -561,7 +563,7 @@ export const orderService = {
 
       if (options?.search) {
         const searchNum = parseInt(options.search, 10);
-        if (!isNaN(searchNum)) {
+        if (!Number.isNaN(searchNum)) {
           query = query.eq('order_number', searchNum);
         }
       }
@@ -641,7 +643,10 @@ export const orderService = {
       // @ts-expect-error - status property not in generated types yet
       if (existing.status !== 'completed') {
         // @ts-expect-error - status property not in generated types yet
-        return { data: null, error: new Error(`Cannot void order with status: ${existing.status}`) };
+        return {
+          data: null,
+          error: new Error(`Cannot void order with status: ${existing.status}`),
+        };
       }
 
       const { data, error } = await supabase
@@ -674,7 +679,12 @@ export const orderService = {
   /**
    * Refund an order
    */
-  async refundOrder(orderId: string, amount: number, reasonId: string, userId: string): Promise<ApiResponse<Order>> {
+  async refundOrder(
+    orderId: string,
+    amount: number,
+    reasonId: string,
+    userId: string
+  ): Promise<ApiResponse<Order>> {
     try {
       // @ts-expect-error - status column not in generated types yet (needs db:types regeneration)
       const { data: existing, error: fetchError } = await supabase
@@ -690,7 +700,10 @@ export const orderService = {
       // @ts-expect-error - status property not in generated types yet
       if (existing.status !== 'completed') {
         // @ts-expect-error - status property not in generated types yet
-        return { data: null, error: new Error(`Cannot refund order with status: ${existing.status}`) };
+        return {
+          data: null,
+          error: new Error(`Cannot refund order with status: ${existing.status}`),
+        };
       }
 
       // @ts-expect-error - total_sale property exists in the query result

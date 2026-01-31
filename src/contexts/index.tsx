@@ -7,7 +7,7 @@ import { ShopProvider } from './ShopContext';
 import { UIProvider } from './UIContext';
 
 interface AppProvidersProps {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 /**
@@ -21,15 +21,15 @@ interface AppProvidersProps {
  * 4. CartProvider - Depends on ShopProvider for currency
  */
 export function AppProviders({ children }: AppProvidersProps) {
-	return (
-		<UIProvider>
-			<AuthProvider>
-				<ShopProvider>
-					<CartProvider>{children}</CartProvider>
-				</ShopProvider>
-			</AuthProvider>
-		</UIProvider>
-	);
+  return (
+    <UIProvider>
+      <AuthProvider>
+        <ShopProvider>
+          <CartProvider>{children}</CartProvider>
+        </ShopProvider>
+      </AuthProvider>
+    </UIProvider>
+  );
 }
 
 // Re-export all contexts and hooks

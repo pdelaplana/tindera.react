@@ -49,7 +49,11 @@ export const voidRefundReasonService = {
     }
   },
 
-  async createReason(shopId: string, name: string, userId: string): Promise<ApiResponse<VoidRefundReason>> {
+  async createReason(
+    shopId: string,
+    name: string,
+    userId: string
+  ): Promise<ApiResponse<VoidRefundReason>> {
     try {
       const { data, error } = await supabase
         .from('void_refund_reasons')
@@ -76,7 +80,11 @@ export const voidRefundReasonService = {
     }
   },
 
-  async updateReason(reasonId: string, updates: Partial<VoidRefundReasonInsert>, userId: string): Promise<ApiResponse<VoidRefundReason>> {
+  async updateReason(
+    reasonId: string,
+    updates: Partial<VoidRefundReasonInsert>,
+    userId: string
+  ): Promise<ApiResponse<VoidRefundReason>> {
     try {
       const { data, error } = await supabase
         .from('void_refund_reasons')

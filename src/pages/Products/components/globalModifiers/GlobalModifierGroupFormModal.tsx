@@ -79,7 +79,7 @@ export const GlobalModifierGroupFormModal: React.FC<GlobalModifierGroupFormModal
 
   const minSelect = watch('min_select');
   const maxSelect = watch('max_select');
-  const isRequired = watch('is_required');
+  const _isRequired = watch('is_required');
 
   // Reset form when modal opens or group changes
   useEffect(() => {

@@ -3,7 +3,7 @@ import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import { designSystem } from './designSystem';
 
 interface ThemeProviderProps {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 /**
@@ -30,7 +30,7 @@ interface ThemeProviderProps {
  * ```
  */
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-	return <StyledThemeProvider theme={designSystem}>{children}</StyledThemeProvider>;
+  return <StyledThemeProvider theme={designSystem}>{children}</StyledThemeProvider>;
 };
 
 export default ThemeProvider;

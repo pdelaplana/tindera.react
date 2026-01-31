@@ -8,16 +8,16 @@
  * @returns Formatted currency string
  */
 export function formatCurrency(
-	amount: number,
-	currencyCode: string = 'USD',
-	locale: string = 'en-US'
+  amount: number,
+  currencyCode: string = 'USD',
+  locale: string = 'en-US'
 ): string {
-	return new Intl.NumberFormat(locale, {
-		style: 'currency',
-		currency: currencyCode,
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	}).format(amount);
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currencyCode,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
 }
 
 /**
@@ -28,8 +28,8 @@ export function formatCurrency(
  * @returns A function that formats numbers as currency
  */
 export function createCurrencyFormatter(
-	currencyCode: string = 'USD',
-	locale: string = 'en-US'
+  currencyCode: string = 'USD',
+  locale: string = 'en-US'
 ): (amount: number) => string {
-	return (amount: number) => formatCurrency(amount, currencyCode, locale);
+  return (amount: number) => formatCurrency(amount, currencyCode, locale);
 }

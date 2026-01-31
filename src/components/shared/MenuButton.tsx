@@ -9,18 +9,18 @@ const StyledButton = styled(IonButton)`
 `;
 
 const MenuButton: React.FC = () => {
-	const openMenu = () => {
-		const menu = document.querySelector('ion-menu');
-		if (menu) {
-			menu.open();
-		}
-	};
+  const openMenu = () => {
+    const menu = document.querySelector('ion-menu');
+    if (menu) {
+      menu.open();
+    }
+  };
 
-	return (
-		<StyledButton fill="clear" onClick={openMenu}>
-			<AppLogo height="32px" />
-		</StyledButton>
-	);
+  return (
+    <StyledButton fill="clear" onClick={openMenu}>
+      <AppLogo height="32px" />
+    </StyledButton>
+  );
 };
 
 export default MenuButton;

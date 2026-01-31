@@ -7,12 +7,12 @@ import type { ShopInsert, ShopUpdate } from '@/types';
 
 // Query keys for cache management
 export const shopKeys = {
-	all: ['shops'] as const,
-	lists: () => [...shopKeys.all, 'list'] as const,
-	list: (userId: string) => [...shopKeys.lists(), userId] as const,
-	details: () => [...shopKeys.all, 'detail'] as const,
-	detail: (shopId: string) => [...shopKeys.details(), shopId] as const,
-	users: (shopId: string) => [...shopKeys.all, 'users', shopId] as const,
+  all: ['shops'] as const,
+  lists: () => [...shopKeys.all, 'list'] as const,
+  list: (userId: string) => [...shopKeys.lists(), userId] as const,
+  details: () => [...shopKeys.all, 'detail'] as const,
+  detail: (shopId: string) => [...shopKeys.details(), shopId] as const,
+  users: (shopId: string) => [...shopKeys.all, 'users', shopId] as const,
 };
 
 /**
@@ -38,7 +38,7 @@ export const shopKeys = {
  * ```
  */
 export function useShop() {
-	return useShopContext();
+  return useShopContext();
 }
 
 /**
@@ -67,83 +67,83 @@ export function useShop() {
  * ```
  */
 export function useShopUsers(shopId: string | undefined) {
-	return useQuery({
-		queryKey: shopKeys.users(shopId || ''),
-		queryFn: async () => {
-			if (!shopId) return [];
-			const { data, error } = await shopService.getShopUsers(shopId);
-			if (error) throw error;
-			return data || [];
-		},
-		enabled: !!shopId,
-	});
+  return useQuery({
+    queryKey: shopKeys.users(shopId || ''),
+    queryFn: async () => {
+      if (!shopId) return [];
+      const { data, error } = await shopService.getShopUsers(shopId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!shopId,
+  });
 }
 
 /**
  * Hook to add a user to a shop.
  */
 export function useAddUserToShop() {
-	const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-	return useMutation({
-		mutationFn: async ({
-			shopId,
-			userId,
-			role,
-		}: {
-			shopId: string;
-			userId: string;
-			role: string;
-		}) => {
-			const { error } = await shopService.addUserToShop(shopId, userId, role);
-			if (error) throw error;
-		},
-		onSuccess: (_, variables) => {
-			queryClient.invalidateQueries({ queryKey: shopKeys.users(variables.shopId) });
-		},
-	});
+  return useMutation({
+    mutationFn: async ({
+      shopId,
+      userId,
+      role,
+    }: {
+      shopId: string;
+      userId: string;
+      role: string;
+    }) => {
+      const { error } = await shopService.addUserToShop(shopId, userId, role);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: shopKeys.users(variables.shopId) });
+    },
+  });
 }
 
 /**
  * Hook to remove a user from a shop.
  */
 export function useRemoveUserFromShop() {
-	const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-	return useMutation({
-		mutationFn: async ({ shopId, userId }: { shopId: string; userId: string }) => {
-			const { error } = await shopService.removeUserFromShop(shopId, userId);
-			if (error) throw error;
-		},
-		onSuccess: (_, variables) => {
-			queryClient.invalidateQueries({ queryKey: shopKeys.users(variables.shopId) });
-		},
-	});
+  return useMutation({
+    mutationFn: async ({ shopId, userId }: { shopId: string; userId: string }) => {
+      const { error } = await shopService.removeUserFromShop(shopId, userId);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: shopKeys.users(variables.shopId) });
+    },
+  });
 }
 
 /**
  * Hook to update a user's role in a shop.
  */
 export function useUpdateUserRole() {
-	const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-	return useMutation({
-		mutationFn: async ({
-			shopId,
-			userId,
-			role,
-		}: {
-			shopId: string;
-			userId: string;
-			role: string;
-		}) => {
-			const { error } = await shopService.updateUserRole(shopId, userId, role);
-			if (error) throw error;
-		},
-		onSuccess: (_, variables) => {
-			queryClient.invalidateQueries({ queryKey: shopKeys.users(variables.shopId) });
-		},
-	});
+  return useMutation({
+    mutationFn: async ({
+      shopId,
+      userId,
+      role,
+    }: {
+      shopId: string;
+      userId: string;
+      role: string;
+    }) => {
+      const { error } = await shopService.updateUserRole(shopId, userId, role);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: shopKeys.users(variables.shopId) });
+    },
+  });
 }
 
 /**
@@ -174,59 +174,59 @@ export function useUpdateUserRole() {
  * ```
  */
 export function useCreateShop() {
-	const { createShop } = useShopContext();
-	const queryClient = useQueryClient();
+  const { createShop } = useShopContext();
+  const queryClient = useQueryClient();
 
-	return useMutation({
-		mutationFn: async (data: ShopInsert) => {
-			const { success, shop, error } = await createShop(data);
-			if (!success || !shop) {
-				console.log('Create shop error:', error);
-				throw new Error(error || 'Failed to create shop');
-			}
-			return shop;
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: shopKeys.lists() });
-		},
-	});
+  return useMutation({
+    mutationFn: async (data: ShopInsert) => {
+      const { success, shop, error } = await createShop(data);
+      if (!success || !shop) {
+        console.log('Create shop error:', error);
+        throw new Error(error || 'Failed to create shop');
+      }
+      return shop;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: shopKeys.lists() });
+    },
+  });
 }
 
 /**
  * Hook to update an existing shop using TanStack Query mutation.
  */
 export function useUpdateShop() {
-	const { updateShop } = useShopContext();
-	const queryClient = useQueryClient();
+  const { updateShop } = useShopContext();
+  const queryClient = useQueryClient();
 
-	return useMutation({
-		mutationFn: async ({ shopId, data }: { shopId: string; data: ShopUpdate }) => {
-			const { success, error } = await updateShop(shopId, data);
-			if (!success) throw new Error(error || 'Failed to update shop');
-		},
-		onSuccess: (_, variables) => {
-			queryClient.invalidateQueries({ queryKey: shopKeys.detail(variables.shopId) });
-			queryClient.invalidateQueries({ queryKey: shopKeys.lists() });
-		},
-	});
+  return useMutation({
+    mutationFn: async ({ shopId, data }: { shopId: string; data: ShopUpdate }) => {
+      const { success, error } = await updateShop(shopId, data);
+      if (!success) throw new Error(error || 'Failed to update shop');
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: shopKeys.detail(variables.shopId) });
+      queryClient.invalidateQueries({ queryKey: shopKeys.lists() });
+    },
+  });
 }
 
 /**
  * Hook to delete a shop using TanStack Query mutation.
  */
 export function useDeleteShop() {
-	const { deleteShop } = useShopContext();
-	const queryClient = useQueryClient();
+  const { deleteShop } = useShopContext();
+  const queryClient = useQueryClient();
 
-	return useMutation({
-		mutationFn: async (shopId: string) => {
-			const { success, error } = await deleteShop(shopId);
-			if (!success) throw new Error(error || 'Failed to delete shop');
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: shopKeys.lists() });
-		},
-	});
+  return useMutation({
+    mutationFn: async (shopId: string) => {
+      const { success, error } = await deleteShop(shopId);
+      if (!success) throw new Error(error || 'Failed to delete shop');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: shopKeys.lists() });
+    },
+  });
 }
 
 export default useShop;

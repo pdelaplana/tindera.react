@@ -8,24 +8,24 @@ import { designSystem } from '@/theme/designSystem';
 import type { OrderWithDetails } from '@/types';
 
 interface OrderCardProps {
-	order: OrderWithDetails;
-	isSelected: boolean;
-	onClick: () => void;
-	shopPrefix: string | null;
+  order: OrderWithDetails;
+  isSelected: boolean;
+  onClick: () => void;
+  shopPrefix: string | null;
 }
 
 // Styled components
 const Card = styled.div<{ isSelected: boolean }>`
-	background: ${props =>
-		props.isSelected ? designSystem.colors.surface.variant : designSystem.colors.surface.base};
+	background: ${(props) =>
+    props.isSelected ? designSystem.colors.surface.variant : designSystem.colors.surface.base};
 	border-radius: ${designSystem.borderRadius.md};
 	padding: ${designSystem.spacing.md};
 	cursor: pointer;
 	transition: all ${designSystem.transitions.base};
 	user-select: none;
 	-webkit-tap-highlight-color: transparent;
-	border: 1px solid ${props =>
-		props.isSelected ? designSystem.colors.brand.primary : designSystem.colors.gray[200]};
+	border: 1px solid ${(props) =>
+    props.isSelected ? designSystem.colors.brand.primary : designSystem.colors.gray[200]};
 
 	&:hover {
 		background: ${designSystem.colors.surface.variant};
@@ -70,18 +70,18 @@ const MetaDivider = styled.span`
 `;
 
 const StatusBadgeStyled = styled(IonBadge)<{ statusType: 'completed' | 'voided' | 'refunded' }>`
-	--background: ${props => {
-		switch (props.statusType) {
-			case 'completed':
-				return designSystem.colors.status.paid;
-			case 'voided':
-				return designSystem.colors.danger;
-			case 'refunded':
-				return designSystem.colors.warning;
-			default:
-				return designSystem.colors.gray[400];
-		}
-	}};
+	--background: ${(props) => {
+    switch (props.statusType) {
+      case 'completed':
+        return designSystem.colors.status.paid;
+      case 'voided':
+        return designSystem.colors.danger;
+      case 'refunded':
+        return designSystem.colors.warning;
+      default:
+        return designSystem.colors.gray[400];
+    }
+  }};
 	--color: white;
 	font-size: ${designSystem.typography.fontSize.xs};
 	font-weight: ${designSystem.typography.fontWeight.medium};
@@ -90,61 +90,63 @@ const StatusBadgeStyled = styled(IonBadge)<{ statusType: 'completed' | 'voided' 
 
 // Helper functions
 const formatOrderNumber = (orderNumber: number | null, prefix: string | null): string => {
-	if (!orderNumber) return 'N/A';
-	const paddedNumber = orderNumber.toString().padStart(4, '0');
-	return prefix ? `#${prefix}-${paddedNumber}` : `#${paddedNumber}`;
+  if (!orderNumber) return 'N/A';
+  const paddedNumber = orderNumber.toString().padStart(4, '0');
+  return prefix ? `#${prefix}-${paddedNumber}` : `#${paddedNumber}`;
 };
 
 const formatTime = (dateString: string): string => {
-	const date = new Date(dateString);
-	return date.toLocaleTimeString('en-US', {
-		hour: 'numeric',
-		minute: '2-digit',
-		hour12: true,
-	});
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
 };
 
 const getStatusLabel = (status: string): string => {
-	switch (status) {
-		case 'completed':
-			return 'Paid';
-		case 'voided':
-			return 'Cancelled';
-		case 'refunded':
-			return 'Refunded';
-		default:
-			return status;
-	}
+  switch (status) {
+    case 'completed':
+      return 'Paid';
+    case 'voided':
+      return 'Cancelled';
+    case 'refunded':
+      return 'Refunded';
+    default:
+      return status;
+  }
 };
 
 export const OrderCard: React.FC<OrderCardProps> = ({ order, isSelected, onClick, shopPrefix }) => {
-	const orderNumber = formatOrderNumber(order.order_number, shopPrefix);
-	const time = formatTime(order.order_date);
-	const customerName = order.customer_name || 'Walk-in';
-	const itemCount = order.order_items.length;
-	const statusType = order.status as 'completed' | 'voided' | 'refunded';
-	const statusLabel = getStatusLabel(order.status);
+  const orderNumber = formatOrderNumber(order.order_number, shopPrefix);
+  const time = formatTime(order.order_date);
+  const customerName = order.customer_name || 'Walk-in';
+  const itemCount = order.order_items.length;
+  const statusType = order.status as 'completed' | 'voided' | 'refunded';
+  const statusLabel = getStatusLabel(order.status);
 
-	return (
-		<Card isSelected={isSelected} onClick={onClick} role="button" tabIndex={0}>
-			<CardHeader>
-				<OrderNumber>{orderNumber}</OrderNumber>
-				<OrderTotal>
-					<PriceDisplay amount={order.total_sale} currency="USD" />
-				</OrderTotal>
-			</CardHeader>
+  return (
+    <Card isSelected={isSelected} onClick={onClick} role="button" tabIndex={0}>
+      <CardHeader>
+        <OrderNumber>{orderNumber}</OrderNumber>
+        <OrderTotal>
+          <PriceDisplay amount={order.total_sale} currency="USD" />
+        </OrderTotal>
+      </CardHeader>
 
-			<CardMeta>
-				<span>{time}</span>
-				<MetaDivider>·</MetaDivider>
-				<span>{customerName}</span>
-				<MetaDivider>·</MetaDivider>
-				<span>{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
-			</CardMeta>
+      <CardMeta>
+        <span>{time}</span>
+        <MetaDivider>·</MetaDivider>
+        <span>{customerName}</span>
+        <MetaDivider>·</MetaDivider>
+        <span>
+          {itemCount} {itemCount === 1 ? 'item' : 'items'}
+        </span>
+      </CardMeta>
 
-			<StatusBadgeStyled statusType={statusType}>{statusLabel}</StatusBadgeStyled>
-		</Card>
-	);
+      <StatusBadgeStyled statusType={statusType}>{statusLabel}</StatusBadgeStyled>
+    </Card>
+  );
 };
 
 export default OrderCard;

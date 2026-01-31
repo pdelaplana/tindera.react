@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__context7__query-docs",
+      "Bash(git -C \"D:\\\\Repos\\\\tindera.react\" diff src/components/shared/CardContainer.tsx)",
+      "Bash(git -C \"D:\\\\Repos\\\\tindera.react\" diff --name-only)",
+      "Bash(git -C \"D:\\\\Repos\\\\tindera.react\" diff src/pages/Inventory/InventoryListPage.tsx)",
+      "Bash(git -C \"D:\\\\Repos\\\\tindera.react\" diff src/services/inventory.service.ts)",
+      "Bash(git -C \"D:\\\\Repos\\\\tindera.react\" diff HEAD src/pages/Inventory/)",
+      "Bash(git -C \"D:\\\\Repos\\\\tindera.react\" status)",
+      "Bash(git -C \"D:\\\\Repos\\\\tindera.react\" diff --cached --name-only)",
+      "Bash(git -C \"D:\\\\Repos\\\\tindera.react\" ls-files --modified)",
+      "Bash(git -C \"D:\\\\Repos\\\\tindera.react\" show 8c0aad0 --stat)",
+      "Bash(git -C \"D:\\\\Repos\\\\tindera.react\" log -1 --stat)",
+      "Bash(find:*)",
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(ls:*)"
+    ]
+  }
+}

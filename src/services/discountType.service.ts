@@ -51,7 +51,11 @@ export const discountTypeService = {
     }
   },
 
-  async createDiscountType(shopId: string, name: string, userId: string): Promise<ApiResponse<DiscountType>> {
+  async createDiscountType(
+    shopId: string,
+    name: string,
+    userId: string
+  ): Promise<ApiResponse<DiscountType>> {
     try {
       // @ts-expect-error - discount_types table not in generated types yet (needs db:types regeneration)
       const { data, error } = await supabase
@@ -79,7 +83,11 @@ export const discountTypeService = {
     }
   },
 
-  async updateDiscountType(typeId: string, updates: DiscountTypeUpdate, userId: string): Promise<ApiResponse<DiscountType>> {
+  async updateDiscountType(
+    typeId: string,
+    updates: DiscountTypeUpdate,
+    userId: string
+  ): Promise<ApiResponse<DiscountType>> {
     try {
       // @ts-expect-error - discount_types table not in generated types yet (needs db:types regeneration)
       const { data, error } = await supabase

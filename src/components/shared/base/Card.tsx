@@ -3,56 +3,56 @@ import styled from 'styled-components';
 import { designSystem } from '@/theme/designSystem';
 
 interface CardProps {
-	children: React.ReactNode;
-	variant?: 'default' | 'elevated' | 'outlined';
-	padding?: 'sm' | 'md' | 'lg';
-	className?: string;
-	onClick?: () => void;
+  children: React.ReactNode;
+  variant?: 'default' | 'elevated' | 'outlined';
+  padding?: 'sm' | 'md' | 'lg';
+  className?: string;
+  onClick?: () => void;
 }
 
 const StyledCard = styled.div<{
-	variant: 'default' | 'elevated' | 'outlined';
-	padding: 'sm' | 'md' | 'lg';
-	clickable: boolean;
+  variant: 'default' | 'elevated' | 'outlined';
+  padding: 'sm' | 'md' | 'lg';
+  clickable: boolean;
 }>`
 	background: ${designSystem.colors.surface.elevated};
 	border-radius: ${designSystem.borderRadius.lg};
 	padding: ${(props) => {
-		switch (props.padding) {
-			case 'sm':
-				return designSystem.spacing.md;
-			case 'md':
-				return designSystem.spacing.lg;
-			case 'lg':
-				return designSystem.spacing.xl;
-			default:
-				return designSystem.spacing.lg;
-		}
-	}};
+    switch (props.padding) {
+      case 'sm':
+        return designSystem.spacing.md;
+      case 'md':
+        return designSystem.spacing.lg;
+      case 'lg':
+        return designSystem.spacing.xl;
+      default:
+        return designSystem.spacing.lg;
+    }
+  }};
 
 	${(props) => {
-		switch (props.variant) {
-			case 'elevated':
-				return `
+    switch (props.variant) {
+      case 'elevated':
+        return `
 					box-shadow: ${designSystem.shadows.lg};
 					border: none;
 				`;
-			case 'outlined':
-				return `
+      case 'outlined':
+        return `
 					border: 1px solid ${designSystem.colors.gray[200]};
 					box-shadow: none;
 				`;
-			default:
-				return `
+      default:
+        return `
 					box-shadow: ${designSystem.shadows.md};
 					border: none;
 				`;
-		}
-	}}
+    }
+  }}
 
 	${(props) =>
-		props.clickable &&
-		`
+    props.clickable &&
+    `
 		cursor: pointer;
 		transition: all 0.2s ease;
 
@@ -71,33 +71,33 @@ const StyledCard = styled.div<{
 `;
 
 export const Card: React.FC<CardProps> = ({
-	children,
-	variant = 'default',
-	padding = 'lg',
-	className,
-	onClick,
+  children,
+  variant = 'default',
+  padding = 'lg',
+  className,
+  onClick,
 }) => {
-	return (
-		<StyledCard
-			variant={variant}
-			padding={padding}
-			clickable={!!onClick}
-			className={className}
-			onClick={onClick}
-		>
-			{children}
-		</StyledCard>
-	);
+  return (
+    <StyledCard
+      variant={variant}
+      padding={padding}
+      clickable={!!onClick}
+      className={className}
+      onClick={onClick}
+    >
+      {children}
+    </StyledCard>
+  );
 };
 
 // MetricCard Component for Dashboard KPIs
 interface MetricCardProps {
-	title: string;
-	value: string;
-	subtitle?: string;
-	icon?: React.ReactNode;
-	trend?: 'up' | 'down' | 'neutral';
-	onClick?: () => void;
+  title: string;
+  value: string;
+  subtitle?: string;
+  icon?: React.ReactNode;
+  trend?: 'up' | 'down' | 'neutral';
+  onClick?: () => void;
 }
 
 const MetricCardContainer = styled(Card)`
@@ -133,29 +133,29 @@ const MetricSubtitle = styled.p`
 `;
 
 export const MetricCard: React.FC<MetricCardProps> = ({
-	title,
-	value,
-	subtitle,
-	icon,
-	onClick,
+  title,
+  value,
+  subtitle,
+  icon,
+  onClick,
 }) => {
-	return (
-		<MetricCardContainer onClick={onClick} variant="elevated">
-			{icon}
-			<MetricTitle>{title}</MetricTitle>
-			<MetricValue>{value}</MetricValue>
-			{subtitle && <MetricSubtitle>{subtitle}</MetricSubtitle>}
-		</MetricCardContainer>
-	);
+  return (
+    <MetricCardContainer onClick={onClick} variant="elevated">
+      {icon}
+      <MetricTitle>{title}</MetricTitle>
+      <MetricValue>{value}</MetricValue>
+      {subtitle && <MetricSubtitle>{subtitle}</MetricSubtitle>}
+    </MetricCardContainer>
+  );
 };
 
 // ActionCard for Clickable Navigation Tiles
 interface ActionCardProps {
-	icon: React.ReactNode;
-	title: string;
-	subtitle?: string;
-	onClick: () => void;
-	variant?: 'primary' | 'secondary';
+  icon: React.ReactNode;
+  title: string;
+  subtitle?: string;
+  onClick: () => void;
+  variant?: 'primary' | 'secondary';
 }
 
 const ActionCardContainer = styled(Card)<{ variant: 'primary' | 'secondary' }>`
@@ -166,8 +166,8 @@ const ActionCardContainer = styled(Card)<{ variant: 'primary' | 'secondary' }>`
 	transition: all 0.2s ease;
 
 	${(props) =>
-		props.variant === 'primary' &&
-		`
+    props.variant === 'primary' &&
+    `
 		background: linear-gradient(135deg, ${designSystem.colors.brand.primary} 0%, ${designSystem.colors.brand.secondary} 100%);
 		color: ${designSystem.colors.text.inverse};
 
@@ -192,9 +192,9 @@ const ActionIcon = styled.div<{ variant: 'primary' | 'secondary' }>`
 	font-size: 24px;
 
 	${(props) =>
-		props.variant === 'primary'
-			? 'background: rgba(255, 255, 255, 0.2);'
-			: `background: ${designSystem.colors.brand.accentLight}; color: ${designSystem.colors.brand.primary};`}
+    props.variant === 'primary'
+      ? 'background: rgba(255, 255, 255, 0.2);'
+      : `background: ${designSystem.colors.brand.accentLight}; color: ${designSystem.colors.brand.primary};`}
 `;
 
 const ActionContent = styled.div`
@@ -206,32 +206,32 @@ const ActionTitle = styled.h4<{ variant: 'primary' | 'secondary' }>`
 	font-weight: ${designSystem.typography.fontWeight.semibold};
 	margin: 0 0 4px 0;
 	color: ${(props) =>
-		props.variant === 'primary'
-			? designSystem.colors.text.inverse
-			: designSystem.colors.text.primary};
+    props.variant === 'primary'
+      ? designSystem.colors.text.inverse
+      : designSystem.colors.text.primary};
 `;
 
 const ActionSubtitle = styled.p<{ variant: 'primary' | 'secondary' }>`
 	font-size: ${designSystem.typography.fontSize.sm};
 	margin: 0;
 	color: ${(props) =>
-		props.variant === 'primary' ? 'rgba(255, 255, 255, 0.8)' : designSystem.colors.text.secondary};
+    props.variant === 'primary' ? 'rgba(255, 255, 255, 0.8)' : designSystem.colors.text.secondary};
 `;
 
 export const ActionCard: React.FC<ActionCardProps> = ({
-	icon,
-	title,
-	subtitle,
-	onClick,
-	variant = 'secondary',
+  icon,
+  title,
+  subtitle,
+  onClick,
+  variant = 'secondary',
 }) => {
-	return (
-		<ActionCardContainer variant={variant} onClick={onClick} padding="md">
-			<ActionIcon variant={variant}>{icon}</ActionIcon>
-			<ActionContent>
-				<ActionTitle variant={variant}>{title}</ActionTitle>
-				{subtitle && <ActionSubtitle variant={variant}>{subtitle}</ActionSubtitle>}
-			</ActionContent>
-		</ActionCardContainer>
-	);
+  return (
+    <ActionCardContainer variant={variant} onClick={onClick} padding="md">
+      <ActionIcon variant={variant}>{icon}</ActionIcon>
+      <ActionContent>
+        <ActionTitle variant={variant}>{title}</ActionTitle>
+        {subtitle && <ActionSubtitle variant={variant}>{subtitle}</ActionSubtitle>}
+      </ActionContent>
+    </ActionCardContainer>
+  );
 };

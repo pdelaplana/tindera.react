@@ -15,46 +15,47 @@ initSentry();
 const container = document.getElementById('root');
 const root = createRoot(container!);
 root.render(
-	<React.StrictMode>
-		<Sentry.ErrorBoundary fallback={<ErrorFallback />}>
-			<ThemeProvider>
-				<App />
-			</ThemeProvider>
-		</Sentry.ErrorBoundary>
-	</React.StrictMode>
+  <React.StrictMode>
+    <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
+    </Sentry.ErrorBoundary>
+  </React.StrictMode>
 );
 
 // Error fallback component
 function ErrorFallback() {
-	return (
-		<div
-			style={{
-				display: 'flex',
-				flexDirection: 'column',
-				alignItems: 'center',
-				justifyContent: 'center',
-				height: '100vh',
-				padding: '20px',
-				textAlign: 'center',
-			}}
-		>
-			<h1>Something went wrong</h1>
-			<p>An unexpected error occurred. Please refresh the page and try again.</p>
-			<button
-				onClick={() => window.location.reload()}
-				style={{
-					marginTop: '16px',
-					padding: '12px 24px',
-					backgroundColor: '#3880ff',
-					color: 'white',
-					border: 'none',
-					borderRadius: '8px',
-					cursor: 'pointer',
-					fontSize: '16px',
-				}}
-			>
-				Refresh Page
-			</button>
-		</div>
-	);
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        padding: '20px',
+        textAlign: 'center',
+      }}
+    >
+      <h1>Something went wrong</h1>
+      <p>An unexpected error occurred. Please refresh the page and try again.</p>
+      <button
+        type="button"
+        onClick={() => window.location.reload()}
+        style={{
+          marginTop: '16px',
+          padding: '12px 24px',
+          backgroundColor: '#3880ff',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          fontSize: '16px',
+        }}
+      >
+        Refresh Page
+      </button>
+    </div>
+  );
 }

@@ -10,14 +10,14 @@ import { designSystem } from '@/theme/designSystem';
 import type { ProductCategory } from '@/types';
 
 interface CategoryPillScrollerProps {
-	categories: ProductCategory[];
-	selectedId: string | null;
-	onSelect: (categoryId: string | null) => void;
-	showAll?: boolean;
-	allLabel?: string;
-	showManageButton?: boolean;
-	onManageClick?: () => void;
-	className?: string;
+  categories: ProductCategory[];
+  selectedId: string | null;
+  onSelect: (categoryId: string | null) => void;
+  showAll?: boolean;
+  allLabel?: string;
+  showManageButton?: boolean;
+  onManageClick?: () => void;
+  className?: string;
 }
 
 const Container = styled.div`
@@ -67,112 +67,112 @@ const ArrowButton = styled(IonButton)<{ $visible: boolean; $position: 'left' | '
 `;
 
 export const CategoryPillScroller: React.FC<CategoryPillScrollerProps> = ({
-	categories,
-	selectedId,
-	onSelect,
-	showAll = true,
-	allLabel = 'All',
-	showManageButton = false,
-	onManageClick,
-	className = '',
+  categories,
+  selectedId,
+  onSelect,
+  showAll = true,
+  allLabel = 'All',
+  showManageButton = false,
+  onManageClick,
+  className = '',
 }) => {
-	const scrollerRef = useRef<HTMLDivElement>(null);
-	const [showLeftArrow, setShowLeftArrow] = useState(false);
-	const [showRightArrow, setShowRightArrow] = useState(false);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
 
-	const checkScroll = useCallback(() => {
-		const scroller = scrollerRef.current;
-		if (!scroller) return;
+  const checkScroll = useCallback(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
 
-		const { scrollLeft, scrollWidth, clientWidth } = scroller;
-		setShowLeftArrow(scrollLeft > 0);
-		setShowRightArrow(scrollLeft + clientWidth < scrollWidth - 1);
-	}, []);
+    const { scrollLeft, scrollWidth, clientWidth } = scroller;
+    setShowLeftArrow(scrollLeft > 0);
+    setShowRightArrow(scrollLeft + clientWidth < scrollWidth - 1);
+  }, []);
 
-	useEffect(() => {
-		// Use setTimeout to ensure DOM has fully rendered
-		const timeoutId = setTimeout(() => {
-			checkScroll();
-		}, 100);
+  useEffect(() => {
+    // Use setTimeout to ensure DOM has fully rendered
+    const timeoutId = setTimeout(() => {
+      checkScroll();
+    }, 100);
 
-		const scroller = scrollerRef.current;
-		if (scroller) {
-			scroller.addEventListener('scroll', checkScroll);
-		}
-		window.addEventListener('resize', checkScroll);
+    const scroller = scrollerRef.current;
+    if (scroller) {
+      scroller.addEventListener('scroll', checkScroll);
+    }
+    window.addEventListener('resize', checkScroll);
 
-		return () => {
-			clearTimeout(timeoutId);
-			if (scroller) {
-				scroller.removeEventListener('scroll', checkScroll);
-			}
-			window.removeEventListener('resize', checkScroll);
-		};
-	}, [checkScroll]);
+    return () => {
+      clearTimeout(timeoutId);
+      if (scroller) {
+        scroller.removeEventListener('scroll', checkScroll);
+      }
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, [checkScroll]);
 
-	// Re-check scroll state when categories change
-	useEffect(() => {
-		// Delay to ensure content has rendered
-		const timeoutId = setTimeout(() => {
-			checkScroll();
-		}, 50);
-		return () => clearTimeout(timeoutId);
-	}, [checkScroll]);
+  // Re-check scroll state when categories change
+  useEffect(() => {
+    // Delay to ensure content has rendered
+    const timeoutId = setTimeout(() => {
+      checkScroll();
+    }, 50);
+    return () => clearTimeout(timeoutId);
+  }, [checkScroll]);
 
-	const scrollLeft = () => {
-		scrollerRef.current?.scrollBy({ left: -200, behavior: 'smooth' });
-	};
+  const scrollLeft = () => {
+    scrollerRef.current?.scrollBy({ left: -200, behavior: 'smooth' });
+  };
 
-	const scrollRight = () => {
-		scrollerRef.current?.scrollBy({ left: 200, behavior: 'smooth' });
-	};
+  const scrollRight = () => {
+    scrollerRef.current?.scrollBy({ left: 200, behavior: 'smooth' });
+  };
 
-	return (
-		<Container className={className}>
-			<ScrollerContainer ref={scrollerRef}>
-				{showAll && (
-					<Chip label={allLabel} active={selectedId === null} onClick={() => onSelect(null)} />
-				)}
+  return (
+    <Container className={className}>
+      <ScrollerContainer ref={scrollerRef}>
+        {showAll && (
+          <Chip label={allLabel} active={selectedId === null} onClick={() => onSelect(null)} />
+        )}
 
-				{categories.map((category) => (
-					<Chip
-						key={category.id}
-						label={category.description || category.name}
-						active={selectedId === category.id}
-						onClick={() => onSelect(category.id)}
-					/>
-				))}
-			</ScrollerContainer>
+        {categories.map((category) => (
+          <Chip
+            key={category.id}
+            label={category.description || category.name}
+            active={selectedId === category.id}
+            onClick={() => onSelect(category.id)}
+          />
+        ))}
+      </ScrollerContainer>
 
-			<ArrowButton
-				fill="clear"
-				size="small"
-				onClick={scrollLeft}
-				$visible={showLeftArrow}
-				$position="left"
-				aria-label="Scroll left"
-			>
-				<IonIcon icon={chevronBack} size="small" />
-			</ArrowButton>
+      <ArrowButton
+        fill="clear"
+        size="small"
+        onClick={scrollLeft}
+        $visible={showLeftArrow}
+        $position="left"
+        aria-label="Scroll left"
+      >
+        <IonIcon icon={chevronBack} size="small" />
+      </ArrowButton>
 
-			<ArrowButton
-				fill="clear"
-				size="small"
-				onClick={scrollRight}
-				$visible={showRightArrow}
-				$position="right"
-				aria-label="Scroll right"
-			>
-				<IonIcon icon={chevronForward} />
-			</ArrowButton>
+      <ArrowButton
+        fill="clear"
+        size="small"
+        onClick={scrollRight}
+        $visible={showRightArrow}
+        $position="right"
+        aria-label="Scroll right"
+      >
+        <IonIcon icon={chevronForward} />
+      </ArrowButton>
 
-			{showManageButton && onManageClick && (
-				<IonButton fill="clear" size="small" onClick={onManageClick}>
-					<IonIcon icon={settingsOutline} />
-				</IonButton>
-			)}
-		</Container>
-	);
+      {showManageButton && onManageClick && (
+        <IonButton fill="clear" size="small" onClick={onManageClick}>
+          <IonIcon icon={settingsOutline} />
+        </IonButton>
+      )}
+    </Container>
+  );
 };
 
 export default CategoryPillScroller;

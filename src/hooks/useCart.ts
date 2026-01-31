@@ -6,18 +6,18 @@ import { useShopContext } from '@/contexts/ShopContext';
 import type { CartItemAddon, CartItemModifier, Product, ShopTax } from '@/types';
 
 export interface CartTotals {
-	subtotal: number;
-	taxBreakdown: Array<{
-		shop_tax_id: string;
-		tax_name: string;
-		tax_rate: number;
-		tax_amount: number;
-	}>;
-	total: number;
+  subtotal: number;
+  taxBreakdown: Array<{
+    shop_tax_id: string;
+    tax_name: string;
+    tax_rate: number;
+    tax_amount: number;
+  }>;
+  total: number;
 }
 
 interface UseCartOptions {
-	shopTaxes?: ShopTax[]; // Active shop taxes
+  shopTaxes?: ShopTax[]; // Active shop taxes
 }
 
 /**
@@ -52,99 +52,99 @@ interface UseCartOptions {
  * ```
  */
 export function useCart(options: UseCartOptions = {}) {
-	const cart = useCartContext();
-	const { currentShop } = useShopContext();
+  const cart = useCartContext();
+  const { currentShop } = useShopContext();
 
-	// Calculate totals
-	const totals: CartTotals = useMemo(() => {
-		const { subtotal } = cart;
+  // Calculate totals
+  const totals: CartTotals = useMemo(() => {
+    const { subtotal } = cart;
 
-		// Calculate tax breakdown (one entry per active shop tax)
-		// Taxes are calculated on the subtotal (before any discounts)
-		const shopTaxes = options.shopTaxes ?? [];
-		const taxBreakdown = shopTaxes.map((shopTax) => ({
-			shop_tax_id: shopTax.id,
-			tax_name: shopTax.name,
-			tax_rate: shopTax.rate,
-			tax_amount: subtotal * (shopTax.rate / 100),
-		}));
+    // Calculate tax breakdown (one entry per active shop tax)
+    // Taxes are calculated on the subtotal (before any discounts)
+    const shopTaxes = options.shopTaxes ?? [];
+    const taxBreakdown = shopTaxes.map((shopTax) => ({
+      shop_tax_id: shopTax.id,
+      tax_name: shopTax.name,
+      tax_rate: shopTax.rate,
+      tax_amount: subtotal * (shopTax.rate / 100),
+    }));
 
-		// Calculate total tax
-		const totalTax = taxBreakdown.reduce((sum, tax) => sum + tax.tax_amount, 0);
+    // Calculate total tax
+    const totalTax = taxBreakdown.reduce((sum, tax) => sum + tax.tax_amount, 0);
 
-		// Total (subtotal + taxes only, no discounts or tips)
-		const total = subtotal + totalTax;
+    // Total (subtotal + taxes only, no discounts or tips)
+    const total = subtotal + totalTax;
 
-		return {
-			subtotal,
-			taxBreakdown,
-			total,
-		};
-	}, [cart.subtotal, options.shopTaxes]);
+    return {
+      subtotal,
+      taxBreakdown,
+      total,
+    };
+  }, [cart.subtotal, options.shopTaxes, cart]);
 
-	// Convenience methods with better names for POS context
-	const addToCart = (
-		product: Product,
-		quantity?: number,
-		modifiers?: CartItemModifier[],
-		addons?: CartItemAddon[]
-	) => {
-		cart.addItem(product, quantity, modifiers, addons);
-	};
+  // Convenience methods with better names for POS context
+  const addToCart = (
+    product: Product,
+    quantity?: number,
+    modifiers?: CartItemModifier[],
+    addons?: CartItemAddon[]
+  ) => {
+    cart.addItem(product, quantity, modifiers, addons);
+  };
 
-	const removeFromCart = (cartItemId: string) => {
-		cart.removeItem(cartItemId);
-	};
+  const removeFromCart = (cartItemId: string) => {
+    cart.removeItem(cartItemId);
+  };
 
-	const addAddonToItem = (cartItemId: string, addon: CartItemAddon) => {
-		cart.addAddon(cartItemId, addon);
-	};
+  const addAddonToItem = (cartItemId: string, addon: CartItemAddon) => {
+    cart.addAddon(cartItemId, addon);
+  };
 
-	const removeAddonFromItem = (cartItemId: string, addonId: string) => {
-		cart.removeAddon(cartItemId, addonId);
-	};
+  const removeAddonFromItem = (cartItemId: string, addonId: string) => {
+    cart.removeAddon(cartItemId, addonId);
+  };
 
-	const isInCart = (cartItemId: string): boolean => {
-		return cart.getItem(cartItemId) !== undefined;
-	};
+  const isInCart = (cartItemId: string): boolean => {
+    return cart.getItem(cartItemId) !== undefined;
+  };
 
-	const getQuantityInCart = (cartItemId: string): number => {
-		return cart.getItem(cartItemId)?.quantity ?? 0;
-	};
+  const getQuantityInCart = (cartItemId: string): number => {
+    return cart.getItem(cartItemId)?.quantity ?? 0;
+  };
 
-	return {
-		// State
-		items: cart.items,
-		customerName: cart.customerName,
-		notes: cart.notes,
-		itemCount: cart.itemCount,
-		isEmpty: cart.isEmpty,
+  return {
+    // State
+    items: cart.items,
+    customerName: cart.customerName,
+    notes: cart.notes,
+    itemCount: cart.itemCount,
+    isEmpty: cart.isEmpty,
 
-		// Totals
-		subtotal: cart.subtotal,
-		totals,
-		currency: currentShop?.currency_code ?? 'USD',
+    // Totals
+    subtotal: cart.subtotal,
+    totals,
+    currency: currentShop?.currency_code ?? 'USD',
 
-		// Item actions
-		addToCart,
-		removeFromCart,
-		updateQuantity: cart.updateQuantity,
-		addAddonToItem,
-		removeAddonFromItem,
-		setModifiers: cart.setModifiers,
+    // Item actions
+    addToCart,
+    removeFromCart,
+    updateQuantity: cart.updateQuantity,
+    addAddonToItem,
+    removeAddonFromItem,
+    setModifiers: cart.setModifiers,
 
-		// Cart utilities
-		isInCart,
-		getQuantityInCart,
-		getItem: cart.getItem,
+    // Cart utilities
+    isInCart,
+    getQuantityInCart,
+    getItem: cart.getItem,
 
-		// Customer/Notes
-		setCustomer: cart.setCustomer,
-		setNotes: cart.setNotes,
+    // Customer/Notes
+    setCustomer: cart.setCustomer,
+    setNotes: cart.setNotes,
 
-		// Clear
-		clearCart: cart.clearCart,
-	};
+    // Clear
+    clearCart: cart.clearCart,
+  };
 }
 
 // Re-export CartProvider for convenience

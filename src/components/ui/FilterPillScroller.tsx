@@ -10,12 +10,12 @@ import { designSystem } from '@/theme/designSystem';
 import type { FilterOption } from '@/types';
 
 interface FilterPillScrollerProps {
-	filters: FilterOption[];
-	selectedId: string;
-	onSelect: (filterId: string) => void;
-	showManageButton?: boolean;
-	onManageClick?: () => void;
-	className?: string;
+  filters: FilterOption[];
+  selectedId: string;
+  onSelect: (filterId: string) => void;
+  showManageButton?: boolean;
+  onManageClick?: () => void;
+  className?: string;
 }
 
 const Container = styled.div`
@@ -72,109 +72,111 @@ const Separator = styled.div`
 `;
 
 export const FilterPillScroller: React.FC<FilterPillScrollerProps> = ({
-	filters,
-	selectedId,
-	onSelect,
-	showManageButton = false,
-	onManageClick,
-	className = '',
+  filters,
+  selectedId,
+  onSelect,
+  showManageButton = false,
+  onManageClick,
+  className = '',
 }) => {
-	const scrollerRef = useRef<HTMLDivElement>(null);
-	const [showLeftArrow, setShowLeftArrow] = useState(false);
-	const [showRightArrow, setShowRightArrow] = useState(false);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
 
-	const checkScroll = useCallback(() => {
-		const scroller = scrollerRef.current;
-		if (!scroller) return;
+  const checkScroll = useCallback(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
 
-		const { scrollLeft, scrollWidth, clientWidth } = scroller;
-		setShowLeftArrow(scrollLeft > 0);
-		setShowRightArrow(scrollLeft + clientWidth < scrollWidth - 1);
-	}, []);
+    const { scrollLeft, scrollWidth, clientWidth } = scroller;
+    setShowLeftArrow(scrollLeft > 0);
+    setShowRightArrow(scrollLeft + clientWidth < scrollWidth - 1);
+  }, []);
 
-	useEffect(() => {
-		// Use setTimeout to ensure DOM has fully rendered
-		const timeoutId = setTimeout(() => {
-			checkScroll();
-		}, 100);
+  useEffect(() => {
+    // Use setTimeout to ensure DOM has fully rendered
+    const timeoutId = setTimeout(() => {
+      checkScroll();
+    }, 100);
 
-		const scroller = scrollerRef.current;
-		if (scroller) {
-			scroller.addEventListener('scroll', checkScroll);
-		}
-		window.addEventListener('resize', checkScroll);
+    const scroller = scrollerRef.current;
+    if (scroller) {
+      scroller.addEventListener('scroll', checkScroll);
+    }
+    window.addEventListener('resize', checkScroll);
 
-		return () => {
-			clearTimeout(timeoutId);
-			if (scroller) {
-				scroller.removeEventListener('scroll', checkScroll);
-			}
-			window.removeEventListener('resize', checkScroll);
-		};
-	}, [checkScroll]);
+    return () => {
+      clearTimeout(timeoutId);
+      if (scroller) {
+        scroller.removeEventListener('scroll', checkScroll);
+      }
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, [checkScroll]);
 
-	// Re-check scroll state when filters change
-	useEffect(() => {
-		// Delay to ensure content has rendered
-		const timeoutId = setTimeout(() => {
-			checkScroll();
-		}, 50);
-		return () => clearTimeout(timeoutId);
-	}, [checkScroll]);
+  // Re-check scroll state when filters change
+  useEffect(() => {
+    // Delay to ensure content has rendered
+    const timeoutId = setTimeout(() => {
+      checkScroll();
+    }, 50);
+    return () => clearTimeout(timeoutId);
+  }, [checkScroll]);
 
-	const scrollLeft = () => {
-		scrollerRef.current?.scrollBy({ left: -200, behavior: 'smooth' });
-	};
+  const scrollLeft = () => {
+    scrollerRef.current?.scrollBy({ left: -200, behavior: 'smooth' });
+  };
 
-	const scrollRight = () => {
-		scrollerRef.current?.scrollBy({ left: 200, behavior: 'smooth' });
-	};
+  const scrollRight = () => {
+    scrollerRef.current?.scrollBy({ left: 200, behavior: 'smooth' });
+  };
 
-	return (
-		<Container className={className}>
-			<ScrollerContainer ref={scrollerRef}>
-				{filters.map((filter, index) => (
-					<>
-						<Chip
-							key={filter.id}
-							label={filter.label}
-							active={selectedId === filter.id}
-							onClick={() => onSelect(filter.id)}
-						/>
-						{filter.separator && index < filters.length - 1 && <Separator key={`sep-${filter.id}`} />}
-					</>
-				))}
-			</ScrollerContainer>
+  return (
+    <Container className={className}>
+      <ScrollerContainer ref={scrollerRef}>
+        {filters.map((filter, index) => (
+          <>
+            <Chip
+              key={filter.id}
+              label={filter.label}
+              active={selectedId === filter.id}
+              onClick={() => onSelect(filter.id)}
+            />
+            {filter.separator && index < filters.length - 1 && (
+              <Separator key={`sep-${filter.id}`} />
+            )}
+          </>
+        ))}
+      </ScrollerContainer>
 
-			<ArrowButton
-				fill="clear"
-				size="small"
-				onClick={scrollLeft}
-				$visible={showLeftArrow}
-				$position="left"
-				aria-label="Scroll left"
-			>
-				<IonIcon icon={chevronBack} size="small" />
-			</ArrowButton>
+      <ArrowButton
+        fill="clear"
+        size="small"
+        onClick={scrollLeft}
+        $visible={showLeftArrow}
+        $position="left"
+        aria-label="Scroll left"
+      >
+        <IonIcon icon={chevronBack} size="small" />
+      </ArrowButton>
 
-			<ArrowButton
-				fill="clear"
-				size="small"
-				onClick={scrollRight}
-				$visible={showRightArrow}
-				$position="right"
-				aria-label="Scroll right"
-			>
-				<IonIcon icon={chevronForward} />
-			</ArrowButton>
+      <ArrowButton
+        fill="clear"
+        size="small"
+        onClick={scrollRight}
+        $visible={showRightArrow}
+        $position="right"
+        aria-label="Scroll right"
+      >
+        <IonIcon icon={chevronForward} />
+      </ArrowButton>
 
-			{showManageButton && onManageClick && (
-				<IonButton fill="clear" size="small" onClick={onManageClick}>
-					<IonIcon icon={settingsOutline} />
-				</IonButton>
-			)}
-		</Container>
-	);
+      {showManageButton && onManageClick && (
+        <IonButton fill="clear" size="small" onClick={onManageClick}>
+          <IonIcon icon={settingsOutline} />
+        </IonButton>
+      )}
+    </Container>
+  );
 };
 
 export default FilterPillScroller;

@@ -8,11 +8,11 @@ import type { OrderWithDetails } from '@/types';
 import { OrderCard } from './OrderCard';
 
 interface OrderListProps {
-	orders: OrderWithDetails[];
-	selectedOrderId?: string;
-	onSelect: (order: OrderWithDetails) => void;
-	isLoading: boolean;
-	shopPrefix?: string | null;
+  orders: OrderWithDetails[];
+  selectedOrderId?: string;
+  onSelect: (order: OrderWithDetails) => void;
+  isLoading: boolean;
+  shopPrefix?: string | null;
 }
 
 // Styled components
@@ -53,42 +53,42 @@ const EmptyText = styled.div`
 `;
 
 export const OrderList: React.FC<OrderListProps> = ({
-	orders,
-	selectedOrderId,
-	onSelect,
-	isLoading,
-	shopPrefix,
+  orders,
+  selectedOrderId,
+  onSelect,
+  isLoading,
+  shopPrefix,
 }) => {
-	if (isLoading) {
-		return (
-			<LoadingContainer>
-				<IonSpinner name="crescent" />
-				<LoadingText>Loading orders...</LoadingText>
-			</LoadingContainer>
-		);
-	}
+  if (isLoading) {
+    return (
+      <LoadingContainer>
+        <IonSpinner name="crescent" />
+        <LoadingText>Loading orders...</LoadingText>
+      </LoadingContainer>
+    );
+  }
 
-	if (orders.length === 0) {
-		return (
-			<EmptyContainer>
-				<EmptyText>No orders found</EmptyText>
-			</EmptyContainer>
-		);
-	}
+  if (orders.length === 0) {
+    return (
+      <EmptyContainer>
+        <EmptyText>No orders found</EmptyText>
+      </EmptyContainer>
+    );
+  }
 
-	return (
-		<Container>
-			{orders.map((order) => (
-				<OrderCard
-					key={order.id}
-					order={order}
-					isSelected={order.id === selectedOrderId}
-					onClick={() => onSelect(order)}
-					shopPrefix={shopPrefix ?? null}
-				/>
-			))}
-		</Container>
-	);
+  return (
+    <Container>
+      {orders.map((order) => (
+        <OrderCard
+          key={order.id}
+          order={order}
+          isSelected={order.id === selectedOrderId}
+          onClick={() => onSelect(order)}
+          shopPrefix={shopPrefix ?? null}
+        />
+      ))}
+    </Container>
+  );
 };
 
 export default OrderList;

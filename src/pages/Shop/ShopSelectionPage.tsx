@@ -1,14 +1,14 @@
 // Shop Selection Page - Choose or create a shop
 
 import {
-	IonButton,
-	IonContent,
-	IonHeader,
-	IonIcon,
-	IonPage,
-	IonSpinner,
-	IonTitle,
-	IonToolbar,
+  IonButton,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonPage,
+  IonSpinner,
+  IonTitle,
+  IonToolbar,
 } from '@ionic/react';
 import { add, storefront } from 'ionicons/icons';
 import type React from 'react';
@@ -166,91 +166,91 @@ const LoadingContainer = styled.div`
 `;
 
 const ShopSelectionPage: React.FC = () => {
-	const history = useHistory();
-	const { shops, isLoading, selectShop } = useShop();
+  const history = useHistory();
+  const { shops, isLoading, selectShop } = useShop();
 
-	const handleSelectShop = (shop: Shop) => {
-		selectShop(shop.id);
-		history.push(`/shops/${shop.id}/home`);
-	};
+  const handleSelectShop = (shop: Shop) => {
+    selectShop(shop.id);
+    history.push(`/shops/${shop.id}/home`);
+  };
 
-	const handleCreateShop = () => {
-		history.push('/shops/new');
-	};
+  const handleCreateShop = () => {
+    history.push('/shops/new');
+  };
 
-	if (isLoading) {
-		return (
-			<IonPage>
-				<IonHeader>
-					<IonToolbar>
-						<IonTitle>Select Shop</IonTitle>
-					</IonToolbar>
-				</IonHeader>
-				<IonContent>
-					<LoadingContainer>
-						<IonSpinner />
-					</LoadingContainer>
-				</IonContent>
-			</IonPage>
-		);
-	}
+  if (isLoading) {
+    return (
+      <IonPage>
+        <IonHeader>
+          <IonToolbar>
+            <IonTitle>Select Shop</IonTitle>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent>
+          <LoadingContainer>
+            <IonSpinner />
+          </LoadingContainer>
+        </IonContent>
+      </IonPage>
+    );
+  }
 
-	return (
-		<IonPage>
-			<IonHeader>
-				<IonToolbar>
-					<IonTitle>Select Shop</IonTitle>
-					<IonButton slot="end" fill="clear" onClick={handleCreateShop}>
-						<IonIcon slot="icon-only" icon={add} />
-					</IonButton>
-				</IonToolbar>
-			</IonHeader>
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>Select Shop</IonTitle>
+          <IonButton slot="end" fill="clear" onClick={handleCreateShop}>
+            <IonIcon slot="icon-only" icon={add} />
+          </IonButton>
+        </IonToolbar>
+      </IonHeader>
 
-			<IonContent>
-				<PageContainer>
-					{shops.length === 0 ? (
-						<BlankSlate>
-							<BlankSlateIcon>
-								<IonIcon icon={storefront} />
-							</BlankSlateIcon>
-							<BlankSlateTitle>No Shops Yet</BlankSlateTitle>
-							<BlankSlateDescription>
-								Get started by creating your first shop. You'll be able to manage products, inventory,
-								sales, and more.
-							</BlankSlateDescription>
-							<IonButton size="large" onClick={handleCreateShop}>
-								<IonIcon slot="start" icon={add} />
-								Create Your First Shop
-							</IonButton>
-						</BlankSlate>
-					) : (
-						<>
-							<PageTitle>Your Shops</PageTitle>
-							<ShopGrid>
-								{shops.map((shop) => (
-									<ShopCard key={shop.id} onClick={() => handleSelectShop(shop)}>
-										<ShopImageContainer>
-											{shop.image_url ? (
-												<ShopImage src={shop.image_url} alt={shop.name} />
-											) : (
-												<ShopImagePlaceholder>
-													<IonIcon icon={storefront} />
-												</ShopImagePlaceholder>
-											)}
-										</ShopImageContainer>
-										<ShopCardContent>
-											<ShopName>{shop.name}</ShopName>
-											{shop.location && <ShopLocation>{shop.location}</ShopLocation>}
-										</ShopCardContent>
-									</ShopCard>
-								))}
-							</ShopGrid>
-						</>
-					)}
-				</PageContainer>
-			</IonContent>
-		</IonPage>
-	);
+      <IonContent>
+        <PageContainer>
+          {shops.length === 0 ? (
+            <BlankSlate>
+              <BlankSlateIcon>
+                <IonIcon icon={storefront} />
+              </BlankSlateIcon>
+              <BlankSlateTitle>No Shops Yet</BlankSlateTitle>
+              <BlankSlateDescription>
+                Get started by creating your first shop. You'll be able to manage products,
+                inventory, sales, and more.
+              </BlankSlateDescription>
+              <IonButton size="large" onClick={handleCreateShop}>
+                <IonIcon slot="start" icon={add} />
+                Create Your First Shop
+              </IonButton>
+            </BlankSlate>
+          ) : (
+            <>
+              <PageTitle>Your Shops</PageTitle>
+              <ShopGrid>
+                {shops.map((shop) => (
+                  <ShopCard key={shop.id} onClick={() => handleSelectShop(shop)}>
+                    <ShopImageContainer>
+                      {shop.image_url ? (
+                        <ShopImage src={shop.image_url} alt={shop.name} />
+                      ) : (
+                        <ShopImagePlaceholder>
+                          <IonIcon icon={storefront} />
+                        </ShopImagePlaceholder>
+                      )}
+                    </ShopImageContainer>
+                    <ShopCardContent>
+                      <ShopName>{shop.name}</ShopName>
+                      {shop.location && <ShopLocation>{shop.location}</ShopLocation>}
+                    </ShopCardContent>
+                  </ShopCard>
+                ))}
+              </ShopGrid>
+            </>
+          )}
+        </PageContainer>
+      </IonContent>
+    </IonPage>
+  );
 };
 
 export default ShopSelectionPage;

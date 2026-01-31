@@ -88,7 +88,6 @@ const InventoryTransactionsList: React.FC<InventoryTransactionsListProps> = ({
     );
   }, [transactions]);
 
-
   if (isLoading) {
     return (
       <Div className="ion-text-center" style={{ padding: '48px' }}>
@@ -158,11 +157,7 @@ const InventoryTransactionsList: React.FC<InventoryTransactionsListProps> = ({
       </IonList>
       {hasMore && (
         <div className="ion-text-center ion-padding">
-          <IonButton
-            fill="clear"
-            onClick={onLoadMore}
-            disabled={isLoadingMore}
-          >
+          <IonButton fill="clear" onClick={onLoadMore} disabled={isLoadingMore}>
             {isLoadingMore ? (
               <>
                 <IonSpinner name="crescent" style={{ marginRight: '8px' }} />

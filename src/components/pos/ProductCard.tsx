@@ -8,11 +8,11 @@ import { designSystem } from '@/theme/designSystem';
 import type { Product } from '@/types';
 
 interface ProductCardProps {
-	product: Product;
-	currency?: string;
-	onTap?: () => void;
-	onLongPress?: () => void;
-	className?: string;
+  product: Product;
+  currency?: string;
+  onTap?: () => void;
+  onLongPress?: () => void;
+  className?: string;
 }
 
 // Styled ProductCard extends the base Card styling
@@ -79,62 +79,62 @@ const ProductPrice = styled.div`
 `;
 
 export const ProductCard: React.FC<ProductCardProps> = ({
-	product,
-	currency = 'USD',
-	onTap,
-	onLongPress,
-	className = '',
+  product,
+  currency = 'USD',
+  onTap,
+  onLongPress,
+  className = '',
 }) => {
-	const longPressRef = React.useRef<NodeJS.Timeout | null>(null);
-	const isLongPress = React.useRef(false);
+  const longPressRef = React.useRef<NodeJS.Timeout | null>(null);
+  const isLongPress = React.useRef(false);
 
-	const handleTouchStart = () => {
-		isLongPress.current = false;
-		longPressRef.current = setTimeout(() => {
-			isLongPress.current = true;
-			onLongPress?.();
-		}, 500);
-	};
+  const handleTouchStart = () => {
+    isLongPress.current = false;
+    longPressRef.current = setTimeout(() => {
+      isLongPress.current = true;
+      onLongPress?.();
+    }, 500);
+  };
 
-	const handleTouchEnd = () => {
-		if (longPressRef.current) {
-			clearTimeout(longPressRef.current);
-		}
-		if (!isLongPress.current) {
-			onTap?.();
-		}
-	};
+  const handleTouchEnd = () => {
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+    }
+    if (!isLongPress.current) {
+      onTap?.();
+    }
+  };
 
-	const handleTouchMove = () => {
-		if (longPressRef.current) {
-			clearTimeout(longPressRef.current);
-		}
-	};
+  const handleTouchMove = () => {
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+    }
+  };
 
-	return (
-		<StyledProductCard
-			className={className}
-			onTouchStart={handleTouchStart}
-			onTouchEnd={handleTouchEnd}
-			onTouchMove={handleTouchMove}
-			onMouseDown={handleTouchStart}
-			onMouseUp={handleTouchEnd}
-			onMouseLeave={handleTouchMove}
-			role="button"
-			tabIndex={0}
-			onKeyPress={(e) => e.key === 'Enter' && onTap?.()}
-		>
-			<ProductImage>
-				{product.image_url ? <IonImg src={product.image_url} alt={product.name} /> : null}
-			</ProductImage>
+  return (
+    <StyledProductCard
+      className={className}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchMove}
+      onMouseDown={handleTouchStart}
+      onMouseUp={handleTouchEnd}
+      onMouseLeave={handleTouchMove}
+      role="button"
+      tabIndex={0}
+      onKeyPress={(e) => e.key === 'Enter' && onTap?.()}
+    >
+      <ProductImage>
+        {product.image_url ? <IonImg src={product.image_url} alt={product.name} /> : null}
+      </ProductImage>
 
-			<ProductName>{product.name}</ProductName>
+      <ProductName>{product.name}</ProductName>
 
-			<ProductPrice>
-				<PriceDisplay amount={product.price} currency={currency} />
-			</ProductPrice>
-		</StyledProductCard>
-	);
+      <ProductPrice>
+        <PriceDisplay amount={product.price} currency={currency} />
+      </ProductPrice>
+    </StyledProductCard>
+  );
 };
 
 export default ProductCard;

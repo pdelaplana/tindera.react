@@ -83,7 +83,7 @@ const ProductModifierModal: React.FC<ProductModifierModalProps> = ({
       reset(getDefaultValues());
       setModifiedFields(new Set());
     }
-  }, [isOpen, group, priceOverrides]);
+  }, [isOpen, group, getDefaultValues, reset]);
 
   // Track which fields have been modified based on dirtyFields
   useEffect(() => {

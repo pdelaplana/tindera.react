@@ -10,10 +10,10 @@ import { designSystem } from '@/theme/designSystem';
 import type { OrderWithDetails, Shop } from '@/types';
 
 interface OrderDetailProps {
-	order: OrderWithDetails | null;
-	shop: Shop;
-	onVoid: () => void;
-	onRefund: () => void;
+  order: OrderWithDetails | null;
+  shop: Shop;
+  onVoid: () => void;
+  onRefund: () => void;
 }
 
 // Styled components
@@ -92,18 +92,18 @@ const OrderDate = styled.div`
 `;
 
 const StatusBadgeStyled = styled(IonBadge)<{ statusType: 'completed' | 'voided' | 'refunded' }>`
-	--background: ${props => {
-		switch (props.statusType) {
-			case 'completed':
-				return designSystem.colors.status.paid;
-			case 'voided':
-				return designSystem.colors.danger;
-			case 'refunded':
-				return designSystem.colors.warning;
-			default:
-				return designSystem.colors.gray[400];
-		}
-	}};
+	--background: ${(props) => {
+    switch (props.statusType) {
+      case 'completed':
+        return designSystem.colors.status.paid;
+      case 'voided':
+        return designSystem.colors.danger;
+      case 'refunded':
+        return designSystem.colors.warning;
+      default:
+        return designSystem.colors.gray[400];
+    }
+  }};
 	--color: white;
 	font-size: ${designSystem.typography.fontSize.sm};
 	font-weight: ${designSystem.typography.fontWeight.medium};
@@ -300,335 +300,343 @@ const ActionButton = styled(IonButton)`
 
 // Helper functions
 const formatOrderNumber = (orderNumber: number | null, prefix: string | null): string => {
-	if (!orderNumber) return 'N/A';
-	const paddedNumber = orderNumber.toString().padStart(4, '0');
-	return prefix ? `#${prefix}-${paddedNumber}` : `#${paddedNumber}`;
+  if (!orderNumber) return 'N/A';
+  const paddedNumber = orderNumber.toString().padStart(4, '0');
+  return prefix ? `#${prefix}-${paddedNumber}` : `#${paddedNumber}`;
 };
 
 const formatDateTime = (dateString: string): string => {
-	const date = new Date(dateString);
-	return date.toLocaleString('en-US', {
-		month: 'short',
-		day: 'numeric',
-		year: 'numeric',
-		hour: 'numeric',
-		minute: '2-digit',
-		hour12: true,
-	});
+  const date = new Date(dateString);
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
 };
 
 const getStatusLabel = (status: string): string => {
-	switch (status) {
-		case 'completed':
-			return 'Paid';
-		case 'voided':
-			return 'Cancelled';
-		case 'refunded':
-			return 'Refunded';
-		default:
-			return status;
-	}
+  switch (status) {
+    case 'completed':
+      return 'Paid';
+    case 'voided':
+      return 'Cancelled';
+    case 'refunded':
+      return 'Refunded';
+    default:
+      return status;
+  }
 };
 
-const getDiscountLabel = (
-	discountMethod: string | null,
-	discountValue: number | null
-): string => {
-	if (!discountMethod || discountValue === null) return 'Discount';
+const getDiscountLabel = (discountMethod: string | null, discountValue: number | null): string => {
+  if (!discountMethod || discountValue === null) return 'Discount';
 
-	if (discountMethod === 'percentage') {
-		return `Discount (${discountValue}%)`;
-	}
-	return 'Discount (Fixed)';
+  if (discountMethod === 'percentage') {
+    return `Discount (${discountValue}%)`;
+  }
+  return 'Discount (Fixed)';
 };
 
-export const OrderDetail: React.FC<OrderDetailProps> = ({
-	order,
-	shop,
-	onVoid,
-	onRefund,
-}) => {
-	const { showInfo } = useUI();
+export const OrderDetail: React.FC<OrderDetailProps> = ({ order, shop, onVoid, onRefund }) => {
+  const { showInfo } = useUI();
 
-	// Empty state
-	if (!order) {
-		return (
-			<Container>
-				<EmptyState>
-					<EmptyText>Select an order to view details</EmptyText>
-				</EmptyState>
-			</Container>
-		);
-	}
+  // Empty state
+  if (!order) {
+    return (
+      <Container>
+        <EmptyState>
+          <EmptyText>Select an order to view details</EmptyText>
+        </EmptyState>
+      </Container>
+    );
+  }
 
-	// Calculate subtotal (sum of all items before tax/discount/tip)
-	const subtotal = order.order_items.reduce((sum, item) => {
-		const itemTotal = item.product_unit_price * item.quantity;
-		const modifiersTotal = item.modifiers.reduce(
-			(modSum, mod) => modSum + mod.price_adjustment * mod.quantity * item.quantity,
-			0
-		);
-		const addonsTotal = item.addons.reduce(
-			(addonSum, addon) => addonSum + addon.price * addon.quantity,
-			0
-		);
-		return sum + itemTotal + modifiersTotal + addonsTotal;
-	}, 0);
+  // Calculate subtotal (sum of all items before tax/discount/tip)
+  const subtotal = order.order_items.reduce((sum, item) => {
+    const itemTotal = item.product_unit_price * item.quantity;
+    const modifiersTotal = item.modifiers.reduce(
+      (modSum, mod) => modSum + mod.price_adjustment * mod.quantity * item.quantity,
+      0
+    );
+    const addonsTotal = item.addons.reduce(
+      (addonSum, addon) => addonSum + addon.price * addon.quantity,
+      0
+    );
+    return sum + itemTotal + modifiersTotal + addonsTotal;
+  }, 0);
 
-	const orderNumber = formatOrderNumber(order.order_number, shop.order_prefix);
-	const orderDateTime = formatDateTime(order.order_date);
-	const statusType = order.status as 'completed' | 'voided' | 'refunded';
-	const statusLabel = getStatusLabel(order.status);
-	const discountLabel = getDiscountLabel(order.discount_method, order.discount_value);
+  const orderNumber = formatOrderNumber(order.order_number, shop.order_prefix);
+  const orderDateTime = formatDateTime(order.order_date);
+  const statusType = order.status as 'completed' | 'voided' | 'refunded';
+  const statusLabel = getStatusLabel(order.status);
+  const discountLabel = getDiscountLabel(order.discount_method, order.discount_value);
 
-	const handlePrint = () => {
-		showInfo('Print functionality coming soon');
-	};
+  const handlePrint = () => {
+    showInfo('Print functionality coming soon');
+  };
 
-	const handleEmail = () => {
-		showInfo('Email functionality coming soon');
-	};
+  const handleEmail = () => {
+    showInfo('Email functionality coming soon');
+  };
 
-	const showActionButtons = order.status === 'completed';
-	const showVoidRefundInfo = order.status === 'voided' || order.status === 'refunded';
+  const showActionButtons = order.status === 'completed';
+  const showVoidRefundInfo = order.status === 'voided' || order.status === 'refunded';
 
-	return (
-		<Container>
-			<ReceiptContainer>
-				<Receipt>
-					{/* Shop Header */}
-					<ReceiptHeader>
-						<ShopName>{shop.name}</ShopName>
-						{shop.location && <ShopLocation>{shop.location}</ShopLocation>}
-					</ReceiptHeader>
+  return (
+    <Container>
+      <ReceiptContainer>
+        <Receipt>
+          {/* Shop Header */}
+          <ReceiptHeader>
+            <ShopName>{shop.name}</ShopName>
+            {shop.location && <ShopLocation>{shop.location}</ShopLocation>}
+          </ReceiptHeader>
 
-					{/* Order Info */}
-					<OrderInfo>
-						<div>
-							<OrderNumber>{orderNumber}</OrderNumber>
-							<OrderDate>{orderDateTime}</OrderDate>
-						</div>
-					</OrderInfo>
+          {/* Order Info */}
+          <OrderInfo>
+            <div>
+              <OrderNumber>{orderNumber}</OrderNumber>
+              <OrderDate>{orderDateTime}</OrderDate>
+            </div>
+          </OrderInfo>
 
-					{/* Status Badge */}
-					<StatusBadgeStyled statusType={statusType}>{statusLabel}</StatusBadgeStyled>
+          {/* Status Badge */}
+          <StatusBadgeStyled statusType={statusType}>{statusLabel}</StatusBadgeStyled>
 
-					{/* Void/Refund Info */}
-					{showVoidRefundInfo && (
-						<VoidRefundInfo>
-							<VoidRefundTitle>
-								{order.status === 'voided' ? 'Void Information' : 'Refund Information'}
-							</VoidRefundTitle>
-							{order.status === 'voided' && (
-								<>
-									<VoidRefundDetail>
-										<strong>Reason:</strong> {order.void_reason_id || 'Not specified'}
-									</VoidRefundDetail>
-									<VoidRefundDetail>
-										<strong>Voided by:</strong> {order.voided_by || 'Unknown'}
-									</VoidRefundDetail>
-									{order.voided_at && (
-										<VoidRefundDetail>
-											<strong>Voided at:</strong> {formatDateTime(order.voided_at)}
-										</VoidRefundDetail>
-									)}
-								</>
-							)}
-							{order.status === 'refunded' && (
-								<>
-									<VoidRefundDetail>
-										<strong>Reason:</strong> {order.refund_reason_id || 'Not specified'}
-									</VoidRefundDetail>
-									<VoidRefundDetail>
-										<strong>Amount:</strong> <PriceDisplay amount={order.refund_amount || 0} currency={shop.currency_code} />
-									</VoidRefundDetail>
-									<VoidRefundDetail>
-										<strong>Refunded by:</strong> {order.refunded_by || 'Unknown'}
-									</VoidRefundDetail>
-									{order.refunded_at && (
-										<VoidRefundDetail>
-											<strong>Refunded at:</strong> {formatDateTime(order.refunded_at)}
-										</VoidRefundDetail>
-									)}
-								</>
-							)}
-						</VoidRefundInfo>
-					)}
+          {/* Void/Refund Info */}
+          {showVoidRefundInfo && (
+            <VoidRefundInfo>
+              <VoidRefundTitle>
+                {order.status === 'voided' ? 'Void Information' : 'Refund Information'}
+              </VoidRefundTitle>
+              {order.status === 'voided' && (
+                <>
+                  <VoidRefundDetail>
+                    <strong>Reason:</strong> {order.void_reason_id || 'Not specified'}
+                  </VoidRefundDetail>
+                  <VoidRefundDetail>
+                    <strong>Voided by:</strong> {order.voided_by || 'Unknown'}
+                  </VoidRefundDetail>
+                  {order.voided_at && (
+                    <VoidRefundDetail>
+                      <strong>Voided at:</strong> {formatDateTime(order.voided_at)}
+                    </VoidRefundDetail>
+                  )}
+                </>
+              )}
+              {order.status === 'refunded' && (
+                <>
+                  <VoidRefundDetail>
+                    <strong>Reason:</strong> {order.refund_reason_id || 'Not specified'}
+                  </VoidRefundDetail>
+                  <VoidRefundDetail>
+                    <strong>Amount:</strong>{' '}
+                    <PriceDisplay amount={order.refund_amount || 0} currency={shop.currency_code} />
+                  </VoidRefundDetail>
+                  <VoidRefundDetail>
+                    <strong>Refunded by:</strong> {order.refunded_by || 'Unknown'}
+                  </VoidRefundDetail>
+                  {order.refunded_at && (
+                    <VoidRefundDetail>
+                      <strong>Refunded at:</strong> {formatDateTime(order.refunded_at)}
+                    </VoidRefundDetail>
+                  )}
+                </>
+              )}
+            </VoidRefundInfo>
+          )}
 
-					{/* Line Items */}
-					<Section>
-						<SectionTitle>Items</SectionTitle>
-						<LineItems>
-							{order.order_items.map((item) => {
-								const itemSubtotal = item.product_unit_price * item.quantity;
-								const modifiersTotal = item.modifiers.reduce(
-									(sum, mod) => sum + mod.price_adjustment * mod.quantity * item.quantity,
-									0
-								);
-								const addonsTotal = item.addons.reduce(
-									(sum, addon) => sum + addon.price * addon.quantity,
-									0
-								);
-								const itemTotal = itemSubtotal + modifiersTotal + addonsTotal;
+          {/* Line Items */}
+          <Section>
+            <SectionTitle>Items</SectionTitle>
+            <LineItems>
+              {order.order_items.map((item) => {
+                const itemSubtotal = item.product_unit_price * item.quantity;
+                const modifiersTotal = item.modifiers.reduce(
+                  (sum, mod) => sum + mod.price_adjustment * mod.quantity * item.quantity,
+                  0
+                );
+                const addonsTotal = item.addons.reduce(
+                  (sum, addon) => sum + addon.price * addon.quantity,
+                  0
+                );
+                const itemTotal = itemSubtotal + modifiersTotal + addonsTotal;
 
-								return (
-									<LineItem key={item.id}>
-										<LineItemHeader>
-											<LineItemName>{item.product_name}</LineItemName>
-											<LineItemQuantity>
-												{item.quantity} × <PriceDisplay amount={item.product_unit_price} currency={shop.currency_code} />
-											</LineItemQuantity>
-											<LineItemTotal>
-												<PriceDisplay amount={itemTotal} currency={shop.currency_code} />
-											</LineItemTotal>
-										</LineItemHeader>
+                return (
+                  <LineItem key={item.id}>
+                    <LineItemHeader>
+                      <LineItemName>{item.product_name}</LineItemName>
+                      <LineItemQuantity>
+                        {item.quantity} ×{' '}
+                        <PriceDisplay
+                          amount={item.product_unit_price}
+                          currency={shop.currency_code}
+                        />
+                      </LineItemQuantity>
+                      <LineItemTotal>
+                        <PriceDisplay amount={itemTotal} currency={shop.currency_code} />
+                      </LineItemTotal>
+                    </LineItemHeader>
 
-										{/* Modifiers */}
-										{item.modifiers.length > 0 && (
-											<ModifiersList>
-												{item.modifiers.map((modifier) => (
-													<ModifierItem key={modifier.id}>
-														<span>{modifier.modifier_name}</span>
-														{modifier.price_adjustment !== 0 && (
-															<span>
-																{modifier.price_adjustment > 0 ? '+' : ''}
-																<PriceDisplay amount={modifier.price_adjustment} currency={shop.currency_code} />
-															</span>
-														)}
-													</ModifierItem>
-												))}
-											</ModifiersList>
-										)}
+                    {/* Modifiers */}
+                    {item.modifiers.length > 0 && (
+                      <ModifiersList>
+                        {item.modifiers.map((modifier) => (
+                          <ModifierItem key={modifier.id}>
+                            <span>{modifier.modifier_name}</span>
+                            {modifier.price_adjustment !== 0 && (
+                              <span>
+                                {modifier.price_adjustment > 0 ? '+' : ''}
+                                <PriceDisplay
+                                  amount={modifier.price_adjustment}
+                                  currency={shop.currency_code}
+                                />
+                              </span>
+                            )}
+                          </ModifierItem>
+                        ))}
+                      </ModifiersList>
+                    )}
 
-										{/* Addons */}
-										{item.addons.length > 0 && (
-											<AddonsList>
-												{item.addons.map((addon) => (
-													<AddonItem key={addon.id}>
-														<span>+ {addon.name} (×{addon.quantity})</span>
-														<span>
-															<PriceDisplay amount={addon.price * addon.quantity} currency={shop.currency_code} />
-														</span>
-													</AddonItem>
-												))}
-											</AddonsList>
-										)}
-									</LineItem>
-								);
-							})}
-						</LineItems>
-					</Section>
+                    {/* Addons */}
+                    {item.addons.length > 0 && (
+                      <AddonsList>
+                        {item.addons.map((addon) => (
+                          <AddonItem key={addon.id}>
+                            <span>
+                              + {addon.name} (×{addon.quantity})
+                            </span>
+                            <span>
+                              <PriceDisplay
+                                amount={addon.price * addon.quantity}
+                                currency={shop.currency_code}
+                              />
+                            </span>
+                          </AddonItem>
+                        ))}
+                      </AddonsList>
+                    )}
+                  </LineItem>
+                );
+              })}
+            </LineItems>
+          </Section>
 
-					{/* Totals */}
-					<Section>
-						<TotalsSection>
-							{/* Subtotal */}
-							<TotalRow>
-								<span>Subtotal</span>
-								<PriceDisplay amount={subtotal} currency={shop.currency_code} />
-							</TotalRow>
+          {/* Totals */}
+          <Section>
+            <TotalsSection>
+              {/* Subtotal */}
+              <TotalRow>
+                <span>Subtotal</span>
+                <PriceDisplay amount={subtotal} currency={shop.currency_code} />
+              </TotalRow>
 
-							{/* Discount */}
-							{order.discount_amount && order.discount_amount > 0 && (
-								<DiscountRow>
-									<span>{discountLabel}</span>
-									<span>
-										-<PriceDisplay amount={order.discount_amount} currency={shop.currency_code} />
-									</span>
-								</DiscountRow>
-							)}
+              {/* Discount */}
+              {order.discount_amount && order.discount_amount > 0 && (
+                <DiscountRow>
+                  <span>{discountLabel}</span>
+                  <span>
+                    -<PriceDisplay amount={order.discount_amount} currency={shop.currency_code} />
+                  </span>
+                </DiscountRow>
+              )}
 
-							{/* Tax Breakdown */}
-							{order.order_taxes.length > 0 ? (
-								order.order_taxes.map((tax) => (
-									<TotalRowSecondary key={tax.id}>
-										<span>
-											{tax.tax_name} ({tax.tax_rate}%)
-										</span>
-										<PriceDisplay amount={tax.tax_amount} currency={shop.currency_code} />
-									</TotalRowSecondary>
-								))
-							) : (
-								<TotalRowSecondary>
-									<span>Tax</span>
-									<span>$0.00</span>
-								</TotalRowSecondary>
-							)}
+              {/* Tax Breakdown */}
+              {order.order_taxes.length > 0 ? (
+                order.order_taxes.map((tax) => (
+                  <TotalRowSecondary key={tax.id}>
+                    <span>
+                      {tax.tax_name} ({tax.tax_rate}%)
+                    </span>
+                    <PriceDisplay amount={tax.tax_amount} currency={shop.currency_code} />
+                  </TotalRowSecondary>
+                ))
+              ) : (
+                <TotalRowSecondary>
+                  <span>Tax</span>
+                  <span>$0.00</span>
+                </TotalRowSecondary>
+              )}
 
-							{/* Tip */}
-							{order.tip_amount && order.tip_amount > 0 && (
-								<TotalRow>
-									<span>Tip</span>
-									<PriceDisplay amount={order.tip_amount} currency={shop.currency_code} />
-								</TotalRow>
-							)}
+              {/* Tip */}
+              {order.tip_amount && order.tip_amount > 0 && (
+                <TotalRow>
+                  <span>Tip</span>
+                  <PriceDisplay amount={order.tip_amount} currency={shop.currency_code} />
+                </TotalRow>
+              )}
 
-							{/* Grand Total */}
-							<GrandTotalRow>
-								<TotalLabel>Total</TotalLabel>
-								<TotalAmount>
-									<PriceDisplay amount={order.total_sale} currency={shop.currency_code} />
-								</TotalAmount>
-							</GrandTotalRow>
-						</TotalsSection>
-					</Section>
+              {/* Grand Total */}
+              <GrandTotalRow>
+                <TotalLabel>Total</TotalLabel>
+                <TotalAmount>
+                  <PriceDisplay amount={order.total_sale} currency={shop.currency_code} />
+                </TotalAmount>
+              </GrandTotalRow>
+            </TotalsSection>
+          </Section>
 
-					{/* Payment Method */}
-					<Section>
-						<SectionTitle>Payment</SectionTitle>
-						<PaymentInfo>
-							<div>
-								<PaymentLabel>Method</PaymentLabel>
-								<PaymentValue>{order.payment_type?.code || 'Not specified'}</PaymentValue>
-							</div>
-							{order.payment_received && (
-								<>
-									{order.payment_amount_received !== null && (
-										<div>
-											<PaymentLabel>Amount Received</PaymentLabel>
-											<PaymentValue>
-												<PriceDisplay amount={order.payment_amount_received} currency={shop.currency_code} />
-											</PaymentValue>
-										</div>
-									)}
-									{order.payment_change !== null && order.payment_change > 0 && (
-										<div>
-											<PaymentLabel>Change</PaymentLabel>
-											<PaymentValue>
-												<PriceDisplay amount={order.payment_change} currency={shop.currency_code} />
-											</PaymentValue>
-										</div>
-									)}
-								</>
-							)}
-						</PaymentInfo>
-					</Section>
-				</Receipt>
-			</ReceiptContainer>
+          {/* Payment Method */}
+          <Section>
+            <SectionTitle>Payment</SectionTitle>
+            <PaymentInfo>
+              <div>
+                <PaymentLabel>Method</PaymentLabel>
+                <PaymentValue>{order.payment_type?.code || 'Not specified'}</PaymentValue>
+              </div>
+              {order.payment_received && (
+                <>
+                  {order.payment_amount_received !== null && (
+                    <div>
+                      <PaymentLabel>Amount Received</PaymentLabel>
+                      <PaymentValue>
+                        <PriceDisplay
+                          amount={order.payment_amount_received}
+                          currency={shop.currency_code}
+                        />
+                      </PaymentValue>
+                    </div>
+                  )}
+                  {order.payment_change !== null && order.payment_change > 0 && (
+                    <div>
+                      <PaymentLabel>Change</PaymentLabel>
+                      <PaymentValue>
+                        <PriceDisplay amount={order.payment_change} currency={shop.currency_code} />
+                      </PaymentValue>
+                    </div>
+                  )}
+                </>
+              )}
+            </PaymentInfo>
+          </Section>
+        </Receipt>
+      </ReceiptContainer>
 
-			{/* Action Buttons */}
-			<ActionButtons>
-				<ActionButton fill="outline" onClick={handlePrint}>
-					<IonIcon slot="start" icon={printOutline} />
-					Print
-				</ActionButton>
-				<ActionButton fill="outline" onClick={handleEmail}>
-					<IonIcon slot="start" icon={mailOutline} />
-					Email
-				</ActionButton>
-				{showActionButtons && (
-					<>
-						<ActionButton fill="outline" color="warning" onClick={onRefund}>
-							Issue Refund
-						</ActionButton>
-						<ActionButton fill="outline" color="danger" onClick={onVoid}>
-							Void Order
-						</ActionButton>
-					</>
-				)}
-			</ActionButtons>
-		</Container>
-	);
+      {/* Action Buttons */}
+      <ActionButtons>
+        <ActionButton fill="outline" onClick={handlePrint}>
+          <IonIcon slot="start" icon={printOutline} />
+          Print
+        </ActionButton>
+        <ActionButton fill="outline" onClick={handleEmail}>
+          <IonIcon slot="start" icon={mailOutline} />
+          Email
+        </ActionButton>
+        {showActionButtons && (
+          <>
+            <ActionButton fill="outline" color="warning" onClick={onRefund}>
+              Issue Refund
+            </ActionButton>
+            <ActionButton fill="outline" color="danger" onClick={onVoid}>
+              Void Order
+            </ActionButton>
+          </>
+        )}
+      </ActionButtons>
+    </Container>
+  );
 };
 
 export default OrderDetail;

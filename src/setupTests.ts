@@ -6,9 +6,9 @@ import '@testing-library/jest-dom/extend-expect';
 
 // Mock matchmedia
 window.matchMedia =
-	window.matchMedia ||
-	(() => ({
-		matches: false,
-		addListener: () => {},
-		removeListener: () => {},
-	}));
+  window.matchMedia ||
+  (() => ({
+    matches: false,
+    addListener: () => {},
+    removeListener: () => {},
+  }));

@@ -14,10 +14,10 @@ import { designSystem } from '@/theme/designSystem';
 import type { OrderWithDetails } from '@/types';
 
 interface RefundModalProps {
-	isOpen: boolean;
-	onClose: () => void;
-	order: OrderWithDetails;
-	onSuccess: () => void;
+  isOpen: boolean;
+  onClose: () => void;
+  order: OrderWithDetails;
+  onSuccess: () => void;
 }
 
 // Styled components
@@ -97,7 +97,7 @@ const PriceInputWrapper = styled.div<{ hasError: boolean }>`
 	position: relative;
 
 	ion-input {
-		--border-color: ${props => props.hasError ? designSystem.colors.danger : designSystem.colors.gray[300]};
+		--border-color: ${(props) => (props.hasError ? designSystem.colors.danger : designSystem.colors.gray[300])};
 		--highlight-color: ${designSystem.colors.brand.primary};
 	}
 `;
@@ -117,176 +117,170 @@ const RefundButton = styled(IonButton)`
 `;
 
 export const RefundModal: React.FC<RefundModalProps> = ({ isOpen, onClose, order, onSuccess }) => {
-	const { currentShop } = useShopContext();
-	const { data: reasons, isLoading: loadingReasons } = useVoidRefundReasons();
-	const refundOrderMutation = useRefundOrder();
-	const { user } = useAuthContext();
+  const { currentShop } = useShopContext();
+  const { data: reasons, isLoading: loadingReasons } = useVoidRefundReasons();
+  const refundOrderMutation = useRefundOrder();
+  const { user } = useAuthContext();
 
-	const [refundAmount, setRefundAmount] = useState(order.total_sale);
-	const [refundAmountInput, setRefundAmountInput] = useState(order.total_sale.toFixed(2));
-	const [selectedReason, setSelectedReason] = useState<string>('');
-	const [isFocused, setIsFocused] = useState(false);
+  const [refundAmount, setRefundAmount] = useState(order.total_sale);
+  const [refundAmountInput, setRefundAmountInput] = useState(order.total_sale.toFixed(2));
+  const [selectedReason, setSelectedReason] = useState<string>('');
+  const [isFocused, setIsFocused] = useState(false);
 
-	// Reset form when modal opens or order changes
-	useEffect(() => {
-		if (isOpen) {
-			setRefundAmount(order.total_sale);
-			setRefundAmountInput(order.total_sale.toFixed(2));
-			setSelectedReason('');
-		}
-	}, [isOpen, order.total_sale]);
+  // Reset form when modal opens or order changes
+  useEffect(() => {
+    if (isOpen) {
+      setRefundAmount(order.total_sale);
+      setRefundAmountInput(order.total_sale.toFixed(2));
+      setSelectedReason('');
+    }
+  }, [isOpen, order.total_sale]);
 
-	// Validation
-	const isValidAmount = refundAmount > 0 && refundAmount <= order.total_sale;
-	const hasError = refundAmount > 0 && !isValidAmount;
-	const canSubmit = isValidAmount && selectedReason && !refundOrderMutation.isPending;
+  // Validation
+  const isValidAmount = refundAmount > 0 && refundAmount <= order.total_sale;
+  const hasError = refundAmount > 0 && !isValidAmount;
+  const canSubmit = isValidAmount && selectedReason && !refundOrderMutation.isPending;
 
-	const isLoading = refundOrderMutation.isPending;
+  const isLoading = refundOrderMutation.isPending;
 
-	const handleAmountChange = (value: string | null | undefined) => {
-		if (value === null || value === undefined) {
-			setRefundAmountInput('');
-			setRefundAmount(0);
-			return;
-		}
+  const handleAmountChange = (value: string | null | undefined) => {
+    if (value === null || value === undefined) {
+      setRefundAmountInput('');
+      setRefundAmount(0);
+      return;
+    }
 
-		// Allow only numbers and one decimal point
-		const cleaned = value.replace(/[^0-9.]/g, '');
-		const parts = cleaned.split('.');
-		const formatted = parts.length > 2 ? `${parts[0]}.${parts[1]}` : cleaned;
+    // Allow only numbers and one decimal point
+    const cleaned = value.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    const formatted = parts.length > 2 ? `${parts[0]}.${parts[1]}` : cleaned;
 
-		setRefundAmountInput(formatted);
-		const parsed = parseFloat(formatted);
-		setRefundAmount(isNaN(parsed) ? 0 : parsed);
-	};
+    setRefundAmountInput(formatted);
+    const parsed = parseFloat(formatted);
+    setRefundAmount(Number.isNaN(parsed) ? 0 : parsed);
+  };
 
-	const formatCurrency = (value: number) => {
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: currentShop?.currency_code || 'USD',
-			minimumFractionDigits: 2,
-			maximumFractionDigits: 2,
-		}).format(value);
-	};
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currentShop?.currency_code || 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
 
-	const handleRefund = async () => {
-		if (!canSubmit || !user) return;
+  const handleRefund = async () => {
+    if (!canSubmit || !user) return;
 
-		try {
-			await refundOrderMutation.mutateAsync({
-				orderId: order.id,
-				amount: refundAmount,
-				reasonId: selectedReason,
-			});
+    try {
+      await refundOrderMutation.mutateAsync({
+        orderId: order.id,
+        amount: refundAmount,
+        reasonId: selectedReason,
+      });
 
-			// Success is handled by the mutation's onSuccess callback (shows toast)
-			onSuccess();
-			onClose();
-		} catch (error) {
-			// Error is handled by the mutation's onError callback (shows toast)
-			console.error('Failed to refund order:', error);
-		}
-	};
+      // Success is handled by the mutation's onSuccess callback (shows toast)
+      onSuccess();
+      onClose();
+    } catch (error) {
+      // Error is handled by the mutation's onError callback (shows toast)
+      console.error('Failed to refund order:', error);
+    }
+  };
 
-	const handleClose = () => {
-		if (!isLoading) {
-			setRefundAmount(order.total_sale);
-			setRefundAmountInput(order.total_sale.toFixed(2));
-			setSelectedReason('');
-			onClose();
-		}
-	};
+  const handleClose = () => {
+    if (!isLoading) {
+      setRefundAmount(order.total_sale);
+      setRefundAmountInput(order.total_sale.toFixed(2));
+      setSelectedReason('');
+      onClose();
+    }
+  };
 
-	const handleBlur = () => {
-		setIsFocused(false);
-		// Format the input value on blur
-		if (refundAmount > 0) {
-			setRefundAmountInput(refundAmount.toFixed(2));
-		}
-	};
+  const handleBlur = () => {
+    setIsFocused(false);
+    // Format the input value on blur
+    if (refundAmount > 0) {
+      setRefundAmountInput(refundAmount.toFixed(2));
+    }
+  };
 
-	return (
-		<BaseModal isOpen={isOpen} onClose={handleClose} title="Issue Refund">
-			<ModalContent>
-				<OrderTotalDisplay>
-					Order Total:{' '}
-					<span className="amount">
-						<PriceDisplay
-							amount={order.total_sale}
-							currency={currentShop?.currency_code || 'USD'}
-						/>
-					</span>
-				</OrderTotalDisplay>
+  return (
+    <BaseModal isOpen={isOpen} onClose={handleClose} title="Issue Refund">
+      <ModalContent>
+        <OrderTotalDisplay>
+          Order Total:{' '}
+          <span className="amount">
+            <PriceDisplay
+              amount={order.total_sale}
+              currency={currentShop?.currency_code || 'USD'}
+            />
+          </span>
+        </OrderTotalDisplay>
 
-				<FormField>
-					<Label>
-						Refund Amount
-						<RequiredIndicator>*</RequiredIndicator>
-					</Label>
-					<PriceInputWrapper hasError={hasError}>
-						<IonInput
-							fill="outline"
-							type="text"
-							inputMode="decimal"
-							value={isFocused ? refundAmountInput : formatCurrency(refundAmount)}
-							onIonInput={(e) => {
-								if (isFocused) {
-									handleAmountChange(e.detail.value);
-								}
-							}}
-							onIonFocus={() => setIsFocused(true)}
-							onIonBlur={handleBlur}
-							disabled={isLoading}
-							placeholder="0.00"
-						/>
-					</PriceInputWrapper>
-					{!hasError && (
-						<HelperText>Enter full or partial refund amount</HelperText>
-					)}
-					{hasError && refundAmount > order.total_sale && (
-						<ErrorText>Refund amount cannot exceed order total</ErrorText>
-					)}
-					{hasError && refundAmount <= 0 && (
-						<ErrorText>Refund amount must be greater than 0</ErrorText>
-					)}
-				</FormField>
+        <FormField>
+          <Label>
+            Refund Amount
+            <RequiredIndicator>*</RequiredIndicator>
+          </Label>
+          <PriceInputWrapper hasError={hasError}>
+            <IonInput
+              fill="outline"
+              type="text"
+              inputMode="decimal"
+              value={isFocused ? refundAmountInput : formatCurrency(refundAmount)}
+              onIonInput={(e) => {
+                if (isFocused) {
+                  handleAmountChange(e.detail.value);
+                }
+              }}
+              onIonFocus={() => setIsFocused(true)}
+              onIonBlur={handleBlur}
+              disabled={isLoading}
+              placeholder="0.00"
+            />
+          </PriceInputWrapper>
+          {!hasError && <HelperText>Enter full or partial refund amount</HelperText>}
+          {hasError && refundAmount > order.total_sale && (
+            <ErrorText>Refund amount cannot exceed order total</ErrorText>
+          )}
+          {hasError && refundAmount <= 0 && (
+            <ErrorText>Refund amount must be greater than 0</ErrorText>
+          )}
+        </FormField>
 
-				<FormField>
-					<Label>
-						Reason for Refund
-						<RequiredIndicator>*</RequiredIndicator>
-					</Label>
-					<Select
-						value={selectedReason}
-						onChange={(e) => setSelectedReason(e.target.value)}
-						disabled={isLoading || loadingReasons}
-						required
-					>
-						<option value="">Select a reason...</option>
-						{reasons?.map((reason) => (
-							<option key={reason.id} value={reason.id}>
-								{reason.name}
-							</option>
-						))}
-					</Select>
-				</FormField>
+        <FormField>
+          <Label>
+            Reason for Refund
+            <RequiredIndicator>*</RequiredIndicator>
+          </Label>
+          <Select
+            value={selectedReason}
+            onChange={(e) => setSelectedReason(e.target.value)}
+            disabled={isLoading || loadingReasons}
+            required
+          >
+            <option value="">Select a reason...</option>
+            {reasons?.map((reason) => (
+              <option key={reason.id} value={reason.id}>
+                {reason.name}
+              </option>
+            ))}
+          </Select>
+        </FormField>
 
-				<ButtonGroup>
-					<CancelButton fill="outline" onClick={handleClose} disabled={isLoading}>
-						Cancel
-					</CancelButton>
-					<RefundButton
-						color="warning"
-						onClick={handleRefund}
-						disabled={!canSubmit}
-					>
-						{isLoading && <IonSpinner name="crescent" slot="start" />}
-						Issue Refund
-					</RefundButton>
-				</ButtonGroup>
-			</ModalContent>
-		</BaseModal>
-	);
+        <ButtonGroup>
+          <CancelButton fill="outline" onClick={handleClose} disabled={isLoading}>
+            Cancel
+          </CancelButton>
+          <RefundButton color="warning" onClick={handleRefund} disabled={!canSubmit}>
+            {isLoading && <IonSpinner name="crescent" slot="start" />}
+            Issue Refund
+          </RefundButton>
+        </ButtonGroup>
+      </ModalContent>
+    </BaseModal>
+  );
 };
 
 export default RefundModal;

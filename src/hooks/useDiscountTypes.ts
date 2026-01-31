@@ -73,7 +73,13 @@ export function useUpdateDiscountType() {
   const { showSuccess, showError } = useUI();
 
   return useMutation({
-    mutationFn: async ({ discountTypeId, updates }: { discountTypeId: string; updates: DiscountTypeUpdate }) => {
+    mutationFn: async ({
+      discountTypeId,
+      updates,
+    }: {
+      discountTypeId: string;
+      updates: DiscountTypeUpdate;
+    }) => {
       if (!user) {
         throw new Error('User not authenticated');
       }

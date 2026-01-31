@@ -6,7 +6,7 @@ import { Redirect } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
 interface AuthGuardProps {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 /**
@@ -22,20 +22,20 @@ interface AuthGuardProps {
  * ```
  */
 function AuthGuard({ children }: AuthGuardProps) {
-	const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
-	// Show loading while checking auth state
-	if (isLoading) {
-		return <IonLoading isOpen={true} message="Loading..." />;
-	}
+  // Show loading while checking auth state
+  if (isLoading) {
+    return <IonLoading isOpen={true} message="Loading..." />;
+  }
 
-	// Redirect to login if not authenticated
-	if (!isAuthenticated) {
-		return <Redirect to="/signin" />;
-	}
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    return <Redirect to="/signin" />;
+  }
 
-	// Render children if authenticated
-	return <>{children}</>;
+  // Render children if authenticated
+  return <>{children}</>;
 }
 
 export default AuthGuard;

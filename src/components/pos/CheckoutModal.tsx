@@ -386,7 +386,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         taxes: taxBreakdown,
         discount_type_id: formData.discount_type_id || null,
         discount_method: formData.discount_type_id ? formData.discount_method : null,
-        discount_value: formData.discount_type_id && formData.discount_value ? formData.discount_value : null,
+        discount_value:
+          formData.discount_type_id && formData.discount_value ? formData.discount_value : null,
         discount_amount: formData.discount_type_id ? discountAmount : null,
         tip_amount: formData.tip_amount || null,
         tip_recipient_id: formData.tip_recipient_id || null,
@@ -626,7 +627,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           />
           {!isCashSufficient && cashReceived !== null && (
             <IonText color="danger" style={{ fontSize: '0.875rem' }}>
-              Cash received must be at least <PriceDisplay amount={grandTotal} currency={currency} />
+              Cash received must be at least{' '}
+              <PriceDisplay amount={grandTotal} currency={currency} />
             </IonText>
           )}
           <ChangeDisplay>

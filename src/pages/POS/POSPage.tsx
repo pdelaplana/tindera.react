@@ -41,7 +41,7 @@ import { productService } from '@/services/product.service';
 import type { CartItemAddon, CartItemModifier, Product, ProductWithDetails } from '@/types';
 
 const POSPage: React.FC = () => {
-  const history = useHistory();
+  const _history = useHistory();
   const isMobile = useIsMobile();
   const isTablet = useIsTabletOrLarger();
 
@@ -95,7 +95,8 @@ const POSPage: React.FC = () => {
     const { data: productDetails } = await productService.getProduct(product.id);
 
     const hasCustomization =
-      (productDetails?.linkedModifierGroups?.length ?? 0) > 0 || (productDetails?.addons.length ?? 0) > 0;
+      (productDetails?.linkedModifierGroups?.length ?? 0) > 0 ||
+      (productDetails?.addons.length ?? 0) > 0;
 
     if (hasCustomization) {
       // Product has modifiers or addons - show modal
@@ -124,7 +125,8 @@ const POSPage: React.FC = () => {
     const { data: productDetails } = await productService.getProduct(cartItem.product_id);
 
     const hasCustomization =
-      (productDetails?.linkedModifierGroups?.length ?? 0) > 0 || (productDetails?.addons.length ?? 0) > 0;
+      (productDetails?.linkedModifierGroups?.length ?? 0) > 0 ||
+      (productDetails?.addons.length ?? 0) > 0;
 
     if (hasCustomization) {
       // Product has modifiers or addons - show modal for editing

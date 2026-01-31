@@ -3,10 +3,10 @@ import styled from 'styled-components';
 import { designSystem } from '@/theme/designSystem';
 
 interface AppLogoProps {
-	height?: string;
-	showText?: boolean;
-	className?: string;
-	text?: string;
+  height?: string;
+  showText?: boolean;
+  className?: string;
+  text?: string;
 }
 
 const LogoContainer = styled.div`
@@ -28,17 +28,17 @@ const LogoText = styled.span`
 `;
 
 const AppLogo: React.FC<AppLogoProps> = ({
-	height = '42px',
-	showText = false,
-	className = '',
-	text = 'tindera',
+  height = '42px',
+  showText = false,
+  className = '',
+  text = 'tindera',
 }) => {
-	return (
-		<LogoContainer className={className}>
-			<LogoImage src="/images/app-logo.png" alt="Tindera Logo" $height={height} />
-			{showText && <LogoText>{text || 'tindera'}</LogoText>}
-		</LogoContainer>
-	);
+  return (
+    <LogoContainer className={className}>
+      <LogoImage src="/images/app-logo.png" alt="Tindera Logo" $height={height} />
+      {showText && <LogoText>{text || 'tindera'}</LogoText>}
+    </LogoContainer>
+  );
 };
 
 export default AppLogo;

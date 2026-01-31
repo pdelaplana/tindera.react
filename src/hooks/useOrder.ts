@@ -153,7 +153,15 @@ export function useRefundOrder() {
   const { showSuccess, showError } = useUI();
 
   return useMutation({
-    mutationFn: async ({ orderId, amount, reasonId }: { orderId: string; amount: number; reasonId: string }) => {
+    mutationFn: async ({
+      orderId,
+      amount,
+      reasonId,
+    }: {
+      orderId: string;
+      amount: number;
+      reasonId: string;
+    }) => {
       if (!user) {
         throw new Error('User not authenticated');
       }

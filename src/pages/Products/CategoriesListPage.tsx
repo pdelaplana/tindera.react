@@ -118,7 +118,7 @@ export const CategoriesListPage: React.FC = () => {
   };
 
   // Render individual category
-  const renderCategory = (category: ProductCategory, index: number) => {
+  const renderCategory = (category: ProductCategory, _index: number) => {
     return (
       <IonItem
         key={category.id}

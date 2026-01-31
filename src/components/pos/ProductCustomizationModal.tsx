@@ -152,7 +152,14 @@ export const ProductCustomizationModal: React.FC<ProductCustomizationModalProps>
 
     setAddonSelections(initialAddonSelections);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [
+    isOpen,
+    existingAddons.forEach,
+    existingAddons.length,
+    existingModifiers.forEach,
+    existingModifiers.length,
+    productDetails,
+  ]);
 
   // Handle modifier selection change
   const handleModifierChange = useCallback((groupId: string, modifierIds: string[]) => {

@@ -5,10 +5,10 @@ import styled from 'styled-components';
 import { designSystem } from '@/theme/designSystem';
 
 interface ChipProps {
-	label: string;
-	active?: boolean;
-	onClick?: () => void;
-	className?: string;
+  label: string;
+  active?: boolean;
+  onClick?: () => void;
+  className?: string;
 }
 
 const StyledChip = styled.button<{ $active: boolean }>`
@@ -23,13 +23,13 @@ const StyledChip = styled.button<{ $active: boolean }>`
 	user-select: none;
 
 	${(props) =>
-		props.$active
-			? `
+    props.$active
+      ? `
 		background: ${designSystem.colors.brand.primary};
 		color: ${designSystem.colors.text.inverse};
 		border-color: ${designSystem.colors.brand.primary};
 	`
-			: `
+      : `
 		background: ${designSystem.colors.surface.elevated};
 		color: ${designSystem.colors.text.primary};
 		border-color: ${designSystem.colors.gray[200]};
@@ -46,11 +46,11 @@ const StyledChip = styled.button<{ $active: boolean }>`
 `;
 
 export const Chip: React.FC<ChipProps> = ({ label, active = false, onClick, className = '' }) => {
-	return (
-		<StyledChip type="button" $active={active} onClick={onClick} className={className}>
-			{label}
-		</StyledChip>
-	);
+  return (
+    <StyledChip type="button" $active={active} onClick={onClick} className={className}>
+      {label}
+    </StyledChip>
+  );
 };
 
 export default Chip;

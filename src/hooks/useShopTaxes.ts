@@ -5,7 +5,7 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { useShopContext } from '@/contexts/ShopContext';
 import { useUI } from '@/contexts/UIContext';
 import { shopTaxService } from '@/services/shopTax.service';
-import type { ShopTax, ShopTaxUpdate } from '@/types';
+import type { ShopTaxUpdate } from '@/types';
 
 export const shopTaxKeys = {
   all: ['shop-taxes'] as const,

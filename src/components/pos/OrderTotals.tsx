@@ -6,18 +6,18 @@ import { PriceDisplay } from '@/components/ui';
 import { designSystem } from '@/theme/designSystem';
 
 interface OrderTotalsProps {
-	subtotal: number;
-	taxBreakdown?: Array<{
-		shop_tax_id: string;
-		tax_name: string;
-		tax_rate: number;
-		tax_amount: number;
-	}>;
-	discount?: number;
-	tip?: number;
-	total: number;
-	currency?: string;
-	className?: string;
+  subtotal: number;
+  taxBreakdown?: Array<{
+    shop_tax_id: string;
+    tax_name: string;
+    tax_rate: number;
+    tax_amount: number;
+  }>;
+  discount?: number;
+  tip?: number;
+  total: number;
+  currency?: string;
+  className?: string;
 }
 
 const TotalsContainer = styled.div`
@@ -65,66 +65,66 @@ const TotalAmount = styled.span`
 `;
 
 export const OrderTotals: React.FC<OrderTotalsProps> = ({
-	subtotal,
-	taxBreakdown = [],
-	discount = 0,
-	tip = 0,
-	total,
-	currency = 'USD',
-	className = '',
+  subtotal,
+  taxBreakdown = [],
+  discount = 0,
+  tip = 0,
+  total,
+  currency = 'USD',
+  className = '',
 }) => {
-	return (
-		<TotalsContainer className={className}>
-			{/* Subtotal */}
-			<TotalRow>
-				<span>Subtotal</span>
-				<PriceDisplay amount={subtotal} currency={currency} />
-			</TotalRow>
+  return (
+    <TotalsContainer className={className}>
+      {/* Subtotal */}
+      <TotalRow>
+        <span>Subtotal</span>
+        <PriceDisplay amount={subtotal} currency={currency} />
+      </TotalRow>
 
-			{/* Discount */}
-			{discount > 0 && (
-				<DiscountRow>
-					<span>Discount</span>
-					<span>
-						-<PriceDisplay amount={discount} currency={currency} />
-					</span>
-				</DiscountRow>
-			)}
+      {/* Discount */}
+      {discount > 0 && (
+        <DiscountRow>
+          <span>Discount</span>
+          <span>
+            -<PriceDisplay amount={discount} currency={currency} />
+          </span>
+        </DiscountRow>
+      )}
 
-			{/* Tax Breakdown */}
-			{taxBreakdown.length > 0 ? (
-				taxBreakdown.map((tax) => (
-					<MutedRow key={tax.shop_tax_id}>
-						<span>
-							{tax.tax_name} ({tax.tax_rate}%)
-						</span>
-						<PriceDisplay amount={tax.tax_amount} currency={currency} />
-					</MutedRow>
-				))
-			) : (
-				<MutedRow>
-					<span>No taxes configured</span>
-					<span>-</span>
-				</MutedRow>
-			)}
+      {/* Tax Breakdown */}
+      {taxBreakdown.length > 0 ? (
+        taxBreakdown.map((tax) => (
+          <MutedRow key={tax.shop_tax_id}>
+            <span>
+              {tax.tax_name} ({tax.tax_rate}%)
+            </span>
+            <PriceDisplay amount={tax.tax_amount} currency={currency} />
+          </MutedRow>
+        ))
+      ) : (
+        <MutedRow>
+          <span>No taxes configured</span>
+          <span>-</span>
+        </MutedRow>
+      )}
 
-			{/* Tip */}
-			{tip > 0 && (
-				<TotalRow>
-					<span>Tip</span>
-					<PriceDisplay amount={tip} currency={currency} />
-				</TotalRow>
-			)}
+      {/* Tip */}
+      {tip > 0 && (
+        <TotalRow>
+          <span>Tip</span>
+          <PriceDisplay amount={tip} currency={currency} />
+        </TotalRow>
+      )}
 
-			{/* Total */}
-			<GrandTotalRow>
-				<TotalLabel>Total</TotalLabel>
-				<TotalAmount>
-					<PriceDisplay amount={total} currency={currency} />
-				</TotalAmount>
-			</GrandTotalRow>
-		</TotalsContainer>
-	);
+      {/* Total */}
+      <GrandTotalRow>
+        <TotalLabel>Total</TotalLabel>
+        <TotalAmount>
+          <PriceDisplay amount={total} currency={currency} />
+        </TotalAmount>
+      </GrandTotalRow>
+    </TotalsContainer>
+  );
 };
 
 export default OrderTotals;
