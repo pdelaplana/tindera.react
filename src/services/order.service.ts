@@ -536,6 +536,8 @@ export const orderService = {
     options?: {
       status?: string;
       search?: string;
+      startDate?: string;
+      endDate?: string;
       limit?: number;
       offset?: number;
     }
@@ -566,6 +568,14 @@ export const orderService = {
         if (!Number.isNaN(searchNum)) {
           query = query.eq('order_number', searchNum);
         }
+      }
+
+      if (options?.startDate) {
+        query = query.gte('order_date', options.startDate);
+      }
+
+      if (options?.endDate) {
+        query = query.lte('order_date', options.endDate);
       }
 
       if (options?.limit) {

@@ -20,9 +20,14 @@ export const orderKeys = {
 
 /**
  * Hook to fetch orders for current shop
- * Supports optional filtering by status and search
+ * Supports optional filtering by status, search, and date range
  */
-export function useOrders(options?: { status?: string; search?: string }) {
+export function useOrders(options?: {
+  status?: string;
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+}) {
   const { currentShop } = useShopContext();
 
   return useQuery({
