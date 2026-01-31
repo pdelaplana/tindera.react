@@ -592,7 +592,7 @@ export const OrderDetail: React.FC<OrderDetailProps> = ({ order, shop, onVoid, o
             <PaymentInfo>
               <PaymentRow>
                 <PaymentLabel>Method</PaymentLabel>
-                <PaymentValue>{order.payment_type?.code || 'Not specified'}</PaymentValue>
+                <PaymentValue>{order.payment_type?.code || 'Cash'}</PaymentValue>
               </PaymentRow>
               {order.payment_received && (
                 <>
