@@ -1,25 +1,13 @@
 // Product Form Modal Component - Add/Edit Product
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  IonButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonModal,
-  IonSpinner,
-  IonTitle,
-  IonToolbar,
-} from '@ionic/react';
-import { close } from 'ionicons/icons';
 import type React from 'react';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
+import BaseModal from '@/components/shared/BaseModal';
 import { FieldLabel } from '@/components/shared/FieldLabel';
 import { PriceField, SelectField, TextAreaField, TextField } from '@/components/shared/FormFields';
-import { SaveButton } from '@/components/shared/SaveButton';
 import { ImageUpload } from '@/components/ui';
 import {
   useCreateProduct,
@@ -69,9 +57,10 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onClose, pr
     control,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
+    mode: 'onChange',
     defaultValues: {
       name: '',
       description: '',
@@ -154,148 +143,119 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onClose, pr
   };
 
   return (
-    <IonModal
+    <BaseModal
       isOpen={isOpen}
-      onDidDismiss={handleClose}
+      onClose={handleClose}
+      title={isNew ? 'New Product' : product?.name || 'Edit Product'}
       initialBreakpoint={1}
       breakpoints={[0, 0.75, 1]}
+      isLoading={productLoading && !isNew}
+      showFooterButton
+      footerButtonLabel={isNew ? 'Create Product' : 'Save Changes'}
+      onFooterButtonClick={handleSubmit(onSubmit)}
+      footerButtonDisabled={!canEdit || !isValid || isSaving}
+      footerButtonLoading={isSaving}
     >
-      <IonHeader>
-        <IonToolbar>
-          <IonButtons slot="start" />
-          <IonTitle>{isNew ? 'New Product' : product?.name || 'Edit Product'}</IonTitle>
-          <IonButtons slot="end">
-            <IonButton onClick={handleClose}>
-              <IonIcon icon={close} />
-            </IonButton>
-          </IonButtons>
-        </IonToolbar>
-      </IonHeader>
+      {/* Name */}
+      <TextField
+        name="name"
+        control={control}
+        label="Name"
+        placeholder="Enter product name"
+        required
+        error={errors.name}
+        disabled={isSaving || !canEdit}
+      />
 
-      <IonContent className="ion-padding" scrollY={true}>
-        {productLoading && !isNew ? (
-          <div className="ion-text-center" style={{ padding: '48px' }}>
-            <IonSpinner />
+      {/* Description */}
+      <TextAreaField
+        name="description"
+        control={control}
+        label="Description"
+        placeholder="Enter product description"
+        rows={3}
+        error={errors.description}
+        disabled={isSaving || !canEdit}
+      />
+
+      {/* Price */}
+      <PriceField
+        name="price"
+        control={control}
+        label="Price"
+        required
+        error={errors.price}
+        disabled={isSaving || !canEdit}
+        currency={currentShop?.currency_code || 'USD'}
+      />
+
+      {/* Category */}
+      <SelectField
+        name="category_id"
+        control={control}
+        label="Category"
+        placeholder="Select category"
+        options={[
+          { value: '', label: 'No Category' },
+          ...(categories?.map((cat) => ({
+            value: cat.id,
+            label: `${cat.name}`,
+          })) || []),
+        ]}
+        disabled={isSaving || !canEdit}
+      />
+
+      {/* Image */}
+      <div style={{ marginBottom: '16px' }}>
+        <FieldLabel>Product Image</FieldLabel>
+        <Controller
+          name="image_url"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <ImageUpload
+              value={value || null}
+              onFileSelect={async (file) => {
+                if (!currentShop?.id) {
+                  showError('No shop selected');
+                  return;
+                }
+
+                try {
+                  const publicUrl = await uploadProductImage(
+                    file,
+                    currentShop.id,
+                    isNew ? undefined : productId!
+                  );
+                  onChange(publicUrl);
+                  showSuccess('Image uploaded successfully');
+                } catch (error) {
+                  console.error('Upload error:', error);
+                  showError(error instanceof Error ? error.message : 'Failed to upload image');
+                }
+              }}
+              onRemove={() => onChange('')}
+              disabled={isSaving || !canEdit}
+              height="250px"
+            />
+          )}
+        />
+        {errors.image_url && (
+          <div style={{ color: 'var(--ion-color-danger)', fontSize: '12px', padding: '4px 0' }}>
+            {errors.image_url.message}
           </div>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)}>
-            {/* Name */}
-            <TextField
-              name="name"
-              control={control}
-              label="Name"
-              placeholder="Enter product name"
-              required
-              error={errors.name}
-              disabled={isSaving || !canEdit}
-            />
-
-            {/* Description */}
-            <TextAreaField
-              name="description"
-              control={control}
-              label="Description"
-              placeholder="Enter product description"
-              rows={3}
-              error={errors.description}
-              disabled={isSaving || !canEdit}
-            />
-
-            {/* Price */}
-            <PriceField
-              name="price"
-              control={control}
-              label="Price"
-              required
-              error={errors.price}
-              disabled={isSaving || !canEdit}
-              currency={currentShop?.currency_code || 'USD'}
-            />
-
-            {/* Category */}
-            <SelectField
-              name="category_id"
-              control={control}
-              label="Category"
-              placeholder="Select category"
-              options={[
-                { value: '', label: 'No Category' },
-                ...(categories?.map((cat) => ({
-                  value: cat.id,
-                  label: `${cat.name}`,
-                })) || []),
-              ]}
-              disabled={isSaving || !canEdit}
-            />
-
-            {/* Image */}
-            <div style={{ marginBottom: '16px' }}>
-              <FieldLabel>Product Image</FieldLabel>
-              <Controller
-                name="image_url"
-                control={control}
-                render={({ field: { onChange, value } }) => (
-                  <ImageUpload
-                    value={value || null}
-                    onFileSelect={async (file) => {
-                      if (!currentShop?.id) {
-                        showError('No shop selected');
-                        return;
-                      }
-
-                      try {
-                        const publicUrl = await uploadProductImage(
-                          file,
-                          currentShop.id,
-                          isNew ? undefined : productId!
-                        );
-                        onChange(publicUrl);
-                        showSuccess('Image uploaded successfully');
-                      } catch (error) {
-                        console.error('Upload error:', error);
-                        showError(
-                          error instanceof Error ? error.message : 'Failed to upload image'
-                        );
-                      }
-                    }}
-                    onRemove={() => onChange('')}
-                    disabled={isSaving || !canEdit}
-                    height="250px"
-                  />
-                )}
-              />
-              {errors.image_url && (
-                <div
-                  style={{ color: 'var(--ion-color-danger)', fontSize: '12px', padding: '4px 0' }}
-                >
-                  {errors.image_url.message}
-                </div>
-              )}
-            </div>
-
-            {/* Remarks */}
-            <TextAreaField
-              name="remarks"
-              control={control}
-              label="Remarks"
-              placeholder="Internal notes about this product"
-              rows={2}
-              disabled={isSaving || !canEdit}
-            />
-
-            {/* Submit Button */}
-            <SaveButton
-              expand="block"
-              type="submit"
-              disabled={!canEdit || isSaving}
-              isSaving={isSaving}
-              label={isNew ? 'Create Product' : 'Save Changes'}
-              savingLabel={isNew ? 'Creating...' : 'Saving...'}
-            />
-          </form>
         )}
-      </IonContent>
-    </IonModal>
+      </div>
+
+      {/* Remarks */}
+      <TextAreaField
+        name="remarks"
+        control={control}
+        label="Remarks"
+        placeholder="Internal notes about this product"
+        rows={2}
+        disabled={isSaving || !canEdit}
+      />
+    </BaseModal>
   );
 };
 

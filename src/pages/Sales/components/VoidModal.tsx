@@ -1,23 +1,12 @@
 // VoidModal - Confirmation modal for voiding orders
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  IonButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonModal,
-  IonSpinner,
-  IonTitle,
-  IonToolbar,
-} from '@ionic/react';
-import { close } from 'ionicons/icons';
 import type React from 'react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import styled from 'styled-components';
 import { z } from 'zod';
+import BaseModal from '@/components/shared/BaseModal';
 import { SelectField } from '@/components/shared/FormFields';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useShopContext } from '@/contexts/ShopContext';
@@ -59,12 +48,6 @@ const WarningNote = styled.div`
 	margin-bottom: ${designSystem.spacing.lg};
 `;
 
-const ButtonGroup = styled.div`
-	display: flex;
-	gap: ${designSystem.spacing.sm};
-	margin-top: ${designSystem.spacing.md};
-`;
-
 // Helper function to format order number
 const formatOrderNumber = (order: OrderWithDetails, shopPrefix: string | null): string => {
   if (!order.order_number) return 'N/A';
@@ -85,9 +68,10 @@ export const VoidModal: React.FC<VoidModalProps> = ({ isOpen, onClose, order, on
     control,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<VoidFormData>({
     resolver: zodResolver(voidSchema),
+    mode: 'onChange',
     defaultValues: {
       reason_id: '',
     },
@@ -129,65 +113,43 @@ export const VoidModal: React.FC<VoidModalProps> = ({ isOpen, onClose, order, on
   };
 
   return (
-    <IonModal
+    <BaseModal
       isOpen={isOpen}
-      onDidDismiss={handleClose}
+      onClose={handleClose}
+      title="Void Order"
       initialBreakpoint={0.6}
       breakpoints={[0, 0.6, 0.9]}
+      showFooterButton
+      footerButtonLabel={isSaving ? 'Voiding...' : 'Void Order'}
+      footerButtonColor="danger"
+      onFooterButtonClick={handleSubmit(onSubmit)}
+      footerButtonDisabled={!isValid || isSaving}
+      footerButtonLoading={isSaving}
     >
-      <IonHeader>
-        <IonToolbar>
-          <IonButtons slot="start" />
-          <IonTitle>Void Order</IonTitle>
-          <IonButtons slot="end">
-            <IonButton onClick={handleClose} disabled={isSaving}>
-              <IonIcon icon={close} />
-            </IonButton>
-          </IonButtons>
-        </IonToolbar>
-      </IonHeader>
+      <ConfirmationMessage>Are you sure you want to void order #{orderNumber}?</ConfirmationMessage>
 
-      <IonContent className="ion-padding" scrollY={true}>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <ConfirmationMessage>
-            Are you sure you want to void order #{orderNumber}?
-          </ConfirmationMessage>
+      <WarningNote>
+        This action cannot be undone. The order will be marked as cancelled.
+      </WarningNote>
 
-          <WarningNote>
-            This action cannot be undone. The order will be marked as cancelled.
-          </WarningNote>
-
-          {/* Reason */}
-          <SelectField
-            name="reason_id"
-            control={control}
-            label="Reason for Void"
-            placeholder="Select a reason..."
-            required
-            error={errors.reason_id}
-            options={[
-              { value: '', label: 'Select a reason...' },
-              ...(reasons?.map((reason) => ({
-                value: reason.id,
-                label: reason.name,
-              })) || []),
-            ]}
-            disabled={isSaving}
-          />
-
-          {/* Action Buttons */}
-          <ButtonGroup>
-            <IonButton fill="outline" expand="block" onClick={handleClose} disabled={isSaving}>
-              Cancel
-            </IonButton>
-            <IonButton expand="block" type="submit" color="danger" disabled={isSaving}>
-              {isSaving && <IonSpinner slot="start" name="crescent" />}
-              {isSaving ? 'Voiding...' : 'Void Order'}
-            </IonButton>
-          </ButtonGroup>
-        </form>
-      </IonContent>
-    </IonModal>
+      {/* Reason */}
+      <SelectField
+        name="reason_id"
+        control={control}
+        label="Reason for Void"
+        placeholder="Select a reason..."
+        required
+        error={errors.reason_id}
+        options={[
+          { value: '', label: 'Select a reason...' },
+          ...(reasons?.map((reason) => ({
+            value: reason.id,
+            label: reason.name,
+          })) || []),
+        ]}
+        disabled={isSaving}
+      />
+    </BaseModal>
   );
 };
 
