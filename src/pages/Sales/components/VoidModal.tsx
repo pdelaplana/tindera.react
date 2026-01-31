@@ -117,8 +117,8 @@ export const VoidModal: React.FC<VoidModalProps> = ({ isOpen, onClose, order, on
       isOpen={isOpen}
       onClose={handleClose}
       title="Void Order"
-      initialBreakpoint={0.6}
-      breakpoints={[0, 0.6, 0.9]}
+      initialBreakpoint={1}
+      breakpoints={[0, 1]}
       showFooterButton
       footerButtonLabel={isSaving ? 'Voiding...' : 'Void Order'}
       footerButtonColor="danger"

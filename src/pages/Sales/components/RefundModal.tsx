@@ -127,10 +127,10 @@ export const RefundModal: React.FC<RefundModalProps> = ({ isOpen, onClose, order
       isOpen={isOpen}
       onClose={handleClose}
       title="Issue Refund"
-      initialBreakpoint={0.7}
-      breakpoints={[0, 0.7, 0.9]}
+      initialBreakpoint={1}
+      breakpoints={[0, 1]}
       showFooterButton
-      footerButtonLabel={isSaving ? 'Processing...' : 'Issue Refund'}
+      footerButtonLabel={isSaving ? 'Processing...' : 'Refund Order'}
       footerButtonColor="warning"
       onFooterButtonClick={handleSubmit(onSubmit)}
       footerButtonDisabled={!isValid || isSaving}
