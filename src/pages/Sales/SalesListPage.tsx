@@ -73,16 +73,21 @@ const PlaceholderContainer = styled.div`
 	gap: 8px;
 `;
 
+const DateFilterContainer = styled.div`
+	padding: 12px 16px 0 16px;
+	display: flex;
+	justify-content: flex-end;
+`;
+
 const SearchBarContainer = styled.div`
 	padding: 12px 16px;
-	display: flex;
-	gap: 8px;
-	align-items: center;
 `;
 
 const DateFilterSelect = styled(IonSelect)`
-	min-width: 140px;
-	max-width: 180px;
+	width: 140px;
+	--placeholder-opacity: 1;
+	text-align: right;
+  --highlight-color: 0;
 `;
 
 // Filter type definition
@@ -205,7 +210,24 @@ const SalesListPage: React.FC = () => {
     </FilterTabsContainer>
   );
 
-  // Render search bar with date filter
+  // Render date filter dropdown
+  const renderDateFilter = () => (
+    <DateFilterContainer>
+      <DateFilterSelect
+        interface="popover"
+        value={selectedDateFilter}
+        justify="end"
+        onIonChange={(e) => setSelectedDateFilter(e.detail.value as DateFilterType)}
+      >
+        <IonSelectOption value="all">All Time</IonSelectOption>
+        <IonSelectOption value="today">Today</IonSelectOption>
+        <IonSelectOption value="week">This Week</IonSelectOption>
+        <IonSelectOption value="month">This Month</IonSelectOption>
+      </DateFilterSelect>
+    </DateFilterContainer>
+  );
+
+  // Render search bar
   const renderSearchBar = () => (
     <SearchBarContainer>
       <IonSearchbar
@@ -214,18 +236,7 @@ const SalesListPage: React.FC = () => {
         placeholder="Search by order number..."
         debounce={300}
         className="searchBar"
-        style={{ flex: 1 }}
       />
-      <DateFilterSelect
-        interface="popover"
-        value={selectedDateFilter}
-        onIonChange={(e) => setSelectedDateFilter(e.detail.value as DateFilterType)}
-      >
-        <IonSelectOption value="all">All Time</IonSelectOption>
-        <IonSelectOption value="today">Today</IonSelectOption>
-        <IonSelectOption value="week">This Week</IonSelectOption>
-        <IonSelectOption value="month">This Month</IonSelectOption>
-      </DateFilterSelect>
     </SearchBarContainer>
   );
 
@@ -252,6 +263,7 @@ const SalesListPage: React.FC = () => {
         <IonContent>
           <SplitPaneContainer>
             <LeftPanel>
+              {renderDateFilter()}
               {renderSearchBar()}
               {renderFilterTabs()}
               <OrderList
@@ -305,6 +317,7 @@ const SalesListPage: React.FC = () => {
       <PageHeader title="Sales" />
       <IonContent>
         <MobileContainer>
+          {renderDateFilter()}
           {renderSearchBar()}
           {renderFilterTabs()}
           <OrderList
