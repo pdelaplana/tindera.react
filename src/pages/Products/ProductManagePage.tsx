@@ -1,23 +1,24 @@
-// Product Manage Page - Manage product items, addons, and view product details
+// Product Manage Page - Mobile view with shared detail components
 
 import {
-  IonActionSheet,
-  IonLabel,
+  IonBackButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonPage,
   IonRefresher,
   IonRefresherContent,
-  IonSegment,
-  IonSegmentButton,
-  IonText,
+  IonTitle,
+  IonToolbar,
   type ItemReorderEventDetail,
   type RefresherEventDetail,
   useIonLoading,
 } from '@ionic/react';
-import { close, trashOutline } from 'ionicons/icons';
 import type React from 'react';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-import { CenteredLayout, PageWithCollapsibleHeader } from '@/components/layouts';
-import { Div } from '@/components/shared/base/Div';
+import styled from 'styled-components';
+import { designSystem } from '@/theme/designSystem';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import PageLoadingState from '@/components/shared/PageLoadingState';
 import PageNotFoundState from '@/components/shared/PageNotFoundState';
@@ -27,6 +28,7 @@ import {
   useProduct,
   useRemoveProductAddon,
   useRemoveProductItem,
+  useUpdateProduct,
 } from '@/hooks/useProduct';
 import { useShop } from '@/hooks/useShop';
 import { useToastNotification } from '@/hooks/useToastNotification';
@@ -34,21 +36,28 @@ import { logger } from '@/services/sentry';
 import type { ModifierGroupWithModifiers, ProductAddon, ProductItem } from '@/types';
 import { createCurrencyFormatter } from '@/utils/currency';
 import {
-  ProductActionButtons,
   ProductAddonModal,
   ProductAddonsList,
-  ProductFormModal,
+  ProductDetailHeader,
+  ProductGeneralDetailsCard,
+  ProductImageSection,
   ProductItemModal,
   ProductItemsList,
   ProductModifierModal,
   ProductModifierSelectModal,
   ProductModifiersList,
-  ProductSummary,
 } from './components';
 
 interface RouteParams {
   id: string;
 }
+
+const ContentContainer = styled.div`
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  padding: ${designSystem.spacing.lg};
+`;
 
 const ProductManagePage: React.FC = () => {
   const { id } = useParams<RouteParams>();
@@ -58,6 +67,7 @@ const ProductManagePage: React.FC = () => {
   const { currentShop, hasPermission } = useShop();
   const { data: product, isLoading: productLoading, refetch: refetchProduct } = useProduct(id);
   const deleteProduct = useDeleteProduct();
+  const updateProduct = useUpdateProduct();
   const removeProductItem = useRemoveProductItem();
   const removeProductAddon = useRemoveProductAddon();
   const unlinkModifierGroup = useUnlinkModifierGroup();
@@ -68,8 +78,6 @@ const ProductManagePage: React.FC = () => {
   // Modal states
   const [showItemModal, setShowItemModal] = useState(false);
   const [showAddonModal, setShowAddonModal] = useState(false);
-  const [showProductFormModal, setShowProductFormModal] = useState(false);
-  const [showOptionsSheet, setShowOptionsSheet] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [showModifierSelectModal, setShowModifierSelectModal] = useState(false);
   const [showPriceOverridesModal, setShowPriceOverridesModal] = useState(false);
@@ -79,11 +87,6 @@ const ProductManagePage: React.FC = () => {
   const [selectedAddon, setSelectedAddon] = useState<ProductAddon | null>(null);
   const [selectedModifierGroup, setSelectedModifierGroup] =
     useState<ModifierGroupWithModifiers | null>(null);
-  const [selectedSegment, setSelectedSegment] = useState<'manage' | 'sales'>('manage');
-
-  // Ref for collapsible header
-  const productNameRef = useRef<HTMLHeadingElement>(null);
-  const observedElementRef = productNameRef as React.RefObject<HTMLElement>;
 
   // Permissions
   const canEdit = hasPermission('staff');
@@ -95,24 +98,10 @@ const ProductManagePage: React.FC = () => {
     [currentShop?.currency_code]
   );
 
-  // Calculate total cost from product items
-  const totalCost = useMemo(() => {
-    if (!product?.items) return undefined;
-    return product.items.reduce((sum, item) => sum + item.unit_cost * item.quantity, 0);
-  }, [product?.items]);
-
   // Handlers
   const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
     await refetchProduct();
     event.detail.complete();
-  };
-
-  const handleEditProduct = () => {
-    setShowProductFormModal(true);
-  };
-
-  const handleOptions = () => {
-    setShowOptionsSheet(true);
   };
 
   const handleDeleteProduct = async () => {
@@ -128,6 +117,16 @@ const ProductManagePage: React.FC = () => {
       showError('Failed to delete product');
     } finally {
       await dismiss();
+    }
+  };
+
+  const handleImageUploaded = async (url: string) => {
+    if (!product) return;
+    try {
+      await updateProduct.mutateAsync({ productId: product.id, data: { image_url: url } });
+    } catch (error) {
+      logger.error(error instanceof Error ? error : new Error(String(error)));
+      showError('Failed to update image');
     }
   };
 
@@ -250,171 +249,94 @@ const ProductManagePage: React.FC = () => {
   }
 
   return (
-    <PageWithCollapsibleHeader
-      title={product.name}
-      backHref={`/shops/${currentShop?.id}/products`}
-      observedElementRef={observedElementRef}
-      isLoading={productLoading}
-      notFound={!productLoading && !product}
-    >
-      {/* Pull to refresh */}
-      <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
-        <IonRefresherContent />
-      </IonRefresher>
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton defaultHref={`/shops/${currentShop?.id}/products`} />
+          </IonButtons>
+          <IonTitle>Product Details</IonTitle>
+        </IonToolbar>
+      </IonHeader>
 
-      {/* Top Section - Product Summary and Action Buttons */}
-      <Div
-        style={{
-          paddingBottom: '24px',
-          marginBottom: '24px',
-          borderBottom: '1px solid var(--ion-color-light-shade)',
-        }}
-      >
-        <CenteredLayout>
-          <Div style={{ maxWidth: '800px', width: '100%', padding: '16px' }}>
-            <ProductSummary
-              ref={productNameRef}
-              name={product.name}
-              description={product.description}
-              price={product.price}
-              cost={totalCost}
-              category={product.category}
-              imageUrl={product.image_url}
-              itemsCount={product.items?.length || 0}
-              addonsCount={product.addons?.length || 0}
-              formatCurrency={formatCurrency}
-            />
+      <IonContent>
+        {/* Pull to refresh */}
+        <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+          <IonRefresherContent />
+        </IonRefresher>
 
-            <ProductActionButtons
-              onEdit={handleEditProduct}
-              onAddItem={() => setShowItemModal(true)}
-              onAddAddon={() => setShowAddonModal(true)}
-              onOptions={handleOptions}
-              disabled={!canEdit}
-            />
-          </Div>
-        </CenteredLayout>
-      </Div>
+        <ContentContainer>
+          <ProductDetailHeader
+            productName={product.name}
+            onDelete={() => setShowDeleteAlert(true)}
+            canDelete={canDelete}
+          />
 
-      {/* Segment Control */}
-      <CenteredLayout>
-        <Div style={{ maxWidth: '800px', width: '100%' }}>
-          <IonSegment
-            value={selectedSegment}
-            onIonChange={(e) => setSelectedSegment(e.detail.value as 'manage' | 'sales')}
-          >
-            <IonSegmentButton value="sales" color="dark">
-              <IonLabel className="ion-text-capitalize">Sales</IonLabel>
-            </IonSegmentButton>
-            <IonSegmentButton value="manage" color="dark">
-              <IonLabel className="ion-text-capitalize">Manage</IonLabel>
-            </IonSegmentButton>
-          </IonSegment>
-        </Div>
-      </CenteredLayout>
+          <ProductImageSection
+            imageUrl={product.image_url}
+            productId={product.id}
+            shopId={currentShop?.id || ''}
+            onImageUploaded={handleImageUploaded}
+            disabled={!canEdit}
+          />
 
-      {/* Content Section - Conditional based on segment */}
-      <CenteredLayout>
-        {selectedSegment === 'manage' ? (
-          <Div style={{ maxWidth: '800px', width: '100%' }}>
-            {/* Global Modifiers */}
-            <ProductModifiersList
-              linkedGroups={product.linkedModifierGroups || []}
-              priceOverrides={product.priceOverrides || {}}
-              formatCurrency={formatCurrency}
-              onAdd={handleAddModifierGroup}
-              onEdit={handleEditModifierGroup}
-              onReorder={handleReorderModifierGroup}
-              canEdit={canEdit}
-            />
+          <ProductGeneralDetailsCard
+            product={product}
+            disabled={!canEdit}
+          />
 
-            <ProductAddonsList
-              addons={product.addons || []}
-              formatCurrency={formatCurrency}
-              onAdd={() => setShowAddonModal(true)}
-              onEdit={handleEditAddon}
-              canEdit={canEdit}
-            />
+          {/* Global Modifiers */}
+          <ProductModifiersList
+            linkedGroups={product.linkedModifierGroups || []}
+            priceOverrides={product.priceOverrides || {}}
+            formatCurrency={formatCurrency}
+            onAdd={handleAddModifierGroup}
+            onEdit={handleEditModifierGroup}
+            onReorder={handleReorderModifierGroup}
+            canEdit={canEdit}
+          />
 
-            <ProductItemsList
-              items={product.items || []}
-              formatCurrency={formatCurrency}
-              onAdd={() => setShowItemModal(true)}
-              onEdit={handleEditItem}
-              canEdit={canEdit}
-            />
-          </Div>
-        ) : (
-          <>
-            {/* Sales Analytics Placeholder */}
-            <Div
-              style={{
-                maxWidth: '800px',
-                width: '100%',
-                padding: '16px',
-                textAlign: 'center',
-                marginTop: '24px',
-              }}
-            >
-              <IonText color="medium">
-                <p>Sales analytics coming soon</p>
-              </IonText>
-            </Div>
-          </>
-        )}
-      </CenteredLayout>
+          <ProductAddonsList
+            addons={product.addons || []}
+            formatCurrency={formatCurrency}
+            onAdd={() => setShowAddonModal(true)}
+            onEdit={handleEditAddon}
+            canEdit={canEdit}
+          />
 
-      {/* Modals */}
-      <ProductAddonModal
-        isOpen={showAddonModal}
-        onClose={() => {
-          setShowAddonModal(false);
-          setSelectedAddon(null);
-        }}
-        addon={selectedAddon}
-        productId={product.id}
-        onDelete={handleDeleteAddon}
-      />
+          <ProductItemsList
+            items={product.items || []}
+            formatCurrency={formatCurrency}
+            onAdd={() => setShowItemModal(true)}
+            onEdit={handleEditItem}
+            canEdit={canEdit}
+          />
+        </ContentContainer>
 
-      <ProductItemModal
-        isOpen={showItemModal}
-        onClose={() => {
-          setShowItemModal(false);
-          setSelectedItem(null);
-        }}
-        item={selectedItem}
-        productId={product.id}
-        onDelete={handleDeleteItem}
-      />
+        {/* Modals */}
+        <ProductAddonModal
+          isOpen={showAddonModal}
+          onClose={() => {
+            setShowAddonModal(false);
+            setSelectedAddon(null);
+          }}
+          addon={selectedAddon}
+          productId={product.id}
+          onDelete={handleDeleteAddon}
+        />
 
-      {/* Options Action Sheet */}
-      <IonActionSheet
-        isOpen={showOptionsSheet}
-        onDidDismiss={() => setShowOptionsSheet(false)}
-        header="Options"
-        buttons={[
-          ...(canDelete
-            ? [
-                {
-                  text: 'Delete Product',
-                  icon: trashOutline,
-                  role: 'destructive' as const,
-                  handler: () => {
-                    setShowDeleteAlert(true);
-                  },
-                },
-              ]
-            : []),
-          {
-            text: 'Cancel',
-            role: 'cancel',
-            icon: close,
-          },
-        ]}
-      />
+        <ProductItemModal
+          isOpen={showItemModal}
+          onClose={() => {
+            setShowItemModal(false);
+            setSelectedItem(null);
+          }}
+          item={selectedItem}
+          productId={product.id}
+          onDelete={handleDeleteItem}
+        />
 
-      {/* Product Delete Confirmation */}
-      {product && (
+        {/* Product Delete Confirmation */}
         <DeleteConfirmationAlert
           isOpen={showDeleteAlert}
           onDismiss={() => setShowDeleteAlert(false)}
@@ -422,41 +344,34 @@ const ProductManagePage: React.FC = () => {
           itemName={product.name}
           itemType="Product"
         />
-      )}
 
-      {/* Product Form Modal */}
-      <ProductFormModal
-        isOpen={showProductFormModal}
-        onClose={() => setShowProductFormModal(false)}
-        productId={id}
-      />
+        {/* Global Modifier Select Modal */}
+        <ProductModifierSelectModal
+          isOpen={showModifierSelectModal}
+          onClose={() => {
+            setShowModifierSelectModal(false);
+            refetchProduct();
+          }}
+          productId={product.id}
+          linkedGroupIds={(product.linkedModifierGroups || []).map((g) => g.id)}
+        />
 
-      {/* Global Modifier Select Modal */}
-      <ProductModifierSelectModal
-        isOpen={showModifierSelectModal}
-        onClose={() => {
-          setShowModifierSelectModal(false);
-          refetchProduct();
-        }}
-        productId={product.id}
-        linkedGroupIds={(product.linkedModifierGroups || []).map((g) => g.id)}
-      />
-
-      {/* Product Modifier Modal */}
-      <ProductModifierModal
-        isOpen={showPriceOverridesModal}
-        onClose={() => {
-          setShowPriceOverridesModal(false);
-          setSelectedModifierGroup(null);
-          refetchProduct();
-        }}
-        productId={product.id}
-        group={selectedModifierGroup}
-        priceOverrides={product.priceOverrides || {}}
-        formatCurrency={formatCurrency}
-        onDelete={handleUnlinkModifierGroup}
-      />
-    </PageWithCollapsibleHeader>
+        {/* Product Modifier Modal */}
+        <ProductModifierModal
+          isOpen={showPriceOverridesModal}
+          onClose={() => {
+            setShowPriceOverridesModal(false);
+            setSelectedModifierGroup(null);
+            refetchProduct();
+          }}
+          productId={product.id}
+          group={selectedModifierGroup}
+          priceOverrides={product.priceOverrides || {}}
+          formatCurrency={formatCurrency}
+          onDelete={handleUnlinkModifierGroup}
+        />
+      </IonContent>
+    </IonPage>
   );
 };
 

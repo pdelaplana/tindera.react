@@ -1,209 +1,280 @@
-// Products List Page
+// Products List Page - Responsive master-detail split pane
 
-import {
-  IonAvatar,
-  IonButton,
-  IonChip,
-  IonContent,
-  IonIcon,
-  IonImg,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonPage,
-  IonRefresher,
-  IonRefresherContent,
-  IonText,
-  IonToolbar,
-  type RefresherEventDetail,
-} from '@ionic/react';
+import { IonContent, IonPage, IonSearchbar } from '@ionic/react';
 import { add } from 'ionicons/icons';
 import type React from 'react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { CenteredLayout } from '@/components/layouts';
+import styled from 'styled-components';
 import { CategoryPillScroller } from '@/components/pos';
-import { CardContainer } from '@/components/shared';
 import PageHeader from '@/components/shared/PageHeader';
 import { LoadingSpinner } from '@/components/ui';
+import { useIsTabletOrLarger } from '@/hooks/useBreakpoint';
 import { useProductCategories, useProducts } from '@/hooks/useProduct';
 import { useShop } from '@/hooks/useShop';
+import { createCurrencyFormatter } from '@/utils/currency';
+import { designSystem } from '@/theme/designSystem';
 import type { ProductWithCategory } from '@/types';
-import { ProductFormModal } from './components';
+import { ProductDetailPanel, ProductFormModal, ProductListItem } from './components';
+
+// Styled components - following SalesListPage pattern
+const SplitPaneContainer = styled.div`
+  display: flex;
+  height: 100%;
+  width: 100%;
+`;
+
+const LeftPanel = styled.div`
+  flex: 0 0 380px;
+  border-right: 1px solid var(--ion-color-light-shade);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+`;
+
+const RightPanel = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  background: var(--ion-color-light);
+`;
+
+const MobileContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+`;
+
+const SearchBarContainer = styled.div`
+  padding: 12px 16px;
+`;
+
+const CategoryContainer = styled.div`
+  padding: 0 16px 8px 16px;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+`;
+
+const ListContainer = styled.div`
+  flex: 1;
+  overflow-y: auto;
+`;
+
+const EmptyContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: ${designSystem.spacing['2xl']};
+  text-align: center;
+  color: ${designSystem.colors.text.secondary};
+  gap: ${designSystem.spacing.sm};
+`;
+
+const AddButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${designSystem.spacing.sm};
+  width: calc(100% - 32px);
+  margin: ${designSystem.spacing.md};
+  padding: ${designSystem.spacing.md};
+  border: 2px dashed ${designSystem.colors.gray[300]};
+  border-radius: ${designSystem.borderRadius.md};
+  background: none;
+  cursor: pointer;
+  color: ${designSystem.colors.text.secondary};
+  font-size: ${designSystem.typography.fontSize.base};
+  font-family: ${designSystem.typography.fontFamily.base};
+  transition: all ${designSystem.transitions.base};
+
+  &:hover {
+    border-color: ${designSystem.colors.brand.primary};
+    color: ${designSystem.colors.brand.primary};
+  }
+`;
+
+const PlaceholderContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 48px;
+  text-align: center;
+  color: var(--ion-color-medium);
+  gap: 8px;
+`;
 
 const ProductsListPage: React.FC = () => {
   const history = useHistory();
+  const isDesktop = useIsTabletOrLarger();
   const { currentShop, isLoading: shopLoading } = useShop();
+
+  // Local state
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Fetch products with search filter
+  // Fetch data
   const {
     data: products,
     isLoading: productsLoading,
-    refetch,
   } = useProducts({
     search: searchText || undefined,
     categoryId: selectedCategory || undefined,
   });
 
-  // Fetch categories for filter
   const { data: categories } = useProductCategories();
 
   const isLoading = shopLoading || productsLoading;
 
-  // Handle pull-to-refresh
-  const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
-    await refetch();
-    event.detail.complete();
+  // Currency formatter
+  const formatPrice = useMemo(() => {
+    const formatter = createCurrencyFormatter(currentShop?.currency_code || 'USD');
+    return (price: number) => formatter(price);
+  }, [currentShop?.currency_code]);
+
+  // Handle product selection (desktop: set selected, mobile: navigate)
+  const handleProductSelect = (product: ProductWithCategory) => {
+    if (isDesktop) {
+      setSelectedProductId(product.id);
+    } else {
+      if (currentShop) {
+        history.push(`/shops/${currentShop.id}/products/${product.id}/manage`);
+      }
+    }
   };
 
-  // Open product form modal for editing
-  const handleProductClick = (productId: string) => {
-    // For now, still navigate to manage page for full product management
-    history.push(`/shops/${currentShop?.id}/products/${productId}/manage`);
-  };
-
-  // Open product form modal for creating
   const handleAddProduct = () => {
-    setSelectedProductId(null);
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleProductDeleted = () => {
     setSelectedProductId(null);
   };
 
-  // Format price for display
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currentShop?.currency_code || 'USD',
-    }).format(price);
+  // Render search bar
+  const renderSearchBar = () => (
+    <SearchBarContainer>
+      <IonSearchbar
+        value={searchText}
+        onIonInput={(e) => setSearchText(e.detail.value ?? '')}
+        placeholder="Search products..."
+        debounce={300}
+      />
+    </SearchBarContainer>
+  );
+
+  // Render category pills
+  const renderCategoryPills = () => {
+    if (!categories || categories.length === 0) return null;
+    return (
+      <CategoryContainer>
+        <CategoryPillScroller
+          categories={categories}
+          selectedId={selectedCategory}
+          onSelect={setSelectedCategory}
+        />
+      </CategoryContainer>
+    );
   };
 
-  // Render product list item
-  const renderProductItem = (
-    product: ProductWithCategory,
-    index: number,
-    productsLength: number
-  ) => (
-    <IonItem
-      lines={index === productsLength - 1 ? 'none' : 'full'}
-      key={product.id}
-      button
-      onClick={() => handleProductClick(product.id)}
-      detail
-    >
-      <IonAvatar slot="start">
-        <IonImg
-          src={product.image_url || 'https://placehold.co/100x100/e0e0e0/666666?text=No+Image'}
-          alt={product.name}
-          onIonError={(e) => {
-            const target = e.target as unknown as HTMLImageElement;
-            target.src = 'https://placehold.co/100x100/e0e0e0/666666?text=No+Image';
-          }}
-        />
-      </IonAvatar>
-      <IonLabel>
-        <h2>{product.name}</h2>
-        {product.description && <p className="ion-text-wrap">{product.description}</p>}
-        {product.category && (
-          <IonChip color="primary" outline aria-setsize={1}>
-            {product.category.description || product.category.name}
-          </IonChip>
-        )}
-      </IonLabel>
-      <IonLabel slot="end" color="dark" className="ion-text-center ion-margin-end	">
-        <IonText className="text-primary">{formatPrice(product.price)}</IonText>
-      </IonLabel>
-    </IonItem>
-  );
+  // Render product list
+  const renderProductList = () => {
+    if (isLoading) {
+      return <LoadingSpinner />;
+    }
 
-  // Render product grid item
-  // Empty state
-  const renderEmptyState = () => (
-    <div className="empty-state ion-text-center" style={{ padding: '48px 16px' }}>
-      <h2>No Products Yet</h2>
-      <p>Get started by adding your first product</p>
-      <IonButton onClick={handleAddProduct} size="default">
-        <IonIcon slot="start" icon={add} />
-        Add Product
-      </IonButton>
-    </div>
-  );
+    if (!products || products.length === 0) {
+      return (
+        <EmptyContainer>
+          <h3>No Products Yet</h3>
+          <p>Get started by adding your first product</p>
+        </EmptyContainer>
+      );
+    }
 
-  // No shop selected state
+    return (
+      <ListContainer>
+        {products.map((product) => (
+          <ProductListItem
+            key={product.id}
+            product={product}
+            isSelected={isDesktop && selectedProductId === product.id}
+            onClick={() => handleProductSelect(product)}
+            formatPrice={formatPrice}
+          />
+        ))}
+      </ListContainer>
+    );
+  };
+
+  // No shop state
   if (!currentShop && !shopLoading) {
     return (
       <IonPage>
         <PageHeader title="Products" showProfile showLogout />
-
-        <IonContent className="ion-padding">
-          <CenteredLayout>
-            <div className="empty-state" style={{ textAlign: 'center', padding: '48px 16px' }}>
-              <h2>No Shop Selected</h2>
-              <p>Please select a shop to view products</p>
-            </div>
-          </CenteredLayout>
+        <IonContent>
+          <PlaceholderContainer>
+            <h2>No Shop Selected</h2>
+            <p>Please select a shop to view products</p>
+          </PlaceholderContainer>
         </IonContent>
       </IonPage>
     );
   }
 
+  // Desktop layout with split pane
+  if (isDesktop) {
+    return (
+      <IonPage>
+        <PageHeader title="Products" showProfile showLogout />
+        <IonContent>
+          <SplitPaneContainer>
+            <LeftPanel>
+              {renderSearchBar()}
+              {renderCategoryPills()}
+              {renderProductList()}
+              <AddButton onClick={handleAddProduct}>
+                + Add New Product
+              </AddButton>
+            </LeftPanel>
+            <RightPanel>
+              <ProductDetailPanel
+                productId={selectedProductId}
+                onProductDeleted={handleProductDeleted}
+              />
+            </RightPanel>
+          </SplitPaneContainer>
+        </IonContent>
+        <ProductFormModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          productId={null}
+        />
+      </IonPage>
+    );
+  }
+
+  // Mobile layout
   return (
     <IonPage>
       <PageHeader title="Products" showProfile showLogout />
-
       <IonContent>
-        <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
-          <IonRefresherContent />
-        </IonRefresher>
-
-        <CenteredLayout>
-          {categories && categories.length > 0 && (
-            <IonToolbar>
-              <CategoryPillScroller
-                categories={categories}
-                selectedId={selectedCategory}
-                onSelect={setSelectedCategory}
-                showManageButton={true}
-                onManageClick={() => history.push(`/shops/${currentShop?.id}/products/categories`)}
-              />
-            </IonToolbar>
-          )}
-          <CardContainer
-            title="Products"
-            noPadding
-            onActionClick={handleAddProduct}
-            showSearch
-            searchValue={searchText}
-            onSearchChange={setSearchText}
-            searchPlaceholder="Search products..."
-          >
-            {isLoading ? (
-              <LoadingSpinner />
-            ) : !products || products.length === 0 ? (
-              renderEmptyState()
-            ) : (
-              <IonList>
-                {products.map((product, index) =>
-                  renderProductItem(product, index, products.length)
-                )}
-              </IonList>
-            )}
-          </CardContainer>
-
-          <ProductFormModal
-            isOpen={isModalOpen}
-            onClose={handleCloseModal}
-            productId={selectedProductId}
-          />
-        </CenteredLayout>
+        <MobileContainer>
+          {renderSearchBar()}
+          {renderCategoryPills()}
+          {renderProductList()}
+          <AddButton onClick={handleAddProduct}>
+            + Add New Product
+          </AddButton>
+        </MobileContainer>
       </IonContent>
+      <ProductFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        productId={null}
+      />
     </IonPage>
   );
 };
