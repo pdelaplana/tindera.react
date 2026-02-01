@@ -13,7 +13,7 @@ interface ProductListItemProps {
   formatPrice: (price: number) => string;
 }
 
-// Styled components - matching OrderCard pattern
+// Styled components - matching OrderCard pattern with thumbnail
 const Card = styled.div<{ isSelected: boolean }>`
   background: ${(props) =>
     props.isSelected ? designSystem.colors.surface.variant : designSystem.colors.surface.base};
@@ -26,6 +26,9 @@ const Card = styled.div<{ isSelected: boolean }>`
   border: 1px solid
     ${(props) =>
       props.isSelected ? designSystem.colors.brand.primary : designSystem.colors.gray[200]};
+  display: flex;
+  gap: ${designSystem.spacing.md};
+  align-items: flex-start;
 
   &:hover {
     background: ${designSystem.colors.surface.variant};
@@ -35,6 +38,33 @@ const Card = styled.div<{ isSelected: boolean }>`
   &:active {
     transform: scale(0.99);
   }
+`;
+
+const Thumbnail = styled.img`
+  width: 56px;
+  height: 56px;
+  border-radius: ${designSystem.borderRadius.md};
+  object-fit: cover;
+  flex-shrink: 0;
+  background: ${designSystem.colors.gray[100]};
+`;
+
+const ThumbnailPlaceholder = styled.div`
+  width: 56px;
+  height: 56px;
+  border-radius: ${designSystem.borderRadius.md};
+  background: ${designSystem.colors.gray[100]};
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${designSystem.colors.text.disabled};
+  font-size: ${designSystem.typography.fontSize.xs};
+`;
+
+const CardContent = styled.div`
+  flex: 1;
+  min-width: 0;
 `;
 
 const CardHeader = styled.div`
@@ -92,29 +122,39 @@ const ProductListItem: React.FC<ProductListItemProps> = ({
 }) => {
   return (
     <Card isSelected={isSelected} onClick={onClick} role="button" tabIndex={0}>
-      <CardHeader>
-        <ProductName>{product.name}</ProductName>
-        <ProductPrice>{formatPrice(product.price)}</ProductPrice>
-      </CardHeader>
+      {product.image_url ? (
+        <Thumbnail src={product.image_url} alt={product.name} />
+      ) : (
+        <ThumbnailPlaceholder>
+          <span>📦</span>
+        </ThumbnailPlaceholder>
+      )}
 
-      <CardMeta>
-        {product.category ? (
-          <>
-            <span>{product.category.name}</span>
-            <MetaDivider>·</MetaDivider>
-          </>
-        ) : (
-          <>
-            <span>No category</span>
-            <MetaDivider>·</MetaDivider>
-          </>
-        )}
-        <span>{product.image_url ? 'Has image' : 'No image'}</span>
-      </CardMeta>
+      <CardContent>
+        <CardHeader>
+          <ProductName>{product.name}</ProductName>
+          <ProductPrice>{formatPrice(product.price)}</ProductPrice>
+        </CardHeader>
 
-      <StatusBadge isActive={product.is_active}>
-        {product.is_active ? 'Active' : 'Inactive'}
-      </StatusBadge>
+        <CardMeta>
+          {product.category ? (
+            <>
+              <span>{product.category.name}</span>
+              <MetaDivider>·</MetaDivider>
+            </>
+          ) : (
+            <>
+              <span>No category</span>
+              <MetaDivider>·</MetaDivider>
+            </>
+          )}
+          <span>{product.image_url ? 'Has image' : 'No image'}</span>
+        </CardMeta>
+
+        <StatusBadge isActive={product.is_active}>
+          {product.is_active ? 'Active' : 'Inactive'}
+        </StatusBadge>
+      </CardContent>
     </Card>
   );
 };
