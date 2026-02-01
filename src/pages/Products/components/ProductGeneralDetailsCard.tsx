@@ -1,10 +1,10 @@
 // ProductGeneralDetailsCard - Auto-saving product details form
 
-import { IonIcon, IonItem, IonLabel, IonToggle } from '@ionic/react';
-import { informationCircleOutline } from 'ionicons/icons';
+import { IonToggle } from '@ionic/react';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { CardContainer } from '@/components/shared';
 import { designSystem } from '@/theme/designSystem';
 import { useProductCategories, useUpdateProduct } from '@/hooks/useProduct';
 import { useToastNotification } from '@/hooks/useToastNotification';
@@ -15,33 +15,6 @@ interface ProductGeneralDetailsCardProps {
   product: ProductWithDetails;
   disabled?: boolean;
 }
-
-const Card = styled.div`
-  background: ${designSystem.colors.surface.base};
-  border-radius: ${designSystem.borderRadius.lg};
-  border: 1px solid ${designSystem.colors.gray[200]};
-  padding: ${designSystem.spacing.lg};
-  margin-bottom: ${designSystem.spacing.lg};
-`;
-
-const CardHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${designSystem.spacing.sm};
-  margin-bottom: ${designSystem.spacing.lg};
-`;
-
-const CardTitle = styled.h3`
-  margin: 0;
-  font-size: ${designSystem.typography.fontSize.lg};
-  font-weight: ${designSystem.typography.fontWeight.semibold};
-  color: ${designSystem.colors.text.primary};
-`;
-
-const CardIcon = styled(IonIcon)`
-  font-size: 20px;
-  color: ${designSystem.colors.brand.primary};
-`;
 
 const FieldLabel = styled.label`
   display: block;
@@ -101,6 +74,10 @@ const SelectInput = styled.select`
   }
 `;
 
+const FormContent = styled.div`
+  padding: ${designSystem.spacing.lg};
+`;
+
 const FieldGroup = styled.div`
   margin-bottom: ${designSystem.spacing.md};
 `;
@@ -137,7 +114,8 @@ const ToggleIcon = styled.div<{ isActive: boolean }>`
   width: 8px;
   height: 8px;
   border-radius: ${designSystem.borderRadius.full};
-  background: ${(props) => (props.isActive ? designSystem.colors.success : designSystem.colors.gray[300])};
+  background: ${(props) =>
+    props.isActive ? designSystem.colors.success : designSystem.colors.gray[300]};
 `;
 
 const ProductGeneralDetailsCard: React.FC<ProductGeneralDetailsCardProps> = ({
@@ -209,67 +187,60 @@ const ProductGeneralDetailsCard: React.FC<ProductGeneralDetailsCardProps> = ({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardIcon icon={informationCircleOutline} />
-        <CardTitle>General Details</CardTitle>
-      </CardHeader>
-
-      <FieldGroup>
-        <FieldLabel>Product Name</FieldLabel>
-        <TextInput
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onBlur={handleNameBlur}
-          disabled={disabled}
-          placeholder="Product name"
-        />
-      </FieldGroup>
-
-      <FieldRow>
+    <CardContainer title="General Details">
+      <FormContent>
         <FieldGroup>
-          <FieldLabel>Category</FieldLabel>
-          <SelectInput
-            value={categoryId}
-            onChange={handleCategoryChange}
-            disabled={disabled}
-          >
-            <option value="">No category</option>
-            {categories?.map((cat: ProductCategory) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </SelectInput>
-        </FieldGroup>
-
-        <FieldGroup>
-          <FieldLabel>Base Price</FieldLabel>
+          <FieldLabel>Product Name</FieldLabel>
           <TextInput
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            onBlur={handlePriceBlur}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={handleNameBlur}
             disabled={disabled}
-            placeholder="0.00"
-            min="0"
-            step="0.01"
+            placeholder="Product name"
           />
         </FieldGroup>
-      </FieldRow>
 
-      <ToggleRow>
-        <ToggleLabel>
-          <ToggleIcon isActive={isActive} />
-          Active on Menu
-        </ToggleLabel>
-        <IonToggle
-          checked={isActive}
-          onIonChange={(e) => handleToggleChange(e.detail.checked)}
-          disabled={disabled}
-        />
-      </ToggleRow>
-    </Card>
+        <FieldRow>
+          <FieldGroup>
+            <FieldLabel>Category</FieldLabel>
+            <SelectInput value={categoryId} onChange={handleCategoryChange} disabled={disabled}>
+              <option value="">No category</option>
+              {categories?.map((cat: ProductCategory) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </SelectInput>
+          </FieldGroup>
+
+          <FieldGroup>
+            <FieldLabel>Base Price</FieldLabel>
+            <TextInput
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              onBlur={handlePriceBlur}
+              disabled={disabled}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </FieldGroup>
+        </FieldRow>
+
+        <ToggleRow>
+          <ToggleLabel>
+            <ToggleIcon isActive={isActive} />
+            Active on Menu
+          </ToggleLabel>
+          <IonToggle
+            checked={isActive}
+            onIonChange={(e) => handleToggleChange(e.detail.checked)}
+            disabled={disabled}
+          />
+        </ToggleRow>
+      </FormContent>
+    </CardContainer>
   );
 };
 
