@@ -6,12 +6,15 @@ import type React from 'react';
 import { useRef, useState } from 'react';
 import styled from 'styled-components';
 import { designSystem } from '@/theme/designSystem';
+import { uploadProductImage } from '@/services/storage';
+import { logger } from '@/services/sentry';
 
 interface ProductImageSectionProps {
   imageUrl: string | null;
   productId: string;
   shopId: string;
   onImageUploaded: (url: string) => void;
+  onUploadError?: (error: Error) => void;
   disabled?: boolean;
 }
 
@@ -73,11 +76,25 @@ const HiddenInput = styled.input`
   display: none;
 `;
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+
+const validateFile = (file: File): void => {
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    throw new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed');
+  }
+
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error('File size exceeds 5MB limit');
+  }
+};
+
 const ProductImageSection: React.FC<ProductImageSectionProps> = ({
   imageUrl,
   productId,
   shopId,
   onImageUploaded,
+  onUploadError,
   disabled = false,
 }) => {
   const [isUploading, setIsUploading] = useState(false);
@@ -94,18 +111,20 @@ const ProductImageSection: React.FC<ProductImageSectionProps> = ({
 
     setIsUploading(true);
     try {
-      const { uploadProductImage } = await import('@/services/storage');
+      validateFile(file);
       const publicUrl = await uploadProductImage(file, shopId, productId);
       onImageUploaded(publicUrl);
     } catch (error) {
-      console.error('Failed to upload image:', error);
-      throw error; // Let parent handle the error
+      const errorObj = error instanceof Error ? error : new Error(String(error));
+      logger.error(errorObj);
+      onUploadError?.(errorObj);
     } finally {
       setIsUploading(false);
     }
   };
 
   const handleClick = () => {
+    if (isUploading || disabled) return;
     fileInputRef.current?.click();
   };
 
@@ -125,7 +144,12 @@ const ProductImageSection: React.FC<ProductImageSectionProps> = ({
         <Placeholder>No product image</Placeholder>
       )}
 
-      <UpdateButton onClick={handleClick} disabled={disabled || isUploading}>
+      <UpdateButton
+        onClick={handleClick}
+        disabled={disabled || isUploading}
+        aria-busy={isUploading}
+        aria-label={isUploading ? 'Uploading product image' : 'Update product photo'}
+      >
         {isUploading ? (
           <IonSpinner name="crescent" style={{ width: '16px', height: '16px' }} />
         ) : (
