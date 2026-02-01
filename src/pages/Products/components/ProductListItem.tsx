@@ -1,5 +1,6 @@
-// ProductListItem - Styled product list item with selection support
+// ProductListItem - Styled product card matching OrderCard pattern
 
+import { IonBadge } from '@ionic/react';
 import type React from 'react';
 import styled from 'styled-components';
 import { designSystem } from '@/theme/designSystem';
@@ -12,21 +13,23 @@ interface ProductListItemProps {
   formatPrice: (price: number) => string;
 }
 
+// Styled components - matching OrderCard pattern
 const Card = styled.div<{ isSelected: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: ${designSystem.spacing.md};
+  background: ${(props) =>
+    props.isSelected ? designSystem.colors.surface.variant : designSystem.colors.surface.base};
+  border-radius: ${designSystem.borderRadius.md};
   padding: ${designSystem.spacing.md};
   cursor: pointer;
   transition: all ${designSystem.transitions.base};
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  background: ${(props) =>
-    props.isSelected ? designSystem.colors.surface.variant : designSystem.colors.surface.base};
-  border-bottom: 1px solid ${designSystem.colors.gray[100]};
+  border: 1px solid
+    ${(props) =>
+      props.isSelected ? designSystem.colors.brand.primary : designSystem.colors.gray[200]};
 
   &:hover {
     background: ${designSystem.colors.surface.variant};
+    box-shadow: ${designSystem.shadows.sm};
   }
 
   &:active {
@@ -34,57 +37,51 @@ const Card = styled.div<{ isSelected: boolean }>`
   }
 `;
 
-const Thumbnail = styled.img`
-  width: 48px;
-  height: 48px;
-  border-radius: ${designSystem.borderRadius.md};
-  object-fit: cover;
-  flex-shrink: 0;
-  background: ${designSystem.colors.gray[100]};
-`;
-
-const ThumbnailPlaceholder = styled.div`
-  width: 48px;
-  height: 48px;
-  border-radius: ${designSystem.borderRadius.md};
-  background: ${designSystem.colors.gray[100]};
-  flex-shrink: 0;
+const CardHeader = styled.div`
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  color: ${designSystem.colors.text.disabled};
-  font-size: ${designSystem.typography.fontSize.xs};
+  margin-bottom: ${designSystem.spacing.xs};
 `;
 
-const Info = styled.div`
-  flex: 1;
-  min-width: 0;
-`;
-
-const Name = styled.div`
+const ProductName = styled.div`
   font-size: ${designSystem.typography.fontSize.base};
   font-weight: ${designSystem.typography.fontWeight.semibold};
   color: ${designSystem.colors.text.primary};
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
 `;
 
-const Category = styled.div`
-  font-size: ${designSystem.typography.fontSize.sm};
-  color: ${designSystem.colors.brand.primary};
-  margin-top: 2px;
-`;
-
-const PriceContainer = styled.div`
-  text-align: right;
-  flex-shrink: 0;
-`;
-
-const Price = styled.div`
-  font-size: ${designSystem.typography.fontSize.base};
+const ProductPrice = styled.div`
+  font-size: ${designSystem.typography.fontSize.lg};
   font-weight: ${designSystem.typography.fontWeight.semibold};
   color: ${designSystem.colors.brand.primary};
+  flex-shrink: 0;
+  margin-left: ${designSystem.spacing.sm};
+`;
+
+const CardMeta = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${designSystem.spacing.sm};
+  font-size: ${designSystem.typography.fontSize.sm};
+  color: ${designSystem.colors.text.secondary};
+  margin-bottom: ${designSystem.spacing.xs};
+`;
+
+const MetaDivider = styled.span`
+  color: ${designSystem.colors.gray[300]};
+`;
+
+const StatusBadge = styled(IonBadge)<{ isActive: boolean }>`
+  --background: ${(props) =>
+    props.isActive ? designSystem.colors.status.paid : designSystem.colors.gray[400]};
+  --color: white;
+  font-size: ${designSystem.typography.fontSize.xs};
+  font-weight: ${designSystem.typography.fontWeight.medium};
+  padding: 2px 8px;
 `;
 
 const ProductListItem: React.FC<ProductListItemProps> = ({
@@ -95,18 +92,29 @@ const ProductListItem: React.FC<ProductListItemProps> = ({
 }) => {
   return (
     <Card isSelected={isSelected} onClick={onClick} role="button" tabIndex={0}>
-      {product.image_url ? (
-        <Thumbnail src={product.image_url} alt={product.name} />
-      ) : (
-        <ThumbnailPlaceholder>No img</ThumbnailPlaceholder>
-      )}
-      <Info>
-        <Name>{product.name}</Name>
-        {product.category && <Category>{product.category.name}</Category>}
-      </Info>
-      <PriceContainer>
-        <Price>{formatPrice(product.price)}</Price>
-      </PriceContainer>
+      <CardHeader>
+        <ProductName>{product.name}</ProductName>
+        <ProductPrice>{formatPrice(product.price)}</ProductPrice>
+      </CardHeader>
+
+      <CardMeta>
+        {product.category ? (
+          <>
+            <span>{product.category.name}</span>
+            <MetaDivider>·</MetaDivider>
+          </>
+        ) : (
+          <>
+            <span>No category</span>
+            <MetaDivider>·</MetaDivider>
+          </>
+        )}
+        <span>{product.image_url ? 'Has image' : 'No image'}</span>
+      </CardMeta>
+
+      <StatusBadge isActive={product.is_active}>
+        {product.is_active ? 'Active' : 'Inactive'}
+      </StatusBadge>
     </Card>
   );
 };

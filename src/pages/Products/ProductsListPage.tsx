@@ -12,9 +12,9 @@ import { LoadingSpinner } from '@/components/ui';
 import { useIsTabletOrLarger } from '@/hooks/useBreakpoint';
 import { useProductCategories, useProducts } from '@/hooks/useProduct';
 import { useShop } from '@/hooks/useShop';
-import { createCurrencyFormatter } from '@/utils/currency';
 import { designSystem } from '@/theme/designSystem';
 import type { ProductWithCategory } from '@/types';
+import { createCurrencyFormatter } from '@/utils/currency';
 import { ProductDetailPanel, ProductFormModal, ProductListItem } from './components';
 
 // Styled components - following SalesListPage pattern
@@ -56,6 +56,10 @@ const CategoryContainer = styled.div`
 const ListContainer = styled.div`
   flex: 1;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: ${designSystem.spacing.sm};
+  padding: ${designSystem.spacing.sm};
 `;
 
 const EmptyContainer = styled.div`
@@ -116,10 +120,7 @@ const ProductsListPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch data
-  const {
-    data: products,
-    isLoading: productsLoading,
-  } = useProducts({
+  const { data: products, isLoading: productsLoading } = useProducts({
     search: searchText || undefined,
     categoryId: selectedCategory || undefined,
   });
@@ -161,6 +162,7 @@ const ProductsListPage: React.FC = () => {
         onIonInput={(e) => setSearchText(e.detail.value ?? '')}
         placeholder="Search products..."
         debounce={300}
+        className="searchBar"
       />
     </SearchBarContainer>
   );
@@ -235,9 +237,7 @@ const ProductsListPage: React.FC = () => {
               {renderSearchBar()}
               {renderCategoryPills()}
               {renderProductList()}
-              <AddButton onClick={handleAddProduct}>
-                + Add New Product
-              </AddButton>
+              <AddButton onClick={handleAddProduct}>+ Add New Product</AddButton>
             </LeftPanel>
             <RightPanel>
               <ProductDetailPanel
@@ -265,9 +265,7 @@ const ProductsListPage: React.FC = () => {
           {renderSearchBar()}
           {renderCategoryPills()}
           {renderProductList()}
-          <AddButton onClick={handleAddProduct}>
-            + Add New Product
-          </AddButton>
+          <AddButton onClick={handleAddProduct}>+ Add New Product</AddButton>
         </MobileContainer>
       </IonContent>
       <ProductFormModal
