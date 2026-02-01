@@ -1,19 +1,17 @@
 // ProductImageSection - Hero image display with "Update Photo" overlay button
 
-import { IonButton, IonIcon, IonSpinner } from '@ionic/react';
-import { camera } from 'ionicons/icons';
+import { IonIcon, IonSpinner } from '@ionic/react';
+import { cameraOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useRef, useState } from 'react';
 import styled from 'styled-components';
-import { useShop } from '@/hooks/useShop';
-import { useToastNotification } from '@/hooks/useToastNotification';
-import { uploadProductImage } from '@/services/storage';
 import { designSystem } from '@/theme/designSystem';
 
 interface ProductImageSectionProps {
-  imageUrl?: string | null;
-  productId?: string;
-  onImageUploaded: (publicUrl: string) => void;
+  imageUrl: string | null;
+  productId: string;
+  shopId: string;
+  onImageUploaded: (url: string) => void;
   disabled?: boolean;
 }
 
@@ -21,110 +19,94 @@ const Container = styled.div`
   position: relative;
   width: 100%;
   height: 300px;
-  background: ${designSystem.colors.gray[100]};
   border-radius: ${designSystem.borderRadius.lg};
   overflow: hidden;
+  background: ${designSystem.colors.gray[100]};
+  margin-bottom: ${designSystem.spacing.lg};
 `;
 
-const HeroImage = styled.img`
+const Image = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
 `;
 
-const PlaceholderContainer = styled.div`
+const Placeholder = styled.div`
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   color: ${designSystem.colors.text.disabled};
-  gap: ${designSystem.spacing.sm};
+  font-size: ${designSystem.typography.fontSize.lg};
 `;
 
-const PlaceholderIcon = styled(IonIcon)`
-  font-size: 64px;
-`;
-
-const PlaceholderText = styled.div`
-  font-size: ${designSystem.typography.fontSize.sm};
-`;
-
-const UpdateButton = styled(IonButton)`
+const UpdateButton = styled.button`
   position: absolute;
   bottom: ${designSystem.spacing.md};
   right: ${designSystem.spacing.md};
-  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: ${designSystem.spacing.sm};
+  padding: ${designSystem.spacing.sm} ${designSystem.spacing.md};
+  background: ${designSystem.colors.surface.base};
+  border: 1px solid ${designSystem.colors.gray[200]};
+  border-radius: ${designSystem.borderRadius.md};
+  cursor: pointer;
+  font-size: ${designSystem.typography.fontSize.sm};
+  font-weight: ${designSystem.typography.fontWeight.medium};
+  color: ${designSystem.colors.text.primary};
+  transition: all ${designSystem.transitions.base};
+  box-shadow: ${designSystem.shadows.sm};
+
+  &:hover {
+    background: ${designSystem.colors.surface.variant};
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;
 
 const HiddenInput = styled.input`
   display: none;
 `;
 
-const LoadingOverlay = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: ${designSystem.spacing.sm};
-  color: ${designSystem.colors.text.inverse};
-  z-index: 2;
-`;
-
-const LoadingText = styled.div`
-  font-size: ${designSystem.typography.fontSize.base};
-  font-weight: ${designSystem.typography.fontWeight.medium};
-`;
-
 const ProductImageSection: React.FC<ProductImageSectionProps> = ({
   imageUrl,
   productId,
+  shopId,
   onImageUploaded,
   disabled = false,
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { currentShop } = useShop();
-  const { showSuccess, showError } = useToastNotification();
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !currentShop?.id) {
-      if (!currentShop?.id) {
-        showError('No shop selected');
-      }
-      return;
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset the input so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
 
     setIsUploading(true);
-
     try {
-      const publicUrl = await uploadProductImage(file, currentShop.id, productId);
+      const { uploadProductImage } = await import('@/services/storage');
+      const publicUrl = await uploadProductImage(file, shopId, productId);
       onImageUploaded(publicUrl);
-      showSuccess('Image uploaded successfully');
     } catch (error) {
-      console.error('Upload error:', error);
-      showError(error instanceof Error ? error.message : 'Failed to upload image');
+      console.error('Failed to upload image:', error);
+      throw error; // Let parent handle the error
     } finally {
       setIsUploading(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
     }
   };
 
-  const handleButtonClick = () => {
-    if (!disabled && !isUploading) {
-      fileInputRef.current?.click();
-    }
+  const handleClick = () => {
+    fileInputRef.current?.click();
   };
 
   return (
@@ -133,36 +115,24 @@ const ProductImageSection: React.FC<ProductImageSectionProps> = ({
         ref={fileInputRef}
         type="file"
         accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-        onChange={handleFileSelect}
+        onChange={handleFileChange}
         disabled={disabled || isUploading}
       />
 
       {imageUrl ? (
-        <HeroImage src={imageUrl} alt="Product" />
+        <Image src={imageUrl} alt="Product" />
       ) : (
-        <PlaceholderContainer>
-          <PlaceholderIcon icon={camera} />
-          <PlaceholderText>No image</PlaceholderText>
-        </PlaceholderContainer>
+        <Placeholder>No product image</Placeholder>
       )}
 
-      <UpdateButton
-        fill="solid"
-        color="primary"
-        size="small"
-        onClick={handleButtonClick}
-        disabled={disabled || isUploading}
-      >
-        <IonIcon slot="start" icon={camera} />
-        Update Photo
+      <UpdateButton onClick={handleClick} disabled={disabled || isUploading}>
+        {isUploading ? (
+          <IonSpinner name="crescent" style={{ width: '16px', height: '16px' }} />
+        ) : (
+          <IonIcon icon={cameraOutline} />
+        )}
+        {isUploading ? 'Uploading...' : 'Update Photo'}
       </UpdateButton>
-
-      {isUploading && (
-        <LoadingOverlay>
-          <IonSpinner name="crescent" color="light" />
-          <LoadingText>Uploading...</LoadingText>
-        </LoadingOverlay>
-      )}
     </Container>
   );
 };
