@@ -65,6 +65,8 @@ const ScrollContent = styled.div`
   overflow-y: auto;
   padding: ${designSystem.spacing.lg};
   max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
 `;
 
 const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({
