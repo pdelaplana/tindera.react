@@ -13,3 +13,8 @@ export { default as ProductItemsList } from './productItems/ProductItemsList';
 export { default as ProductModifierModal } from './productModifiers/ProductModifierModal';
 export { default as ProductModifierSelectModal } from './productModifiers/ProductModifierSelectModal';
 export { default as ProductModifiersList } from './productModifiers/ProductModifiersList';
+export { default as ProductDetailHeader } from './ProductDetailHeader';
+export { default as ProductDetailPanel } from './ProductDetailPanel';
+export { default as ProductGeneralDetailsCard } from './ProductGeneralDetailsCard';
+export { default as ProductImageSection } from './ProductImageSection';
+export { default as ProductListItem } from './ProductListItem';
