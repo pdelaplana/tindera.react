@@ -175,6 +175,7 @@ export interface Product extends Auditable {
   price: number;
   category_id: string | null;
   image_url: string | null;
+  is_active: boolean;
 }
 
 export interface ProductWithCategory extends Product {
