@@ -1,7 +1,6 @@
 // Products List Page - Responsive master-detail split pane
 
 import { IonContent, IonPage, IonSearchbar } from '@ionic/react';
-import { add } from 'ionicons/icons';
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';

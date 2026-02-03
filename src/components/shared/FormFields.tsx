@@ -423,19 +423,22 @@ export function ToggleField<T extends FieldValues>({
   disabled = false,
 }: ToggleFieldProps<T>) {
   return (
-    <div style={{ marginBottom: 'var(--space-md)' }}>
+    <div className="ion-padding-vertical">
       <Controller
         name={name}
         control={control}
         render={({ field: { onChange, value } }) => (
-          <IonItem>
-            <IonLabel>{label}</IonLabel>
+          <>
             <IonToggle
               checked={!!value}
               onIonChange={(e) => onChange(e.detail.checked)}
               disabled={disabled}
-            />
-          </IonItem>
+              justify="start"
+              labelPlacement="end"
+            >
+              {label}
+            </IonToggle>
+          </>
         )}
       />
       <FieldErrorDisplay error={error} />

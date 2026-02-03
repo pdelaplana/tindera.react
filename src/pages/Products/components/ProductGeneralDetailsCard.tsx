@@ -1,121 +1,37 @@
 // ProductGeneralDetailsCard - Auto-saving product details form
 
-import { IonToggle } from '@ionic/react';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import styled from 'styled-components';
 import { CardContainer } from '@/components/shared';
-import { designSystem } from '@/theme/designSystem';
+import { PriceField, SelectField, TextField, ToggleField } from '@/components/shared/FormFields';
 import { useProductCategories, useUpdateProduct } from '@/hooks/useProduct';
 import { useToastNotification } from '@/hooks/useToastNotification';
 import { logger } from '@/services/sentry';
-import type { ProductCategory, ProductWithDetails } from '@/types';
+import { designSystem } from '@/theme/designSystem';
+import type { ProductWithDetails } from '@/types';
 
 interface ProductGeneralDetailsCardProps {
   product: ProductWithDetails;
   disabled?: boolean;
 }
 
-const FieldLabel = styled.label`
-  display: block;
-  font-size: ${designSystem.typography.fontSize.xs};
-  font-weight: ${designSystem.typography.fontWeight.semibold};
-  color: ${designSystem.colors.text.secondary};
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: ${designSystem.spacing.xs};
-`;
-
-const TextInput = styled.input`
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid ${designSystem.colors.gray[200]};
-  border-radius: ${designSystem.borderRadius.md};
-  font-size: ${designSystem.typography.fontSize.base};
-  font-family: ${designSystem.typography.fontFamily.base};
-  color: ${designSystem.colors.text.primary};
-  background: ${designSystem.colors.surface.base};
-  outline: none;
-  transition: border-color ${designSystem.transitions.base};
-
-  &:focus {
-    border-color: ${designSystem.colors.brand.primary};
-  }
-
-  &:disabled {
-    background: ${designSystem.colors.surface.variant};
-    color: ${designSystem.colors.text.disabled};
-    cursor: not-allowed;
-  }
-`;
-
-const SelectInput = styled.select`
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid ${designSystem.colors.gray[200]};
-  border-radius: ${designSystem.borderRadius.md};
-  font-size: ${designSystem.typography.fontSize.base};
-  font-family: ${designSystem.typography.fontFamily.base};
-  color: ${designSystem.colors.text.primary};
-  background: ${designSystem.colors.surface.base};
-  outline: none;
-  cursor: pointer;
-  appearance: auto;
-  transition: border-color ${designSystem.transitions.base};
-
-  &:focus {
-    border-color: ${designSystem.colors.brand.primary};
-  }
-
-  &:disabled {
-    background: ${designSystem.colors.surface.variant};
-    color: ${designSystem.colors.text.disabled};
-    cursor: not-allowed;
-  }
-`;
+interface ProductFormData {
+  name: string;
+  price: number;
+  category_id: string;
+  is_active: boolean;
+}
 
 const FormContent = styled.div`
-  padding: ${designSystem.spacing.lg};
-`;
-
-const FieldGroup = styled.div`
-  margin-bottom: ${designSystem.spacing.md};
+  padding: ${designSystem.spacing.xs};
 `;
 
 const FieldRow = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: ${designSystem.spacing.md};
-
-  & > * {
-    flex: 1;
-  }
-`;
-
-const ToggleRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: ${designSystem.colors.surface.variant};
-  border-radius: ${designSystem.borderRadius.md};
-  margin-top: ${designSystem.spacing.md};
-`;
-
-const ToggleLabel = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${designSystem.spacing.sm};
-  font-size: ${designSystem.typography.fontSize.base};
-  font-weight: ${designSystem.typography.fontWeight.medium};
-  color: ${designSystem.colors.text.primary};
-`;
-
-const ToggleIcon = styled.div<{ isActive: boolean }>`
-  width: 8px;
-  height: 8px;
-  border-radius: ${designSystem.borderRadius.full};
-  background: ${(props) =>
-    props.isActive ? designSystem.colors.success : designSystem.colors.gray[300]};
 `;
 
 const ProductGeneralDetailsCard: React.FC<ProductGeneralDetailsCardProps> = ({
@@ -126,119 +42,111 @@ const ProductGeneralDetailsCard: React.FC<ProductGeneralDetailsCardProps> = ({
   const { data: categories } = useProductCategories();
   const { showError } = useToastNotification();
 
-  // Local state for form fields (allows editing before auto-save)
-  const [name, setName] = useState(product.name);
-  const [price, setPrice] = useState(String(product.price));
-  const [categoryId, setCategoryId] = useState(product.category_id || '');
-  const [isActive, setIsActive] = useState(product.is_active);
+  const { control, watch, reset } = useForm<ProductFormData>({
+    defaultValues: {
+      name: product.name,
+      price: product.price,
+      category_id: product.category_id || '',
+      is_active: product.is_active,
+    },
+  });
 
-  // Sync local state when product changes (e.g., switching products)
+  // Reset form when product changes (e.g., switching products)
   useEffect(() => {
-    setName(product.name);
-    setPrice(String(product.price));
-    setCategoryId(product.category_id || '');
-    setIsActive(product.is_active);
-  }, [product.id, product.name, product.price, product.category_id, product.is_active]);
+    reset({
+      name: product.name,
+      price: product.price,
+      category_id: product.category_id || '',
+      is_active: product.is_active,
+    });
+  }, [product.id, product.name, product.price, product.category_id, product.is_active, reset]);
 
-  const saveField = useCallback(
-    async (data: Record<string, unknown>) => {
+  // Auto-save on field changes
+  useEffect(() => {
+    const subscription = watch(async (formData, { name: fieldName }) => {
+      if (!fieldName) return;
+
+      const value = formData[fieldName];
+      const currentValue = product[fieldName as keyof ProductWithDetails];
+
+      // Skip if value hasn't changed
+      if (value === currentValue) return;
+
+      // Validate and save
       try {
-        await updateProduct.mutateAsync({ productId: product.id, data });
+        if (fieldName === 'name' && (!value || String(value).trim() === '')) {
+          return; // Don't save empty name
+        }
+        if (
+          fieldName === 'price' &&
+          (value === null || value === undefined || (typeof value === 'number' && value < 0))
+        ) {
+          return; // Don't save invalid price
+        }
+
+        await updateProduct.mutateAsync({
+          productId: product.id,
+          data: { [fieldName]: fieldName === 'category_id' && value === '' ? null : value },
+        });
       } catch (error) {
         logger.error(error instanceof Error ? error : new Error(String(error)));
         showError('Failed to save changes');
-        // Revert local state
-        setName(product.name);
-        setPrice(String(product.price));
-        setCategoryId(product.category_id || '');
-        setIsActive(product.is_active);
+        // Revert to original value
+        reset({
+          name: product.name,
+          price: product.price,
+          category_id: product.category_id || '',
+          is_active: product.is_active,
+        });
       }
-    },
-    [product, updateProduct, showError]
-  );
+    });
 
-  const handleNameBlur = () => {
-    const trimmed = name.trim();
-    if (trimmed && trimmed !== product.name) {
-      saveField({ name: trimmed });
-    } else {
-      setName(product.name);
-    }
-  };
+    return () => subscription.unsubscribe();
+  }, [watch, product, updateProduct, showError, reset]);
 
-  const handlePriceBlur = () => {
-    const parsed = Number.parseFloat(price);
-    if (!Number.isNaN(parsed) && parsed >= 0 && parsed !== product.price) {
-      saveField({ price: parsed });
-    } else {
-      setPrice(String(product.price));
-    }
-  };
-
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setCategoryId(value);
-    saveField({ category_id: value || null });
-  };
-
-  const handleToggleChange = (checked: boolean) => {
-    setIsActive(checked);
-    saveField({ is_active: checked });
-  };
+  const categoryOptions = [
+    { value: '', label: 'No category' },
+    ...(categories?.map((cat) => ({ value: cat.id, label: cat.name })) || []),
+  ];
 
   return (
     <CardContainer title="General Details">
       <FormContent>
-        <FieldGroup>
-          <FieldLabel>Product Name</FieldLabel>
-          <TextInput
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onBlur={handleNameBlur}
-            disabled={disabled}
-            placeholder="Product name"
-          />
-        </FieldGroup>
+        <TextField
+          name="name"
+          control={control}
+          label="Product Name"
+          placeholder="Product name"
+          required
+          disabled={disabled}
+        />
 
         <FieldRow>
-          <FieldGroup>
-            <FieldLabel>Category</FieldLabel>
-            <SelectInput value={categoryId} onChange={handleCategoryChange} disabled={disabled}>
-              <option value="">No category</option>
-              {categories?.map((cat: ProductCategory) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </SelectInput>
-          </FieldGroup>
-
-          <FieldGroup>
-            <FieldLabel>Base Price</FieldLabel>
-            <TextInput
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              onBlur={handlePriceBlur}
-              disabled={disabled}
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-            />
-          </FieldGroup>
-        </FieldRow>
-
-        <ToggleRow>
-          <ToggleLabel>
-            <ToggleIcon isActive={isActive} />
-            Active on Menu
-          </ToggleLabel>
-          <IonToggle
-            checked={isActive}
-            onIonChange={(e) => handleToggleChange(e.detail.checked)}
+          <SelectField
+            name="category_id"
+            control={control}
+            label="Category"
+            placeholder="Select category"
+            options={categoryOptions}
             disabled={disabled}
           />
-        </ToggleRow>
+
+          <PriceField
+            name="price"
+            control={control}
+            label="Base Price"
+            placeholder="0.00"
+            required
+            disabled={disabled}
+          />
+        </FieldRow>
+
+        <ToggleField
+          name="is_active"
+          control={control}
+          label="Active on Menu"
+          disabled={disabled}
+        />
       </FormContent>
     </CardContainer>
   );

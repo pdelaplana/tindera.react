@@ -1,12 +1,14 @@
 // ProductDetailPanel - Right panel container for product details
 
+import type { ItemReorderEventDetail } from '@ionic/react';
+import { useIonLoading } from '@ionic/react';
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import styled from 'styled-components';
-import { useIonLoading } from '@ionic/react';
-import { designSystem } from '@/theme/designSystem';
+import { CenteredLayout } from '@/components/layouts';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import { LoadingSpinner } from '@/components/ui';
+import { useUnlinkModifierGroup, useUpdateLinkSequence } from '@/hooks';
 import {
   useDeleteProduct,
   useProduct,
@@ -14,24 +16,18 @@ import {
   useRemoveProductItem,
   useUpdateProduct,
 } from '@/hooks/useProduct';
-import { useUnlinkModifierGroup, useUpdateLinkSequence } from '@/hooks';
 import { useShop } from '@/hooks/useShop';
 import { useToastNotification } from '@/hooks/useToastNotification';
 import { logger } from '@/services/sentry';
-import { createCurrencyFormatter } from '@/utils/currency';
+import { designSystem } from '@/theme/designSystem';
 import type { ModifierGroupWithModifiers, ProductAddon, ProductItem } from '@/types';
-import type { ItemReorderEventDetail } from '@ionic/react';
-import ProductDetailHeader from './ProductDetailHeader';
-import ProductImageSection from './ProductImageSection';
-import ProductGeneralDetailsCard from './ProductGeneralDetailsCard';
+import { createCurrencyFormatter } from '@/utils/currency';
 import {
-  ProductModifiersList,
-  ProductAddonsList,
-  ProductItemsList,
+  ProductAddonModal,
+  ProductDetailContent,
+  ProductItemModal,
   ProductModifierModal,
   ProductModifierSelectModal,
-  ProductAddonModal,
-  ProductItemModal,
 } from './';
 
 interface ProductDetailPanelProps {
@@ -63,16 +59,10 @@ const EmptyText = styled.div`
 const ScrollContent = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: ${designSystem.spacing.lg};
-  max-width: 800px;
-  margin: 0 auto;
   width: 100%;
 `;
 
-const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({
-  productId,
-  onProductDeleted,
-}) => {
+const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({ productId, onProductDeleted }) => {
   const { currentShop, hasPermission } = useShop();
   const { data: product, isLoading, refetch: refetchProduct } = useProduct(productId ?? undefined);
   const deleteProduct = useDeleteProduct();
@@ -264,56 +254,33 @@ const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({
   return (
     <Container>
       <ScrollContent>
-        <ProductDetailHeader
-          productName={product.name}
-          onDelete={() => setShowDeleteAlert(true)}
-          canDelete={canDelete}
-        />
-
-        <ProductImageSection
-          imageUrl={product.image_url}
-          productId={product.id}
-          shopId={currentShop?.id || ''}
-          onImageUploaded={handleImageUploaded}
-          disabled={!canEdit}
-        />
-
-        <ProductGeneralDetailsCard
-          product={product}
-          disabled={!canEdit}
-        />
-
-        <ProductModifiersList
-          linkedGroups={product.linkedModifierGroups || []}
-          priceOverrides={product.priceOverrides || {}}
-          formatCurrency={formatCurrency}
-          onAdd={handleAddModifierGroup}
-          onEdit={handleEditModifierGroup}
-          onReorder={handleReorderModifierGroup}
-          canEdit={canEdit}
-        />
-
-        <ProductAddonsList
-          addons={product.addons || []}
-          formatCurrency={formatCurrency}
-          onAdd={() => setShowAddonModal(true)}
-          onEdit={handleEditAddon}
-          canEdit={canEdit}
-        />
-
-        <ProductItemsList
-          items={product.items || []}
-          formatCurrency={formatCurrency}
-          onAdd={() => setShowItemModal(true)}
-          onEdit={handleEditItem}
-          canEdit={canEdit}
-        />
+        <CenteredLayout>
+          <ProductDetailContent
+            product={product}
+            shopId={currentShop?.id || ''}
+            formatCurrency={formatCurrency}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            onImageUploaded={handleImageUploaded}
+            onAddModifierGroup={handleAddModifierGroup}
+            onEditModifierGroup={handleEditModifierGroup}
+            onReorderModifierGroup={handleReorderModifierGroup}
+            onAddAddon={() => setShowAddonModal(true)}
+            onEditAddon={handleEditAddon}
+            onAddItem={() => setShowItemModal(true)}
+            onEditItem={handleEditItem}
+            onDeleteProduct={() => setShowDeleteAlert(true)}
+          />
+        </CenteredLayout>
       </ScrollContent>
 
       {/* Modals */}
       <ProductAddonModal
         isOpen={showAddonModal}
-        onClose={() => { setShowAddonModal(false); setSelectedAddon(null); }}
+        onClose={() => {
+          setShowAddonModal(false);
+          setSelectedAddon(null);
+        }}
         addon={selectedAddon}
         productId={product.id}
         onDelete={handleDeleteAddon}
@@ -321,7 +288,10 @@ const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({
 
       <ProductItemModal
         isOpen={showItemModal}
-        onClose={() => { setShowItemModal(false); setSelectedItem(null); }}
+        onClose={() => {
+          setShowItemModal(false);
+          setSelectedItem(null);
+        }}
         item={selectedItem}
         productId={product.id}
         onDelete={handleDeleteItem}
@@ -337,7 +307,10 @@ const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({
 
       <ProductModifierSelectModal
         isOpen={showModifierSelectModal}
-        onClose={() => { setShowModifierSelectModal(false); refetchProduct(); }}
+        onClose={() => {
+          setShowModifierSelectModal(false);
+          refetchProduct();
+        }}
         productId={product.id}
         linkedGroupIds={(product.linkedModifierGroups || []).map((g) => g.id)}
       />

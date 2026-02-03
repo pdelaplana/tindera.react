@@ -18,7 +18,6 @@ import type React from 'react';
 import { useMemo, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { designSystem } from '@/theme/designSystem';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import PageLoadingState from '@/components/shared/PageLoadingState';
 import PageNotFoundState from '@/components/shared/PageNotFoundState';
@@ -37,15 +36,10 @@ import type { ModifierGroupWithModifiers, ProductAddon, ProductItem } from '@/ty
 import { createCurrencyFormatter } from '@/utils/currency';
 import {
   ProductAddonModal,
-  ProductAddonsList,
-  ProductDetailHeader,
-  ProductGeneralDetailsCard,
-  ProductImageSection,
+  ProductDetailContent,
   ProductItemModal,
-  ProductItemsList,
   ProductModifierModal,
   ProductModifierSelectModal,
-  ProductModifiersList,
 } from './components';
 
 interface RouteParams {
@@ -56,7 +50,6 @@ const ContentContainer = styled.div`
   max-width: 800px;
   width: 100%;
   margin: 0 auto;
-  padding: ${designSystem.spacing.lg};
 `;
 
 const ProductManagePage: React.FC = () => {
@@ -266,50 +259,21 @@ const ProductManagePage: React.FC = () => {
         </IonRefresher>
 
         <ContentContainer>
-          <ProductDetailHeader
-            productName={product.name}
-            onDelete={() => setShowDeleteAlert(true)}
-            canDelete={canDelete}
-          />
-
-          <ProductImageSection
-            imageUrl={product.image_url}
-            productId={product.id}
-            shopId={currentShop?.id || ''}
-            onImageUploaded={handleImageUploaded}
-            disabled={!canEdit}
-          />
-
-          <ProductGeneralDetailsCard
+          <ProductDetailContent
             product={product}
-            disabled={!canEdit}
-          />
-
-          {/* Global Modifiers */}
-          <ProductModifiersList
-            linkedGroups={product.linkedModifierGroups || []}
-            priceOverrides={product.priceOverrides || {}}
+            shopId={currentShop?.id || ''}
             formatCurrency={formatCurrency}
-            onAdd={handleAddModifierGroup}
-            onEdit={handleEditModifierGroup}
-            onReorder={handleReorderModifierGroup}
             canEdit={canEdit}
-          />
-
-          <ProductAddonsList
-            addons={product.addons || []}
-            formatCurrency={formatCurrency}
-            onAdd={() => setShowAddonModal(true)}
-            onEdit={handleEditAddon}
-            canEdit={canEdit}
-          />
-
-          <ProductItemsList
-            items={product.items || []}
-            formatCurrency={formatCurrency}
-            onAdd={() => setShowItemModal(true)}
-            onEdit={handleEditItem}
-            canEdit={canEdit}
+            canDelete={canDelete}
+            onImageUploaded={handleImageUploaded}
+            onAddModifierGroup={handleAddModifierGroup}
+            onEditModifierGroup={handleEditModifierGroup}
+            onReorderModifierGroup={handleReorderModifierGroup}
+            onAddAddon={() => setShowAddonModal(true)}
+            onEditAddon={handleEditAddon}
+            onAddItem={() => setShowItemModal(true)}
+            onEditItem={handleEditItem}
+            onDeleteProduct={() => setShowDeleteAlert(true)}
           />
         </ContentContainer>
 

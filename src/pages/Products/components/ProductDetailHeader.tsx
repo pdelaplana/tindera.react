@@ -1,25 +1,17 @@
-// ProductDetailHeader - Breadcrumb navigation and delete button
+// ProductDetailHeader - Breadcrumb navigation
 
-import { IonIcon } from '@ionic/react';
-import { trashOutline } from 'ionicons/icons';
 import type React from 'react';
 import styled from 'styled-components';
 import { designSystem } from '@/theme/designSystem';
 
 interface ProductDetailHeaderProps {
   productName: string;
-  onDelete: () => void;
-  canDelete: boolean;
 }
 
 const Container = styled.div`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
   margin-bottom: ${designSystem.spacing.lg};
+  padding: ${designSystem.spacing.lg};
 `;
-
-const Left = styled.div``;
 
 const Breadcrumb = styled.div`
   font-size: ${designSystem.typography.fontSize.sm};
@@ -38,44 +30,13 @@ const Title = styled.h2`
   color: ${designSystem.colors.text.primary};
 `;
 
-const DeleteButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: ${designSystem.spacing.xs};
-  padding: ${designSystem.spacing.sm} ${designSystem.spacing.md};
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: ${designSystem.colors.danger};
-  font-size: ${designSystem.typography.fontSize.sm};
-  font-weight: ${designSystem.typography.fontWeight.medium};
-  font-family: ${designSystem.typography.fontFamily.base};
-  transition: opacity ${designSystem.transitions.base};
-
-  &:hover {
-    opacity: 0.7;
-  }
-`;
-
-const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
-  productName,
-  onDelete,
-  canDelete,
-}) => {
+const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({ productName }) => {
   return (
     <Container>
-      <Left>
-        <Breadcrumb>
-          <span>Products</span> &gt; {productName}
-        </Breadcrumb>
-        <Title>Product Details</Title>
-      </Left>
-      {canDelete && (
-        <DeleteButton onClick={onDelete}>
-          <IonIcon icon={trashOutline} />
-          Delete
-        </DeleteButton>
-      )}
+      <Breadcrumb>
+        <span>Products</span> &gt; {productName}
+      </Breadcrumb>
+      <Title>Product Details</Title>
     </Container>
   );
 };
