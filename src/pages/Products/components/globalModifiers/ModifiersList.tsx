@@ -1,24 +1,17 @@
 // Modifiers List Component - Display and manage modifiers in a group
 
 import type { ItemReorderEventDetail } from '@ionic/react';
-import {
-  IonButton,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonReorder,
-  IonReorderGroup,
-  IonText,
-  IonToggle,
-} from '@ionic/react';
-import { add, reorderTwoOutline } from 'ionicons/icons';
+import { IonButton, IonIcon, IonReorderGroup, IonToggle } from '@ionic/react';
+import { add } from 'ionicons/icons';
 import type React from 'react';
 import { useState } from 'react';
+import styled from 'styled-components';
 import { CardContainer } from '@/components/shared';
 import { Div } from '@/components/shared/base/Div';
 import { useUpdateGlobalModifier } from '@/hooks';
+import { designSystem } from '@/theme/designSystem';
 import type { Modifier } from '@/types';
+import ModifierListItem from './ModifierListItem';
 
 interface ModifiersListProps {
   /** Array of modifiers */
@@ -32,6 +25,30 @@ interface ModifiersListProps {
   /** Whether user can edit modifiers */
   canEdit: boolean;
 }
+
+// Styled components - matching ProductsListPage pattern
+const EmptyContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: ${designSystem.spacing['2xl']};
+  text-align: center;
+  color: ${designSystem.colors.text.secondary};
+  gap: ${designSystem.spacing.sm};
+
+  h3 {
+    font-size: ${designSystem.typography.fontSize.lg};
+    font-weight: ${designSystem.typography.fontWeight.semibold};
+    color: ${designSystem.colors.text.primary};
+    margin: 0;
+  }
+
+  p {
+    font-size: ${designSystem.typography.fontSize.sm};
+    margin: 0;
+  }
+`;
 
 const ModifiersList: React.FC<ModifiersListProps> = ({
   modifiers,
@@ -82,62 +99,56 @@ const ModifiersList: React.FC<ModifiersListProps> = ({
         </IonButton>
       }
     >
-      <IonList lines="full" style={{ marginTop: '16px' }}>
-        {modifiers.length === 0 ? (
-          <IonItem>
-            <IonLabel color="medium" className="ion-text-center" style={{ padding: '24px 0' }}>
-              <p>No modifiers added yet</p>
-              <IonText color="medium" style={{ fontSize: '0.875rem' }}>
-                <p>Click the + button to add modifiers to this group</p>
-              </IonText>
-            </IonLabel>
-          </IonItem>
-        ) : (
-          <IonReorderGroup disabled={!canEdit || !reorderEnabled} onIonReorderEnd={handleReorder}>
+      {modifiers.length === 0 ? (
+        <EmptyContainer>
+          <h3>No Modifiers Yet</h3>
+          <p>Click the + button to add modifiers to this group</p>
+        </EmptyContainer>
+      ) : (
+        <>
+          <IonReorderGroup
+            disabled={!canEdit || !reorderEnabled}
+            onIonItemReorder={handleReorder}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: designSystem.spacing.sm,
+              padding: designSystem.spacing.md,
+            }}
+          >
             {modifiers.map((modifier) => (
-              <IonItem
+              <ModifierListItem
                 key={modifier.id}
-                button={canEdit}
-                detail={false}
-                onClick={() => canEdit && onEdit(modifier)}
-              >
-                <IonLabel>
-                  <h3>{modifier.name}</h3>
-                  <p>
-                    {formatCurrency(modifier.default_price_adjustment)}
-                    {modifier.is_default && ' • Default'}
-                  </p>
-                </IonLabel>
-                {canEdit && reorderEnabled && (
-                  <IonReorder slot="end" className="ion-margin-top">
-                    <IonIcon icon={reorderTwoOutline} size="small" />
-                  </IonReorder>
-                )}
-              </IonItem>
+                modifier={modifier}
+                onClick={() => onEdit(modifier)}
+                formatCurrency={formatCurrency}
+                canEdit={canEdit}
+                showReorderHandle={canEdit && reorderEnabled}
+              />
             ))}
           </IonReorderGroup>
-        )}
-      </IonList>
 
-      {/* Reorder Toggle - Only show if there are items and user can edit */}
-      {modifiers.length > 0 && canEdit && (
-        <Div
-          style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            padding: '12px 16px',
-            gap: '8px',
-          }}
-        >
-          <IonToggle
-            checked={reorderEnabled}
-            onIonChange={(e) => setReorderEnabled(e.detail.checked)}
-            labelPlacement="start"
-          >
-            Reorder
-          </IonToggle>
-        </Div>
+          {/* Reorder Toggle - Only show if there are items and user can edit */}
+          {canEdit && (
+            <Div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+                padding: '12px 16px',
+                gap: '8px',
+              }}
+            >
+              <IonToggle
+                checked={reorderEnabled}
+                onIonChange={(e) => setReorderEnabled(e.detail.checked)}
+                labelPlacement="start"
+              >
+                Reorder
+              </IonToggle>
+            </Div>
+          )}
+        </>
       )}
     </CardContainer>
   );

@@ -1,12 +1,12 @@
 // Product Modifier Modal - Manage product-specific price overrides for modifiers
 
-import { IonButton, IonItem, IonLabel, IonList, IonText } from '@ionic/react';
+import { IonButton, IonIcon, IonInput, IonItem, IonLabel, IonList, IonText } from '@ionic/react';
+import { trashOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm, type Control } from 'react-hook-form';
 import BaseModal from '@/components/shared/BaseModal';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
-import { PriceField } from '@/components/shared/FormFields';
 import { SaveButton } from '@/components/shared/SaveButton';
 import { IonText2 } from '@/components/ui';
 import { useRemoveModifierPriceOverride, useSetModifierPriceOverride } from '@/hooks';
@@ -35,6 +35,99 @@ interface ProductModifierModalProps {
 // Dynamic form type - one optional number field per modifier
 type PriceOverrideFormData = Record<string, number | null>;
 
+// Modifier Price Input Component
+interface ModifierPriceInputProps {
+  modifier: Modifier;
+  control: Control<PriceOverrideFormData>;
+  formatCurrency: (amount: number) => string;
+  formatCurrencyValue: (value: number | null | undefined) => string;
+  parseValue: (inputValue: string) => number | null;
+  onClearOverride: (modifierId: string) => void;
+  hasOverride: boolean;
+}
+
+const ModifierPriceInput: React.FC<ModifierPriceInputProps> = ({
+  modifier,
+  control,
+  formatCurrency,
+  formatCurrencyValue,
+  parseValue,
+  onClearOverride,
+  hasOverride,
+}) => {
+  const [isFocused, setIsFocused] = useState(false);
+  const [displayValue, setDisplayValue] = useState('');
+
+  return (
+    <IonItem key={modifier.id}>
+      <IonLabel slot="start">
+        <h3>{modifier.name}</h3>
+        <IonText2 color="medium" fontSize="0.85em">
+          Default: {formatCurrency(modifier.default_price_adjustment)}
+        </IonText2>
+      </IonLabel>
+      <div
+        slot="end"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}
+      >
+        <Controller
+          name={modifier.id}
+          control={control}
+          render={({ field: { onChange, onBlur, value, name } }) => {
+            // Update display value when not focused
+            const currentDisplayValue = isFocused
+              ? displayValue
+              : formatCurrencyValue(value);
+
+            return (
+              <IonInput
+                fill="outline"
+                type="text"
+                inputMode="decimal"
+                value={currentDisplayValue}
+                onIonInput={(e) => {
+                  const inputValue = e.detail.value || '';
+                  setDisplayValue(inputValue);
+                  const parsed = parseValue(inputValue);
+                  onChange(parsed);
+                  console.log('Input changed:', { inputValue, parsed, modifierId: modifier.id });
+                }}
+                onIonFocus={() => {
+                  setIsFocused(true);
+                  // Set display value to raw number when focusing
+                  setDisplayValue(value === null || value === undefined ? '' : String(value));
+                }}
+                onIonBlur={() => {
+                  setIsFocused(false);
+                  setDisplayValue('');
+                  onBlur();
+                }}
+                placeholder="0.00"
+                style={{ minWidth: '120px', maxWidth: '150px' }}
+                data-testid={`price-input-${name}`}
+              />
+            );
+          }}
+        />
+        <IonButton
+          size="small"
+          fill="clear"
+          color="danger"
+          onClick={() => onClearOverride(modifier.id)}
+          disabled={!hasOverride}
+          aria-label="Clear override"
+        >
+          <IonIcon slot="icon-only" icon={trashOutline} />
+        </IonButton>
+      </div>
+    </IonItem>
+  );
+};
+
 const ProductModifierModal: React.FC<ProductModifierModalProps> = ({
   isOpen,
   onClose,
@@ -47,7 +140,6 @@ const ProductModifierModal: React.FC<ProductModifierModalProps> = ({
   const { showSuccess, showError } = useToastNotification();
   const { currentShop } = useShop();
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
-  const [modifiedFields, setModifiedFields] = useState<Set<string>>(new Set());
 
   // Mutations
   const setOverrideMutation = useSetModifierPriceOverride();
@@ -69,10 +161,13 @@ const ProductModifierModal: React.FC<ProductModifierModalProps> = ({
     reset,
     setValue,
     watch,
-    formState: { isDirty, dirtyFields },
+    formState,
   } = useForm<PriceOverrideFormData>({
     defaultValues: getDefaultValues(),
   });
+
+  // Access formState properties to ensure subscription
+  const { isDirty, dirtyFields } = formState;
 
   // Watch all form values to track changes
   const formValues = watch();
@@ -80,26 +175,17 @@ const ProductModifierModal: React.FC<ProductModifierModalProps> = ({
   // Reset form when modal opens or group changes
   useEffect(() => {
     if (isOpen && group) {
-      reset(getDefaultValues());
-      setModifiedFields(new Set());
+      const values: PriceOverrideFormData = {};
+      group.modifiers.forEach((modifier) => {
+        values[modifier.id] = priceOverrides[modifier.id] ?? null;
+      });
+      reset(values);
     }
-  }, [isOpen, group, getDefaultValues, reset]);
-
-  // Track which fields have been modified based on dirtyFields
-  useEffect(() => {
-    const modified = new Set<string>();
-    Object.keys(dirtyFields).forEach((fieldName) => {
-      if (dirtyFields[fieldName]) {
-        modified.add(fieldName);
-      }
-    });
-    setModifiedFields(modified);
-  }, [dirtyFields]);
+  }, [isOpen, group, priceOverrides, reset]);
 
   // Clear override for a modifier
   const handleClearOverride = (modifierId: string) => {
     setValue(modifierId, null, { shouldDirty: true });
-    setModifiedFields((prev) => new Set(prev).add(modifierId));
   };
 
   // Save all changes
@@ -109,8 +195,10 @@ const ProductModifierModal: React.FC<ProductModifierModalProps> = ({
     try {
       const promises: Promise<unknown>[] = [];
 
-      // Process only modified modifiers
-      for (const modifierId of modifiedFields) {
+      // Process only modified modifiers (using dirtyFields)
+      const modifiedModifierIds = Object.keys(dirtyFields);
+
+      for (const modifierId of modifiedModifierIds) {
         const overrideValue = data[modifierId];
         const existingOverride = priceOverrides[modifierId];
 
@@ -145,8 +233,32 @@ const ProductModifierModal: React.FC<ProductModifierModalProps> = ({
 
   const handleClose = () => {
     reset();
-    setModifiedFields(new Set());
     onClose();
+  };
+
+  // Format currency for display
+  const formatCurrencyValue = (value: number | null | undefined) => {
+    if (value === null || value === undefined || Number.isNaN(value)) return '';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currentShop?.currency_code || 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
+  const parseValue = (inputValue: string): number | null => {
+    // Return null for empty input
+    if (!inputValue || inputValue.trim() === '') {
+      return null;
+    }
+    // Remove non-numeric characters except decimal point and minus sign
+    const cleaned = inputValue.replace(/[^0-9.-]/g, '');
+    // Ensure only one decimal point
+    const parts = cleaned.split('.');
+    const formatted = parts.length > 2 ? `${parts[0]}.${parts.slice(1).join('')}` : cleaned;
+    const parsed = parseFloat(formatted);
+    return Number.isNaN(parsed) ? null : parsed;
   };
 
   // Render modifier item
@@ -155,42 +267,31 @@ const ProductModifierModal: React.FC<ProductModifierModalProps> = ({
     const hasOverride = currentValue !== null && currentValue !== undefined;
 
     return (
-      <IonItem key={modifier.id}>
-        <IonLabel slot="start" className="ion-margin-top">
-          <h3>{modifier.name}</h3>
-          <IonText2 color="medium" fontSize="0.85em">
-            Default: {formatCurrency(modifier.default_price_adjustment)}
-          </IonText2>
-        </IonLabel>
-        <div
-          slot="end"
-          className="ion-align-items-baseline  ion-flex-row ion-display-flex ion-margin-top"
-        >
-          <PriceField
-            name={modifier.id}
-            control={control}
-            label="Price"
-            placeholder="0.00"
-            currency={currentShop?.currency_code || 'USD'}
-          />
-          <IonButton
-            size="small"
-            fill="clear"
-            color="danger"
-            onClick={() => handleClearOverride(modifier.id)}
-            disabled={!hasOverride}
-          >
-            Clear
-          </IonButton>
-        </div>
-      </IonItem>
+      <ModifierPriceInput
+        key={modifier.id}
+        modifier={modifier}
+        control={control}
+        formatCurrency={formatCurrency}
+        formatCurrencyValue={formatCurrencyValue}
+        parseValue={parseValue}
+        onClearOverride={handleClearOverride}
+        hasOverride={hasOverride}
+      />
     );
   };
 
   if (!group) return null;
 
-  const hasChanges = isDirty && modifiedFields.size > 0;
+  const hasChanges = isDirty;
   const isLoading = setOverrideMutation.isPending || removeOverrideMutation.isPending;
+
+  console.log('Form state:', {
+    isDirty,
+    hasChanges,
+    dirtyFields,
+    dirtyFieldsKeys: Object.keys(dirtyFields),
+    formValues,
+  });
 
   return (
     <BaseModal

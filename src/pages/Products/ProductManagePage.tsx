@@ -227,6 +227,7 @@ const ProductManagePage: React.FC = () => {
     }
   };
 
+
   // Loading state
   if (productLoading) {
     return <PageLoadingState backHref={`/shops/${currentShop?.id}/products`} />;

@@ -218,6 +218,7 @@ const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({ productId, onPr
     }
   };
 
+
   // Empty state
   if (!productId) {
     return (
