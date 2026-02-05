@@ -24,7 +24,7 @@ const SplitPaneContainer = styled.div`
 `;
 
 const LeftPanel = styled.div`
-  flex: 0 0 380px;
+  flex: 0 0 400px;
   border-right: 1px solid var(--ion-color-light-shade);
   overflow-y: auto;
   display: flex;
