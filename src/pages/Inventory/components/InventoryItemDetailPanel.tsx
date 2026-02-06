@@ -1,20 +1,14 @@
-// Inventory Item Manage Page - View item details, transactions, and perform inventory operations
+// Inventory Item Detail Panel - Right panel content for master-detail layout
 
-import {
-  IonActionSheet,
-  IonRefresher,
-  IonRefresherContent,
-  type RefresherEventDetail,
-  useIonLoading,
-} from '@ionic/react';
+import { IonActionSheet, useIonLoading } from '@ionic/react';
 import { close, cubeOutline, list, trashOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useMemo, useState } from 'react';
-import { useHistory, useParams } from 'react-router-dom';
-import { CenteredLayout, PageWithCollapsibleHeader } from '@/components/layouts';
+import { useHistory } from 'react-router-dom';
+import styled from 'styled-components';
+import { CenteredLayout } from '@/components/layouts';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
-import PageLoadingState from '@/components/shared/PageLoadingState';
-import PageNotFoundState from '@/components/shared/PageNotFoundState';
+import { LoadingSpinner } from '@/components/ui';
 import {
   useDeleteInventoryItem,
   useDeletePackageSize,
@@ -26,33 +20,61 @@ import {
 import { useShop } from '@/hooks/useShop';
 import { useToastNotification } from '@/hooks/useToastNotification';
 import { logger } from '@/services/sentry';
+import { designSystem } from '@/theme/designSystem';
 import type { PackageSize } from '@/types';
 import { createCurrencyFormatter } from '@/utils/currency';
-import AdjustInventoryModal from './components/AdjustInventoryModal';
-import InitiateCountModal from './components/InitiateCountModal';
-import InventoryItemDetailContent from './components/InventoryItemDetailContent';
-import InventoryItemFormModal from './components/InventoryItemFormModal';
-import PackageSizeFormModal from './components/PackageSizeFormModal';
-import ReceiveInventoryModal from './components/ReceiveInventoryModal';
+import AdjustInventoryModal from './AdjustInventoryModal';
+import InitiateCountModal from './InitiateCountModal';
+import InventoryItemDetailContent from './InventoryItemDetailContent';
+import InventoryItemFormModal from './InventoryItemFormModal';
+import PackageSizeFormModal from './PackageSizeFormModal';
+import ReceiveInventoryModal from './ReceiveInventoryModal';
 
-interface RouteParams {
-  itemId: string;
+const Container = styled.div`
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+`;
+
+const EmptyState = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: ${designSystem.spacing.xl};
+  text-align: center;
+`;
+
+const EmptyText = styled.div`
+  font-size: ${designSystem.typography.fontSize.lg};
+  color: ${designSystem.colors.text.secondary};
+`;
+
+const ScrollContent = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  width: 100%;
+`;
+
+interface InventoryItemDetailPanelProps {
+  itemId: string | null;
+  onItemDeleted?: () => void;
 }
 
-const InventoryItemManagePage: React.FC = () => {
-  const { itemId } = useParams<RouteParams>();
+const InventoryItemDetailPanel: React.FC<InventoryItemDetailPanelProps> = ({
+  itemId,
+  onItemDeleted,
+}) => {
   const history = useHistory();
-
-  // Hooks
   const { currentShop, hasPermission } = useShop();
-  const { data: item, isLoading: itemLoading, refetch: refetchItem } = useInventoryItem(itemId);
-  const deleteItem = useDeleteInventoryItem();
-  const updateItem = useUpdateInventoryItem();
   const { showSuccess, showError } = useToastNotification();
   const [present, dismiss] = useIonLoading();
 
-  // Package size mutations
-  const deletePackageSize = useDeletePackageSize();
+  // Fetch item data
+  const { data: item, isLoading, refetch: refetchItem } = useInventoryItem(itemId || '');
+  const deleteItem = useDeleteInventoryItem();
+  const updateItem = useUpdateInventoryItem();
 
   // Modal states
   const [showReceiveModal, setShowReceiveModal] = useState(false);
@@ -64,7 +86,6 @@ const InventoryItemManagePage: React.FC = () => {
   const [showPackageSizeModal, setShowPackageSizeModal] = useState(false);
   const [editingPackage, setEditingPackage] = useState<PackageSize | null>(null);
   const [deletingPackageId, setDeletingPackageId] = useState<string | null>(null);
-  const [selectedFilter] = useState<string | null>(null);
   const [selectedSegment, setSelectedSegment] = useState<'transactions' | 'manage'>('transactions');
 
   // Transactions with infinite scroll
@@ -75,30 +96,34 @@ const InventoryItemManagePage: React.FC = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInventoryTransactionsInfinite(
-    itemId,
-    selectedFilter ? { transactionType: selectedFilter, pageSize: 5 } : { pageSize: 5 }
-  );
+  } = useInventoryTransactionsInfinite(itemId || '', { pageSize: 10 });
 
   // Flatten paginated transactions data
   const transactions = transactionsData?.pages.flatMap((page) => page.data) ?? [];
 
   // Package sizes
-  const { data: packageSizes } = usePackageSizes(itemId);
+  const { data: packageSizes } = usePackageSizes(itemId || '');
+  const deletePackageSize = useDeletePackageSize();
 
   // Permissions
   const canEdit = hasPermission('staff');
   const canDelete = hasPermission('admin');
 
+  // Currency formatter
+  const formatCurrency = useMemo(
+    () => createCurrencyFormatter(currentShop?.currency_code || 'USD'),
+    [currentShop?.currency_code]
+  );
+
   // Delete handler
   const handleDelete = async () => {
-    if (!item) return;
+    if (!item || !itemId) return;
 
     try {
       await present({ message: 'Deleting...' });
       await deleteItem.mutateAsync(itemId);
       showSuccess('Inventory item deleted successfully');
-      history.replace(`/shops/${currentShop?.id}/inventory`);
+      onItemDeleted?.();
     } catch (error) {
       logger.error(error instanceof Error ? error : new Error(String(error)));
       showError('Failed to delete inventory item');
@@ -108,12 +133,7 @@ const InventoryItemManagePage: React.FC = () => {
   };
 
   // Handlers
-  const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
-    await Promise.all([refetchItem(), refetchTransactions()]);
-    event.detail.complete();
-  };
-
-  const navigateToEdit = () => {
+  const handleEdit = () => {
     setShowEditModal(true);
   };
 
@@ -146,7 +166,7 @@ const InventoryItemManagePage: React.FC = () => {
   };
 
   const confirmDeletePackageSize = async () => {
-    if (!deletingPackageId) return;
+    if (!deletingPackageId || !itemId) return;
 
     await deletePackageSize.mutateAsync({
       packageId: deletingPackageId,
@@ -162,7 +182,7 @@ const InventoryItemManagePage: React.FC = () => {
 
   // Image upload handler
   const handleImageUploaded = async (url: string) => {
-    if (!item) return;
+    if (!item || !itemId) return;
     try {
       await updateItem.mutateAsync({ itemId, data: { image_url: url } });
       refetchItem();
@@ -172,67 +192,72 @@ const InventoryItemManagePage: React.FC = () => {
     }
   };
 
-  // Create currency formatter with shop's currency
-  const formatCurrency = useMemo(
-    () => createCurrencyFormatter(currentShop?.currency_code || 'USD'),
-    [currentShop?.currency_code]
-  );
-
-  // Loading state
-  if (itemLoading) {
-    return <PageLoadingState backHref={`/shops/${currentShop?.id}/inventory`} />;
+  // No selection state
+  if (!itemId) {
+    return (
+      <Container>
+        <EmptyState>
+          <EmptyText>Select an inventory item to view details</EmptyText>
+        </EmptyState>
+      </Container>
+    );
   }
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <Container>
+        <EmptyState>
+          <LoadingSpinner />
+        </EmptyState>
+      </Container>
+    );
+  }
+
+  // Not found state
   if (!item) {
     return (
-      <PageNotFoundState
-        backHref={`/shops/${currentShop?.id}/inventory`}
-        title="Item Not Found"
-        message="Item not found"
-      />
+      <Container>
+        <EmptyState>
+          <EmptyText>Inventory item not found</EmptyText>
+        </EmptyState>
+      </Container>
     );
   }
 
   return (
-    <PageWithCollapsibleHeader
-      title={item.name}
-      backHref={`/shops/${currentShop?.id}/inventory`}
-      isLoading={itemLoading}
-      notFound={!itemLoading && !item}
-    >
-      {/* Pull to refresh */}
-      <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
-        <IonRefresherContent />
-      </IonRefresher>
+    <Container>
+      <ScrollContent>
+        <CenteredLayout>
+          <InventoryItemDetailContent
+            item={item}
+            shopId={currentShop?.id || ''}
+            transactions={transactions}
+            transactionsLoading={transactionsLoading}
+            packageSizes={packageSizes || []}
+            selectedSegment={selectedSegment}
+            formatCurrency={formatCurrency}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            hasNextPage={hasNextPage ?? false}
+            isFetchingNextPage={isFetchingNextPage}
+            onImageUploaded={handleImageUploaded}
+            onSegmentChange={setSelectedSegment}
+            onEdit={handleEdit}
+            onReceive={() => setShowReceiveModal(true)}
+            onAdjust={() => setShowAdjustModal(true)}
+            onOptions={handleOptions}
+            onTransactionClick={navigateToTransactionDetails}
+            onReceiveClick={() => setShowReceiveModal(true)}
+            onLoadMore={() => fetchNextPage()}
+            onAddPackageSize={handleAddPackageSize}
+            onEditPackageSize={handleEditPackageSize}
+            onDeletePackageSize={handleDeletePackageSize}
+            onDeleteItem={() => setShowDeleteAlert(true)}
+          />
+        </CenteredLayout>
+      </ScrollContent>
 
-      <CenteredLayout>
-        <InventoryItemDetailContent
-          item={item}
-          shopId={currentShop?.id || ''}
-          transactions={transactions}
-          transactionsLoading={transactionsLoading}
-          packageSizes={packageSizes || []}
-          selectedSegment={selectedSegment}
-          formatCurrency={formatCurrency}
-          canEdit={canEdit}
-          canDelete={canDelete}
-          hasNextPage={hasNextPage ?? false}
-          isFetchingNextPage={isFetchingNextPage}
-          onImageUploaded={handleImageUploaded}
-          onSegmentChange={setSelectedSegment}
-          onEdit={navigateToEdit}
-          onReceive={() => setShowReceiveModal(true)}
-          onAdjust={() => setShowAdjustModal(true)}
-          onOptions={handleOptions}
-          onTransactionClick={navigateToTransactionDetails}
-          onReceiveClick={() => setShowReceiveModal(true)}
-          onLoadMore={() => fetchNextPage()}
-          onAddPackageSize={handleAddPackageSize}
-          onEditPackageSize={handleEditPackageSize}
-          onDeletePackageSize={handleDeletePackageSize}
-          onDeleteItem={() => setShowDeleteAlert(true)}
-        />
-      </CenteredLayout>
 
       {/* Modals */}
       <ReceiveInventoryModal
@@ -261,6 +286,23 @@ const InventoryItemManagePage: React.FC = () => {
 
       <InitiateCountModal isOpen={showCountModal} onClose={() => setShowCountModal(false)} />
 
+      {/* Edit Item Modal */}
+      <InventoryItemFormModal
+        isOpen={showEditModal}
+        onClose={handleCloseEditModal}
+        itemId={itemId}
+      />
+
+      {/* Package Size Modal */}
+      <PackageSizeFormModal
+        isOpen={showPackageSizeModal}
+        onClose={handleClosePackageSizeModal}
+        itemId={itemId}
+        baseUom={item.base_uom}
+        editingPackage={editingPackage}
+        packageSizesCount={packageSizes?.length || 0}
+      />
+
       {/* Options Action Sheet */}
       <IonActionSheet
         isOpen={showOptionsSheet}
@@ -271,7 +313,7 @@ const InventoryItemManagePage: React.FC = () => {
             text: 'View Package Sizes',
             icon: cubeOutline,
             handler: () => {
-              history.push(`/shops/${currentShop?.id}/inventory/${item?.id}/packages`);
+              setSelectedSegment('manage');
             },
           },
           {
@@ -302,31 +344,12 @@ const InventoryItemManagePage: React.FC = () => {
       />
 
       {/* Delete Confirmation */}
-      {item && (
-        <DeleteConfirmationAlert
-          isOpen={showDeleteAlert}
-          onDismiss={() => setShowDeleteAlert(false)}
-          onConfirm={handleDelete}
-          itemName={item.name}
-          itemType="Inventory Item"
-        />
-      )}
-
-      {/* Edit Item Modal */}
-      <InventoryItemFormModal
-        isOpen={showEditModal}
-        onClose={handleCloseEditModal}
-        itemId={itemId}
-      />
-
-      {/* Package Size Modal */}
-      <PackageSizeFormModal
-        isOpen={showPackageSizeModal}
-        onClose={handleClosePackageSizeModal}
-        itemId={itemId}
-        baseUom={item.base_uom}
-        editingPackage={editingPackage}
-        packageSizesCount={packageSizes?.length || 0}
+      <DeleteConfirmationAlert
+        isOpen={showDeleteAlert}
+        onDismiss={() => setShowDeleteAlert(false)}
+        onConfirm={handleDelete}
+        itemName={item.name}
+        itemType="Inventory Item"
       />
 
       {/* Delete Package Size Confirmation */}
@@ -336,8 +359,8 @@ const InventoryItemManagePage: React.FC = () => {
         onDismiss={() => setDeletingPackageId(null)}
         itemName="package size"
       />
-    </PageWithCollapsibleHeader>
+    </Container>
   );
 };
 
-export default InventoryItemManagePage;
+export default InventoryItemDetailPanel;

@@ -1,33 +1,112 @@
-// Inventory List Page
+// Inventory List Page - Responsive master-detail split pane
 
 import {
   IonActionSheet,
   IonButton,
+  IonContent,
   IonIcon,
-  IonItem,
-  IonItemDivider,
-  IonItemGroup,
-  IonLabel,
-  IonList,
-  IonRefresher,
-  IonRefresherContent,
-  IonText,
-  IonToolbar,
-  type RefresherEventDetail,
+  IonPage,
+  IonSearchbar,
 } from '@ionic/react';
 import { add, listOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { BasePage, CenteredLayout } from '@/components/layouts';
-import { Div } from '@/components/shared/base/Div';
-import { CardContainer } from '@/components/shared/CardContainer';
-import { FilterPillScroller, IonText2, LoadingSpinner } from '@/components/ui';
+import styled from 'styled-components';
+import { MasterDetailLayout, PlaceholderContainer } from '@/components/layouts';
+import PageHeader from '@/components/shared/PageHeader';
+import { FilterPillScroller, LoadingSpinner } from '@/components/ui';
+import { useIsTabletOrLarger } from '@/hooks/useBreakpoint';
 import { useInventoryCategories, useInventoryItems } from '@/hooks/useInventory';
 import { useShop } from '@/hooks/useShop';
+import { designSystem } from '@/theme/designSystem';
 import type { FilterOption, InventoryCategory, InventoryItemWithCategory } from '@/types';
 import { createCurrencyFormatter } from '@/utils/currency';
+import InventoryItemDetailPanel from './components/InventoryItemDetailPanel';
 import InventoryItemFormModal from './components/InventoryItemFormModal';
+import InventoryItemListItem from './components/InventoryItemListItem';
+
+// Styled components
+const SearchBarContainer = styled.div`
+  padding: 12px 16px;
+`;
+
+const FilterContainer = styled.div`
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+`;
+
+const ListContainer = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: ${designSystem.spacing.sm};
+  padding: ${designSystem.spacing.sm};
+`;
+
+const GroupContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${designSystem.spacing.sm};
+`;
+
+const GroupHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: ${designSystem.spacing.sm} ${designSystem.spacing.md};
+  background: ${designSystem.colors.gray[100]};
+  border-radius: ${designSystem.borderRadius.sm};
+  margin-bottom: ${designSystem.spacing.xs};
+`;
+
+const GroupTitle = styled.h3`
+  font-size: ${designSystem.typography.fontSize.sm};
+  font-weight: ${designSystem.typography.fontWeight.semibold};
+  color: ${designSystem.colors.text.primary};
+  text-transform: uppercase;
+  margin: 0;
+`;
+
+const GroupCount = styled.span`
+  font-size: ${designSystem.typography.fontSize.sm};
+  color: ${designSystem.colors.text.secondary};
+`;
+
+const EmptyContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: ${designSystem.spacing['2xl']};
+  text-align: center;
+  color: ${designSystem.colors.text.secondary};
+  gap: ${designSystem.spacing.sm};
+`;
+
+const AddButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${designSystem.spacing.sm};
+  width: calc(100% - 32px);
+  margin: ${designSystem.spacing.md};
+  padding: ${designSystem.spacing.md};
+  border: 2px dashed ${designSystem.colors.gray[300]};
+  border-radius: ${designSystem.borderRadius.md};
+  background: none;
+  cursor: pointer;
+  color: ${designSystem.colors.text.secondary};
+  font-size: ${designSystem.typography.fontSize.base};
+  font-family: ${designSystem.typography.fontFamily.base};
+  transition: all ${designSystem.transitions.base};
+
+  &:hover {
+    border-color: ${designSystem.colors.brand.primary};
+    color: ${designSystem.colors.brand.primary};
+  }
+`;
 
 // Helper function to parse compound filter IDs
 const parseFilterId = (filterId: string): { type: string; value: string } => {
@@ -66,18 +145,16 @@ const buildFilterOptions = (categories: InventoryCategory[] | undefined): Filter
 
 const InventoryListPage: React.FC = () => {
   const history = useHistory();
+  const isDesktop = useIsTabletOrLarger();
   const { currentShop, isLoading: shopLoading } = useShop();
   const [searchText, setSearchText] = useState('');
   const [showItemModal, setShowItemModal] = useState(false);
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
   // Fetch inventory items and categories
-  const {
-    data: items,
-    isLoading: itemsLoading,
-    refetch,
-  } = useInventoryItems({
+  const { data: items, isLoading: itemsLoading } = useInventoryItems({
     search: searchText || undefined,
   });
 
@@ -153,25 +230,18 @@ const InventoryListPage: React.FC = () => {
     [currentShop?.currency_code]
   );
 
-  // Handle pull-to-refresh
-  const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
-    await refetch();
-    event.detail.complete();
+  // Handle item selection (desktop: set selected, mobile: navigate)
+  const handleItemClick = (item: InventoryItemWithCategory) => {
+    if (isDesktop) {
+      setSelectedItemId(item.id);
+    } else {
+      history.push(`/shops/${currentShop?.id}/inventory/${item.id}/manage`);
+    }
   };
 
-  // Navigate to item manage page
-  const handleItemClick = (itemId: string) => {
-    history.push(`/shops/${currentShop?.id}/inventory/${itemId}/manage`);
-  };
-
-  // Navigate to add item
+  // Handle add item
   const handleAddItem = () => {
     setShowItemModal(true);
-  };
-
-  // Handle more button click
-  const handleMoreClick = () => {
-    setShowActionSheet(true);
   };
 
   // Handle navigate to categories
@@ -179,45 +249,25 @@ const InventoryListPage: React.FC = () => {
     history.push(`/shops/${currentShop?.id}/inventory/categories`);
   };
 
-  // Close modal and refetch data
+  // Close modal
   const handleCloseModal = () => {
     setShowItemModal(false);
-    refetch();
+  };
+
+  // Handle item deletion
+  const handleItemDeleted = () => {
+    setSelectedItemId(null);
   };
 
   // Render individual inventory item
-  const renderInventoryItem = (
-    item: InventoryItemWithCategory,
-    index: number,
-    itemCount: number
-  ) => (
-    <IonItem
+  const renderInventoryItem = (item: InventoryItemWithCategory) => (
+    <InventoryItemListItem
       key={item.id}
-      lines={index === itemCount - 1 ? 'none' : 'full'}
-      button
-      onClick={() => handleItemClick(item.id)}
-      detail
-    >
-      <IonLabel>
-        <h2 color="dark">{item.name}</h2>
-        <div className="flex items-center">
-          <IonText2 fontSize="0.85em">{formatCurrency(item.unit_cost)}</IonText2>
-
-          <IonText2 color="medium" fontSize="0.75em">
-            &nbsp; per {item.base_uom}
-          </IonText2>
-        </div>
-      </IonLabel>
-      <IonLabel slot="end" className="ion-text-right ion-margin-end">
-        <IonText2 color="dark" fontWeight={'700'}>
-          {item.current_count}
-        </IonText2>
-        <br />
-        <IonText2 color="medium" fontSize="0.75em">
-          {item.base_uom}
-        </IonText2>
-      </IonLabel>
-    </IonItem>
+      item={item}
+      isSelected={isDesktop && selectedItemId === item.id}
+      onClick={() => handleItemClick(item)}
+      formatCurrency={formatCurrency}
+    />
   );
 
   // Render category group
@@ -226,110 +276,131 @@ const InventoryListPage: React.FC = () => {
     if (!category || categoryItems.length === 0) return null;
 
     return (
-      <IonItemGroup key={categoryId}>
-        <IonItemDivider color="light">
-          <IonLabel>
-            <h2>{category.description || category.name}</h2>
-          </IonLabel>
-          <IonText slot="end" color="medium">
-            {categoryItems.length} items
-          </IonText>
-        </IonItemDivider>
-        {categoryItems.map((item, index) => renderInventoryItem(item, index, categoryItems.length))}
-      </IonItemGroup>
+      <GroupContainer key={categoryId}>
+        <GroupHeader>
+          <GroupTitle>{category.description || category.name}</GroupTitle>
+          <GroupCount>{categoryItems.length} items</GroupCount>
+        </GroupHeader>
+        {categoryItems.map((item) => renderInventoryItem(item))}
+      </GroupContainer>
     );
   };
 
   // Empty state
   const renderEmptyState = () => (
-    <Div className="empty-state ion-text-center" style={{ padding: '48px 16px' }}>
-      <h2>No Inventory Items Yet</h2>
+    <EmptyContainer>
+      <h3>No Inventory Items Yet</h3>
       <p>Get started by adding your first inventory item</p>
       <IonButton onClick={handleAddItem} size="default">
         <IonIcon slot="start" icon={add} />
         Add Item
       </IonButton>
-    </Div>
+    </EmptyContainer>
   );
+
+  // Render search bar
+  const renderSearchBar = () => (
+    <SearchBarContainer>
+      <IonSearchbar
+        value={searchText}
+        onIonInput={(e) => setSearchText(e.detail.value ?? '')}
+        placeholder="Search inventory..."
+        debounce={300}
+        className="searchBar"
+      />
+    </SearchBarContainer>
+  );
+
+  // Render filter pills
+  const renderFilterPills = () => {
+    if (filterOptions.length === 0) return null;
+    return (
+      <FilterContainer>
+        <FilterPillScroller
+          filters={filterOptions}
+          selectedId={selectedFilter}
+          onSelect={setSelectedFilter}
+          showManageButton={true}
+          onManageClick={handleNavigateToCategories}
+        />
+      </FilterContainer>
+    );
+  };
+
+  // Render inventory list
+  const renderInventoryList = () => {
+    if (isLoading) {
+      return <LoadingSpinner />;
+    }
+
+    if (!items || items.length === 0) {
+      return renderEmptyState();
+    }
+
+    return (
+      <ListContainer>
+        {/* Render categorized items */}
+        {categories
+          ?.sort((a, b) => a.sequence - b.sequence)
+          .map((cat) =>
+            renderCategoryGroup(cat.id, filteredAndGroupedItems.categorized[cat.id] || [])
+          )}
+
+        {/* Render uncategorized items */}
+        {filteredAndGroupedItems.uncategorized.length > 0 && (
+          <GroupContainer>
+            <GroupHeader>
+              <GroupTitle>Uncategorized</GroupTitle>
+              <GroupCount>{filteredAndGroupedItems.uncategorized.length} items</GroupCount>
+            </GroupHeader>
+            {filteredAndGroupedItems.uncategorized.map((item) => renderInventoryItem(item))}
+          </GroupContainer>
+        )}
+      </ListContainer>
+    );
+  };
 
   // No shop selected state
   if (!currentShop && !shopLoading) {
     return (
-      <BasePage title="Inventory" showMenu showProfile showLogout>
-        <CenteredLayout>
-          <div className="empty-state ion-text-center" style={{ padding: '48px 16px' }}>
+      <IonPage>
+        <PageHeader title="Inventory" showProfile showLogout />
+        <IonContent>
+          <PlaceholderContainer>
             <h2>No Shop Selected</h2>
             <p>Please select a shop to view inventory</p>
-          </div>
-        </CenteredLayout>
-      </BasePage>
+          </PlaceholderContainer>
+        </IonContent>
+      </IonPage>
     );
   }
 
+  // Render left panel content (list)
+  const leftPanelContent = (
+    <>
+      {renderSearchBar()}
+      {renderFilterPills()}
+      {renderInventoryList()}
+      <AddButton onClick={handleAddItem}>
+        <IonIcon icon={add} />
+        Add New Item
+      </AddButton>
+    </>
+  );
+
+  // Render right panel content (detail)
+  const rightPanelContent = (
+    <InventoryItemDetailPanel itemId={selectedItemId} onItemDeleted={handleItemDeleted} />
+  );
+
   return (
-    <BasePage title="Inventory" showMenu onMoreClick={handleMoreClick}>
-      <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
-        <IonRefresherContent />
-      </IonRefresher>
+    <IonPage>
+      <PageHeader title="Inventory" showProfile showLogout />
+      <IonContent>
+        <MasterDetailLayout leftPanel={leftPanelContent} rightPanel={rightPanelContent} />
+      </IonContent>
 
-      <CenteredLayout>
-        {' '}
-        {/* Unified Filter Scroller */}
-        {filterOptions.length > 0 && (
-          <IonToolbar>
-            <FilterPillScroller
-              filters={filterOptions}
-              selectedId={selectedFilter}
-              onSelect={setSelectedFilter}
-              showManageButton={true}
-              onManageClick={handleNavigateToCategories}
-            />
-          </IonToolbar>
-        )}
-        <CardContainer
-          title="Inventory Items"
-          onActionClick={handleAddItem}
-          noPadding
-          showSearch={true}
-          searchPlaceholder="Search inventory..."
-          searchValue={searchText}
-          onSearchChange={setSearchText}
-        >
-          {isLoading ? (
-            <LoadingSpinner />
-          ) : !items || items.length === 0 ? (
-            renderEmptyState()
-          ) : (
-            <IonList>
-              {/* Render categorized items */}
-              {categories
-                ?.sort((a, b) => a.sequence - b.sequence)
-                .map((cat) =>
-                  renderCategoryGroup(cat.id, filteredAndGroupedItems.categorized[cat.id] || [])
-                )}
-
-              {/* Render uncategorized items */}
-              {filteredAndGroupedItems.uncategorized.length > 0 && (
-                <IonItemGroup>
-                  <IonItemDivider>
-                    <IonLabel>
-                      <h2>Uncategorized</h2>
-                    </IonLabel>
-                    <IonText slot="end" color="medium">
-                      {filteredAndGroupedItems.uncategorized.length} items
-                    </IonText>
-                  </IonItemDivider>
-                  {filteredAndGroupedItems.uncategorized.map((item, index) =>
-                    renderInventoryItem(item, index, filteredAndGroupedItems.uncategorized.length)
-                  )}
-                </IonItemGroup>
-              )}
-            </IonList>
-          )}
-        </CardContainer>
-      </CenteredLayout>
-
-      {/* Inventory Item Detail Modal - Only for adding new items */}
+      {/* Inventory Item Form Modal - For adding new items */}
       <InventoryItemFormModal isOpen={showItemModal} onClose={handleCloseModal} />
 
       {/* Action Sheet for More Options */}
@@ -349,7 +420,7 @@ const InventoryListPage: React.FC = () => {
           },
         ]}
       />
-    </BasePage>
+    </IonPage>
   );
 };
 
