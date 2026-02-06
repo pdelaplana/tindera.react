@@ -1,15 +1,34 @@
 // Inventory Transactions Content - Shared content for transaction list views
 
-import { IonSearchbar } from '@ionic/react';
+import {
+  IonIcon,
+  IonItem,
+  IonItemDivider,
+  IonItemGroup,
+  IonLabel,
+  IonList,
+  IonNote,
+  IonSearchbar,
+  IonText,
+} from '@ionic/react';
+import {
+  arrowDownSharp,
+  arrowUpSharp,
+  calculatorSharp,
+  cashSharp,
+  construct,
+  swapVerticalSharp,
+} from 'ionicons/icons';
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { CenteredLayout } from '@/components/layouts';
-import { CardItem } from '@/components/shared';
+import { CardContainer } from '@/components/shared';
 import { FilterPillScroller, LoadingSpinner } from '@/components/ui';
 import { useShopInventoryTransactions } from '@/hooks/useInventory';
 import { designSystem } from '@/theme/designSystem';
 import type { FilterOption, InventoryTransaction } from '@/types';
+import { formatDateLabel } from '@/utils/date';
 
 interface InventoryTransactionsContentProps {
   onTransactionClick: (transaction: InventoryTransaction) => void;
@@ -20,6 +39,8 @@ interface InventoryTransactionsContentProps {
 const SearchFilterSection = styled.div`
   flex-shrink: 0;
   background: white;
+    border-bottom: 1px solid var(--ion-color-light-shade);
+
 `;
 
 const SearchBarContainer = styled.div`
@@ -28,7 +49,6 @@ const SearchBarContainer = styled.div`
 
 const FilterContainer = styled.div`
   padding: 8px 0;
-  border-bottom: 1px solid var(--ion-color-light-shade);
 `;
 
 const ScrollableSection = styled.div`
@@ -44,76 +64,61 @@ const ScrollContent = styled.div`
   padding: 0 16px;
 `;
 
-const TransactionsList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${designSystem.spacing.sm};
-  padding: ${designSystem.spacing.md} 0;
-`;
-
 const EmptyContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: ${designSystem.spacing['2xl']};
+  padding: 48px 16px;
   text-align: center;
-  color: ${designSystem.colors.text.secondary};
-  gap: ${designSystem.spacing.sm};
 
   h3 {
-    font-size: ${designSystem.typography.fontSize.lg};
-    font-weight: ${designSystem.typography.fontWeight.semibold};
-    color: ${designSystem.colors.text.primary};
-    margin: 0;
+    margin: 0 0 8px 0;
   }
 
   p {
-    font-size: ${designSystem.typography.fontSize.sm};
     margin: 0;
   }
 `;
 
-const TransactionItemName = styled.div`
-  font-size: ${designSystem.typography.fontSize.base};
-  font-weight: ${designSystem.typography.fontWeight.semibold};
-  color: ${designSystem.colors.text.primary};
-  margin-bottom: ${designSystem.spacing.xs};
+const TransactionsContainer = styled.div`
+  padding: 12px 0;
 `;
 
-const TransactionDetails = styled.div`
+const IconCircle = styled.div<{ type: string }>`
+margin-top: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   display: flex;
-  flex-direction: column;
-  gap: ${designSystem.spacing.xs};
-  font-size: ${designSystem.typography.fontSize.sm};
-  color: ${designSystem.colors.text.secondary};
-`;
-
-const TransactionType = styled.span<{ type: string }>`
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: ${designSystem.borderRadius.sm};
-  font-size: ${designSystem.typography.fontSize.xs};
-  font-weight: ${designSystem.typography.fontWeight.medium};
+  align-items: center;
+  justify-content: center;
   background: ${(props) => {
     switch (props.type) {
       case 'receipt':
         return designSystem.colors.status.paid;
+      case 'issue':
+        return designSystem.colors.warning;
       case 'sale':
         return designSystem.colors.danger;
       case 'adjustment':
         return designSystem.colors.info;
+      case 'countAdjustment':
+        return designSystem.colors.brand.secondary;
       default:
         return designSystem.colors.gray[300];
     }
   }};
-  color: white;
-  text-transform: capitalize;
+
+  ion-icon {
+    color: white;
+    font-size: 20px;
+  }
 `;
 
-const TransactionDate = styled.div`
-  font-size: ${designSystem.typography.fontSize.xs};
-  color: ${designSystem.colors.text.hint};
+const StyledIonItem = styled(IonItem)`
+  --detail-icon-color: ${designSystem.colors.brand.primary};
+  --detail-icon-opacity: 1;
 `;
 
 const filterOptions: FilterOption[] = [
@@ -122,6 +127,28 @@ const filterOptions: FilterOption[] = [
   { id: 'sale', label: 'Sales' },
   { id: 'adjustment', label: 'Adjustments' },
 ];
+
+const getTransactionTypeLabel = (type: string) => {
+  const labels: Record<string, string> = {
+    receipt: 'Receipt',
+    issue: 'Issue',
+    sale: 'Sale',
+    adjustment: 'Adjustment',
+    countAdjustment: 'Count Adjustment',
+  };
+  return labels[type] || type;
+};
+
+const getTransactionTypeIcon = (type: string) => {
+  const icons: Record<string, string> = {
+    receipt: arrowDownSharp,
+    issue: arrowUpSharp,
+    sale: cashSharp,
+    adjustment: swapVerticalSharp,
+    countAdjustment: calculatorSharp,
+  };
+  return icons[type] || construct;
+};
 
 const InventoryTransactionsContent: React.FC<InventoryTransactionsContentProps> = ({
   onTransactionClick,
@@ -148,57 +175,36 @@ const InventoryTransactionsContent: React.FC<InventoryTransactionsContentProps> 
     );
   }, [transactions, searchText]);
 
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    }).format(date);
-  };
+  // Group transactions by date
+  const groupedTransactions = useMemo(() => {
+    if (!filteredTransactions) return {};
 
-  // Render transaction item
-  const renderTransactionItem = (transaction: InventoryTransaction) => {
-    const quantityText =
-      transaction.quantity_in > 0
-        ? `+${transaction.quantity_in}`
-        : transaction.quantity_out > 0
-          ? `-${transaction.quantity_out}`
-          : '0';
-
-    return (
-      <CardItem key={transaction.id} onClick={() => onTransactionClick(transaction)}>
-        <TransactionItemName>{transaction.item_name}</TransactionItemName>
-        <TransactionDetails>
-          <div>
-            <TransactionType type={transaction.transaction_type}>
-              {transaction.transaction_type}
-            </TransactionType>
-            {' • '}
-            {quantityText} units
-          </div>
-          {transaction.reference && <div>Ref: {transaction.reference}</div>}
-          {transaction.supplier && <div>Supplier: {transaction.supplier}</div>}
-          <TransactionDate>{formatDate(transaction.transaction_on)}</TransactionDate>
-        </TransactionDetails>
-      </CardItem>
+    return filteredTransactions.reduce(
+      (groups, transaction) => {
+        const dateLabel = formatDateLabel(transaction.transaction_on);
+        if (!groups[dateLabel]) groups[dateLabel] = [];
+        groups[dateLabel].push(transaction);
+        return groups;
+      },
+      {} as Record<string, typeof filteredTransactions>
     );
-  };
+  }, [filteredTransactions]);
 
   // Empty state
   const renderEmptyState = () => (
     <EmptyContainer>
       <h3>No Transactions Found</h3>
       <p>
-        {searchText
-          ? 'Try adjusting your search or filters'
-          : 'Transactions will appear here when inventory is received, sold, or adjusted'}
+        <IonText color="medium">
+          {searchText
+            ? 'Try adjusting your search or filters'
+            : 'Transactions will appear here when inventory is received, sold, or adjusted'}
+        </IonText>
       </p>
     </EmptyContainer>
   );
+
+  const groupEntries = Object.entries(groupedTransactions);
 
   return (
     <>
@@ -230,11 +236,59 @@ const InventoryTransactionsContent: React.FC<InventoryTransactionsContentProps> 
         <ScrollContent>
           <CenteredLayout>
             {isLoading ? (
-              <LoadingSpinner />
+              <EmptyContainer>
+                <LoadingSpinner />
+              </EmptyContainer>
             ) : filteredTransactions && filteredTransactions.length > 0 ? (
-              <TransactionsList>
-                {filteredTransactions.map((transaction) => renderTransactionItem(transaction))}
-              </TransactionsList>
+              <TransactionsContainer>
+                <CardContainer noPadding={true}>
+                  <IonList lines="full">
+                    {groupEntries.map(([date, txns], groupIndex) => (
+                      <IonItemGroup key={date}>
+                        <IonItemDivider>
+                          <IonLabel color="dark">
+                            <h2>{date}</h2>
+                          </IonLabel>
+                        </IonItemDivider>
+                        {txns.map((txn, txnIndex) => {
+                          const isLastItem =
+                            groupIndex === groupEntries.length - 1 && txnIndex === txns.length - 1;
+                          return (
+                            <StyledIonItem
+                              key={txn.id}
+                              button
+                              detail={true}
+                              lines={isLastItem ? 'none' : undefined}
+                              onClick={() => onTransactionClick(txn)}
+                            >
+                              <IconCircle slot="start" type={txn.transaction_type}>
+                                <IonIcon icon={getTransactionTypeIcon(txn.transaction_type)} />
+                              </IconCircle>
+                              <IonLabel>
+                                <h3>{txn.item_name}</h3>
+                                <p>
+                                  {getTransactionTypeLabel(txn.transaction_type)} •{' '}
+                                  {new Date(txn.transaction_on).toLocaleTimeString()}
+                                </p>
+                                {txn.reference && <p>Ref: {txn.reference}</p>}
+                                {txn.supplier && <p>Supplier: {txn.supplier}</p>}
+                              </IonLabel>
+                              <IonLabel slot="end" className="ion-text-right ion-padding-end">
+                                <h3>
+                                  {txn.quantity_in > 0
+                                    ? `+${txn.quantity_in}`
+                                    : `-${txn.quantity_out}`}
+                                </h3>
+                                <IonNote>units</IonNote>
+                              </IonLabel>
+                            </StyledIonItem>
+                          );
+                        })}
+                      </IonItemGroup>
+                    ))}
+                  </IonList>
+                </CardContainer>
+              </TransactionsContainer>
             ) : (
               renderEmptyState()
             )}
