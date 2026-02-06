@@ -12,6 +12,7 @@ import type React from 'react';
 import { useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
+import { MasterDetailLayout, PlaceholderContainer } from '@/components/layouts';
 import PageHeader from '@/components/shared/PageHeader';
 import { useShopContext } from '@/contexts/ShopContext';
 import { useIsTabletOrLarger } from '@/hooks/useBreakpoint';
@@ -19,28 +20,7 @@ import { useOrders } from '@/hooks/useOrder';
 import type { OrderWithDetails } from '@/types';
 import { OrderDetail, OrderList, RefundModal, VoidModal } from './components';
 
-// Styled components for split-pane layout
-const SplitPaneContainer = styled.div`
-	display: flex;
-	height: 100%;
-	width: 100%;
-`;
-
-const LeftPanel = styled.div`
-	flex: 0 0 400px;
-	border-right: 1px solid var(--ion-color-light-shade);
-	overflow-y: auto;
-	display: flex;
-	flex-direction: column;
-`;
-
-const RightPanel = styled.div`
-	flex: 1;
-	overflow-y: auto;
-	padding: 16px;
-	background: var(--ion-color-light);
-`;
-
+// Styled components
 const FilterTabsContainer = styled.div`
 	display: flex;
 	gap: 8px;
@@ -53,24 +33,6 @@ const FilterTab = styled(IonChip)<{ isActive: boolean }>`
 	--background: ${(props) => (props.isActive ? 'var(--ion-color-primary)' : 'var(--ion-color-light)')};
 	--color: ${(props) => (props.isActive ? 'var(--ion-color-primary-contrast)' : 'var(--ion-color-dark)')};
 	cursor: pointer;
-`;
-
-const MobileContainer = styled.div`
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-`;
-
-const PlaceholderContainer = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	height: 100%;
-	padding: 48px;
-	text-align: center;
-	color: var(--ion-color-medium);
-	gap: 8px;
 `;
 
 const DateFilterContainer = styled.div`
@@ -255,79 +217,37 @@ const SalesListPage: React.FC = () => {
     );
   }
 
-  // Desktop layout with split pane
-  if (isDesktop) {
-    return (
-      <IonPage>
-        <PageHeader title="Sales" />
-        <IonContent>
-          <SplitPaneContainer>
-            <LeftPanel>
-              {renderDateFilter()}
-              {renderSearchBar()}
-              {renderFilterTabs()}
-              <OrderList
-                orders={orders || []}
-                onSelect={handleOrderSelect}
-                selectedOrderId={selectedOrderId ?? undefined}
-                isLoading={isLoading}
-                shopPrefix={currentShop?.order_prefix}
-              />
-            </LeftPanel>
-            <RightPanel>
-              <OrderDetail
-                order={selectedOrder || null}
-                shop={currentShop!}
-                onVoid={() => setShowVoidModal(true)}
-                onRefund={() => setShowRefundModal(true)}
-              />
-            </RightPanel>
-          </SplitPaneContainer>
-        </IonContent>
-        {selectedOrder && (
-          <>
-            <VoidModal
-              isOpen={showVoidModal}
-              onClose={() => setShowVoidModal(false)}
-              order={selectedOrder}
-              onSuccess={() => {
-                setShowVoidModal(false);
-                // Query will auto-refetch due to invalidation in the mutation
-              }}
-            />
+  // Render left panel content (list)
+  const leftPanelContent = (
+    <>
+      {renderDateFilter()}
+      {renderSearchBar()}
+      {renderFilterTabs()}
+      <OrderList
+        orders={orders || []}
+        onSelect={handleOrderSelect}
+        selectedOrderId={selectedOrderId ?? undefined}
+        isLoading={isLoading}
+        shopPrefix={currentShop?.order_prefix}
+      />
+    </>
+  );
 
-            <RefundModal
-              isOpen={showRefundModal}
-              onClose={() => setShowRefundModal(false)}
-              order={selectedOrder}
-              onSuccess={() => {
-                setShowRefundModal(false);
-                // Query will auto-refetch due to invalidation in the mutation
-              }}
-            />
-          </>
-        )}
-      </IonPage>
-    );
-  }
+  // Render right panel content (detail)
+  const rightPanelContent = (
+    <OrderDetail
+      order={selectedOrder || null}
+      shop={currentShop!}
+      onVoid={() => setShowVoidModal(true)}
+      onRefund={() => setShowRefundModal(true)}
+    />
+  );
 
-  // Mobile layout with full-width list
   return (
     <IonPage>
       <PageHeader title="Sales" />
       <IonContent>
-        <MobileContainer>
-          {renderDateFilter()}
-          {renderSearchBar()}
-          {renderFilterTabs()}
-          <OrderList
-            orders={orders || []}
-            onSelect={handleOrderSelect}
-            selectedOrderId={selectedOrderId ?? undefined}
-            isLoading={isLoading}
-            shopPrefix={currentShop?.order_prefix}
-          />
-        </MobileContainer>
+        <MasterDetailLayout leftPanel={leftPanelContent} rightPanel={rightPanelContent} />
       </IonContent>
       {selectedOrder && (
         <>

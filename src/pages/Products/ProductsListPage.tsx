@@ -5,6 +5,7 @@ import type React from 'react';
 import { useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
+import { MasterDetailLayout, PlaceholderContainer } from '@/components/layouts';
 import { CategoryPillScroller } from '@/components/pos';
 import PageHeader from '@/components/shared/PageHeader';
 import { LoadingSpinner } from '@/components/ui';
@@ -16,33 +17,7 @@ import type { ProductWithCategory } from '@/types';
 import { createCurrencyFormatter } from '@/utils/currency';
 import { ProductDetailPanel, ProductFormModal, ProductListItem } from './components';
 
-// Styled components - following SalesListPage pattern
-const SplitPaneContainer = styled.div`
-  display: flex;
-  height: 100%;
-  width: 100%;
-`;
-
-const LeftPanel = styled.div`
-  flex: 0 0 400px;
-  border-right: 1px solid var(--ion-color-light-shade);
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-`;
-
-const RightPanel = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  background: var(--ion-color-light);
-`;
-
-const MobileContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-`;
-
+// Styled components
 const SearchBarContainer = styled.div`
   padding: 12px 16px;
 `;
@@ -93,18 +68,6 @@ const AddButton = styled.button`
     border-color: ${designSystem.colors.brand.primary};
     color: ${designSystem.colors.brand.primary};
   }
-`;
-
-const PlaceholderContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: 48px;
-  text-align: center;
-  color: var(--ion-color-medium);
-  gap: 8px;
 `;
 
 const ProductsListPage: React.FC = () => {
@@ -225,47 +188,26 @@ const ProductsListPage: React.FC = () => {
     );
   }
 
-  // Desktop layout with split pane
-  if (isDesktop) {
-    return (
-      <IonPage>
-        <PageHeader title="Products" showProfile showLogout />
-        <IonContent>
-          <SplitPaneContainer>
-            <LeftPanel>
-              {renderSearchBar()}
-              {renderCategoryPills()}
-              {renderProductList()}
-              <AddButton onClick={handleAddProduct}>+ Add New Product</AddButton>
-            </LeftPanel>
-            <RightPanel>
-              <ProductDetailPanel
-                productId={selectedProductId}
-                onProductDeleted={handleProductDeleted}
-              />
-            </RightPanel>
-          </SplitPaneContainer>
-        </IonContent>
-        <ProductFormModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          productId={null}
-        />
-      </IonPage>
-    );
-  }
+  // Render left panel content (list)
+  const leftPanelContent = (
+    <>
+      {renderSearchBar()}
+      {renderCategoryPills()}
+      {renderProductList()}
+      <AddButton onClick={handleAddProduct}>+ Add New Product</AddButton>
+    </>
+  );
 
-  // Mobile layout
+  // Render right panel content (detail)
+  const rightPanelContent = (
+    <ProductDetailPanel productId={selectedProductId} onProductDeleted={handleProductDeleted} />
+  );
+
   return (
     <IonPage>
       <PageHeader title="Products" showProfile showLogout />
       <IonContent>
-        <MobileContainer>
-          {renderSearchBar()}
-          {renderCategoryPills()}
-          {renderProductList()}
-          <AddButton onClick={handleAddProduct}>+ Add New Product</AddButton>
-        </MobileContainer>
+        <MasterDetailLayout leftPanel={leftPanelContent} rightPanel={rightPanelContent} />
       </IonContent>
       <ProductFormModal
         isOpen={isModalOpen}
