@@ -15,6 +15,7 @@ import {
   InventoryItemManagePage,
   InventoryListPage,
   InventoryTransactionDetailsPage,
+  InventoryTransactionsPage,
   PackageSizesPage,
 } from '@/pages/Inventory';
 import { POSPage } from '@/pages/POS';
@@ -101,6 +102,11 @@ const App: React.FC = () => (
               <Route exact path="/shops/:shopId/inventory">
                 <AuthGuard>
                   <InventoryListPage />
+                </AuthGuard>
+              </Route>
+              <Route exact path="/shops/:shopId/inventory/transactions">
+                <AuthGuard>
+                  <InventoryTransactionsPage />
                 </AuthGuard>
               </Route>
               <Route exact path="/shops/:shopId/inventory/categories">

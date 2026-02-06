@@ -8,7 +8,7 @@ import {
   IonPage,
   IonSearchbar,
 } from '@ionic/react';
-import { add, listOutline } from 'ionicons/icons';
+import { add, listOutline, receiptOutline, statsChartOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
@@ -25,10 +25,25 @@ import { createCurrencyFormatter } from '@/utils/currency';
 import InventoryItemDetailPanel from './components/InventoryItemDetailPanel';
 import InventoryItemFormModal from './components/InventoryItemFormModal';
 import InventoryItemListItem from './components/InventoryItemListItem';
+import InventoryTransactionsSummaryCard from './components/InventoryTransactionsSummaryCard';
 
 // Styled components
-const SearchBarContainer = styled.div`
+const LeftPanelHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${designSystem.spacing.sm};
   padding: 12px 16px;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+`;
+
+const SearchBarWrapper = styled.div`
+  flex: 1;
+`;
+
+const HeaderButton = styled(IonButton)`
+  --padding-start: 8px;
+  --padding-end: 8px;
+  margin: 0;
 `;
 
 const FilterContainer = styled.div`
@@ -249,6 +264,11 @@ const InventoryListPage: React.FC = () => {
     history.push(`/shops/${currentShop?.id}/inventory/categories`);
   };
 
+  // Handle navigate to transactions
+  const handleNavigateToTransactions = () => {
+    history.push(`/shops/${currentShop?.id}/inventory/transactions`);
+  };
+
   // Close modal
   const handleCloseModal = () => {
     setShowItemModal(false);
@@ -298,17 +318,27 @@ const InventoryListPage: React.FC = () => {
     </EmptyContainer>
   );
 
-  // Render search bar
-  const renderSearchBar = () => (
-    <SearchBarContainer>
-      <IonSearchbar
-        value={searchText}
-        onIonInput={(e) => setSearchText(e.detail.value ?? '')}
-        placeholder="Search inventory..."
-        debounce={300}
-        className="searchBar"
-      />
-    </SearchBarContainer>
+  // Render left panel header with search and actions
+  const renderLeftPanelHeader = () => (
+    <LeftPanelHeader>
+      <SearchBarWrapper>
+        <IonSearchbar
+          value={searchText}
+          onIonInput={(e) => setSearchText(e.detail.value ?? '')}
+          placeholder="Search inventory..."
+          debounce={300}
+          className="searchBar"
+        />
+      </SearchBarWrapper>
+      <HeaderButton
+        fill="clear"
+        onClick={handleNavigateToTransactions}
+        aria-label="View transactions"
+        title="View Transactions"
+      >
+        <IonIcon slot="icon-only" icon={statsChartOutline} />
+      </HeaderButton>
+    </LeftPanelHeader>
   );
 
   // Render filter pills
@@ -378,7 +408,7 @@ const InventoryListPage: React.FC = () => {
   // Render left panel content (list)
   const leftPanelContent = (
     <>
-      {renderSearchBar()}
+      {renderLeftPanelHeader()}
       {renderFilterPills()}
       {renderInventoryList()}
       <AddButton onClick={handleAddItem}>
@@ -388,9 +418,11 @@ const InventoryListPage: React.FC = () => {
     </>
   );
 
-  // Render right panel content (detail)
-  const rightPanelContent = (
+  // Render right panel content (detail or summary)
+  const rightPanelContent = selectedItemId ? (
     <InventoryItemDetailPanel itemId={selectedItemId} onItemDeleted={handleItemDeleted} />
+  ) : (
+    <InventoryTransactionsSummaryCard onViewAll={handleNavigateToTransactions} />
   );
 
   return (

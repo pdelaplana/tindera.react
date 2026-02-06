@@ -28,6 +28,10 @@ export const inventoryKeys = {
   packageSizes: (itemId: string) => [...inventoryKeys.all, 'packageSizes', itemId] as const,
   transactions: (itemId: string, filters?: InventoryTransactionFilters) =>
     [...inventoryKeys.all, 'transactions', itemId, filters] as const,
+  shopTransactions: (shopId: string, filters?: InventoryTransactionFilters) =>
+    [...inventoryKeys.all, 'shop-transactions', shopId, filters] as const,
+  transactionsSummary: (shopId: string) =>
+    [...inventoryKeys.all, 'transactions-summary', shopId] as const,
   transaction: (transactionId: string) =>
     [...inventoryKeys.all, 'transaction', transactionId] as const,
   counts: (shopId: string) => [...inventoryKeys.all, 'counts', shopId] as const,
@@ -356,6 +360,53 @@ export function useInventoryTransactions(
       return data || [];
     },
     enabled: !!itemId,
+  });
+}
+
+/**
+ * Hook to fetch all transactions for a shop with optional filters
+ */
+export function useShopInventoryTransactions(filters?: InventoryTransactionFilters) {
+  const { currentShop } = useShopContext();
+
+  return useQuery({
+    queryKey: inventoryKeys.shopTransactions(currentShop?.id || '', filters),
+    queryFn: async () => {
+      if (!currentShop?.id) return [];
+
+      const { data, error } = await inventoryService.getShopInventoryTransactions(
+        currentShop.id,
+        filters
+      );
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!currentShop,
+  });
+}
+
+/**
+ * Hook to fetch transaction summary statistics for current shop
+ */
+export function useInventoryTransactionsSummary() {
+  const { currentShop } = useShopContext();
+
+  return useQuery({
+    queryKey: inventoryKeys.transactionsSummary(currentShop?.id || ''),
+    queryFn: async () => {
+      if (!currentShop?.id) {
+        return { receipts: 0, sales: 0, adjustments: 0, total: 0 };
+      }
+
+      const { data, error } = await inventoryService.getInventoryTransactionsSummary(
+        currentShop.id
+      );
+
+      if (error) throw error;
+      return data || { receipts: 0, sales: 0, adjustments: 0, total: 0 };
+    },
+    enabled: !!currentShop,
   });
 }
 

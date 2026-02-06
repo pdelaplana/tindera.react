@@ -521,6 +521,91 @@ export const inventoryService = {
   },
 
   /**
+   * Get all transactions for a shop with optional filtering
+   */
+  async getShopInventoryTransactions(
+    shopId: string,
+    filters?: InventoryTransactionFilters
+  ): Promise<ApiResponse<InventoryTransaction[]>> {
+    try {
+      let query = supabase
+        .from('inventory_transactions')
+        .select('*')
+        .eq('shop_id', shopId)
+        .order('transaction_on', { ascending: false });
+
+      // Apply transaction type filter
+      if (filters?.transactionType) {
+        query = query.eq('transaction_type', filters.transactionType);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        logger.error(new Error(error.message), {
+          context: 'getShopInventoryTransactions',
+          shopId,
+        });
+        return { data: null, error: new Error(error.message) };
+      }
+
+      return { data: data as InventoryTransaction[], error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'getShopInventoryTransactions', shopId });
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Get transaction summary statistics for a shop
+   */
+  async getInventoryTransactionsSummary(
+    shopId: string
+  ): Promise<
+    ApiResponse<{
+      receipts: number;
+      sales: number;
+      adjustments: number;
+      total: number;
+    }>
+  > {
+    try {
+      const { data, error } = await supabase
+        .from('inventory_transactions')
+        .select('transaction_type')
+        .eq('shop_id', shopId);
+
+      if (error) {
+        logger.error(new Error(error.message), {
+          context: 'getInventoryTransactionsSummary',
+          shopId,
+        });
+        return { data: null, error: new Error(error.message) };
+      }
+
+      // Count transactions by type
+      const receipts = data.filter((t) => t.transaction_type === 'receipt').length;
+      const sales = data.filter((t) => t.transaction_type === 'sale').length;
+      const adjustments = data.filter((t) => t.transaction_type === 'adjustment').length;
+
+      return {
+        data: {
+          receipts,
+          sales,
+          adjustments,
+          total: data.length,
+        },
+        error: null,
+      };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'getInventoryTransactionsSummary', shopId });
+      return { data: null, error };
+    }
+  },
+
+  /**
    * Get paginated transactions for an inventory item with optional filtering
    */
   async getInventoryTransactionsPaginated(

@@ -5,4 +5,5 @@ export { default as InventoryCategoriesListPage } from './InventoryCategoriesLis
 export { default as InventoryItemManagePage } from './InventoryItemManagePage';
 export { default as InventoryListPage } from './InventoryListPage';
 export { default as InventoryTransactionDetailsPage } from './InventoryTransactionDetailsPage';
+export { default as InventoryTransactionsPage } from './InventoryTransactionsPage';
 export { default as PackageSizesPage } from './PackageSizesPage';
