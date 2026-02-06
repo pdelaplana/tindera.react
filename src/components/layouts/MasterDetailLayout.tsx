@@ -2,7 +2,7 @@
 // Used for list pages with detail panels (Sales, Products, etc.)
 
 import type React from 'react';
-import { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import styled from 'styled-components';
 import { useIsTabletOrLarger } from '@/hooks/useBreakpoint';
 
@@ -24,7 +24,7 @@ const LeftPanel = styled.div`
 const RightPanel = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 0x;
   background: var(--ion-color-light);
 `;
 
@@ -63,7 +63,6 @@ interface MasterDetailLayoutProps {
 export const MasterDetailLayout: React.FC<MasterDetailLayoutProps> = ({
   leftPanel,
   rightPanel,
-  rightPanelPadding = true,
 }) => {
   const isDesktop = useIsTabletOrLarger();
 
@@ -72,9 +71,7 @@ export const MasterDetailLayout: React.FC<MasterDetailLayoutProps> = ({
     return (
       <SplitPaneContainer>
         <LeftPanel>{leftPanel}</LeftPanel>
-        <RightPanel style={{ padding: rightPanelPadding ? '16px' : '0' }}>
-          {rightPanel}
-        </RightPanel>
+        <RightPanel>{rightPanel}</RightPanel>
       </SplitPaneContainer>
     );
   }
