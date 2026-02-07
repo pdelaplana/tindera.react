@@ -32,6 +32,8 @@ export const inventoryKeys = {
     [...inventoryKeys.all, 'shop-transactions', shopId, filters] as const,
   transactionsSummary: (shopId: string) =>
     [...inventoryKeys.all, 'transactions-summary', shopId] as const,
+  itemTransactionsSummary: (itemId: string) =>
+    [...inventoryKeys.all, 'item-transactions-summary', itemId] as const,
   transaction: (transactionId: string) =>
     [...inventoryKeys.all, 'transaction', transactionId] as const,
   counts: (shopId: string) => [...inventoryKeys.all, 'counts', shopId] as const,
@@ -407,6 +409,26 @@ export function useInventoryTransactionsSummary() {
       return data || { receipts: 0, sales: 0, adjustments: 0, total: 0 };
     },
     enabled: !!currentShop,
+  });
+}
+
+/**
+ * Hook to fetch aggregated transaction statistics for a specific inventory item
+ */
+export function useInventoryItemTransactionsSummary(itemId: string | undefined) {
+  return useQuery({
+    queryKey: inventoryKeys.itemTransactionsSummary(itemId || ''),
+    queryFn: async () => {
+      if (!itemId) {
+        return { totalReceipts: 0, totalSales: 0, totalValueIn: 0, totalValueOut: 0 };
+      }
+
+      const { data, error } = await inventoryService.getInventoryItemTransactionsSummary(itemId);
+
+      if (error) throw error;
+      return data || { totalReceipts: 0, totalSales: 0, totalValueIn: 0, totalValueOut: 0 };
+    },
+    enabled: !!itemId,
   });
 }
 

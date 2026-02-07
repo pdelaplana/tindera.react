@@ -609,6 +609,61 @@ export const inventoryService = {
   },
 
   /**
+   * Get aggregated transaction statistics for a specific inventory item
+   */
+  async getInventoryItemTransactionsSummary(
+    itemId: string
+  ): Promise<
+    ApiResponse<{
+      totalReceipts: number;
+      totalSales: number;
+      totalValueIn: number;
+      totalValueOut: number;
+    }>
+  > {
+    try {
+      const { data, error } = await supabase
+        .from('inventory_transactions')
+        .select('quantity_in, quantity_out, unit_cost')
+        .eq('item_id', itemId);
+
+      if (error) {
+        logger.error(new Error(error.message), {
+          context: 'getInventoryItemTransactionsSummary',
+          itemId,
+        });
+        return { data: null, error: new Error(error.message) };
+      }
+
+      // Calculate aggregated statistics
+      const totalReceipts = data.reduce((sum, txn) => sum + (txn.quantity_in || 0), 0);
+      const totalSales = data.reduce((sum, txn) => sum + (txn.quantity_out || 0), 0);
+      const totalValueIn = data.reduce(
+        (sum, txn) => sum + (txn.quantity_in || 0) * (txn.unit_cost || 0),
+        0
+      );
+      const totalValueOut = data.reduce(
+        (sum, txn) => sum + (txn.quantity_out || 0) * (txn.unit_cost || 0),
+        0
+      );
+
+      return {
+        data: {
+          totalReceipts,
+          totalSales,
+          totalValueIn,
+          totalValueOut,
+        },
+        error: null,
+      };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'getInventoryItemTransactionsSummary', itemId });
+      return { data: null, error };
+    }
+  },
+
+  /**
    * Get paginated transactions for an inventory item with optional filtering
    */
   async getInventoryTransactionsPaginated(

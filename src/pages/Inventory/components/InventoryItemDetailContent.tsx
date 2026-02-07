@@ -1,6 +1,6 @@
 // InventoryItemDetailContent - Shared inventory item detail content
 
-import { IonSegment, IonSegmentButton, IonLabel } from '@ionic/react';
+import { IonLabel, IonSegment, IonSegmentButton } from '@ionic/react';
 import type React from 'react';
 import styled from 'styled-components';
 import { CardContainer, DeleteButton } from '@/components/shared';
@@ -9,7 +9,7 @@ import type { InventoryItemWithCategory, InventoryTransaction, PackageSize } fro
 import InventoryActionsCard from './InventoryActionsCard';
 import InventoryGeneralDetailsCard from './InventoryGeneralDetailsCard';
 import InventoryImageSection from './InventoryImageSection';
-import InventoryTransactionsList from './InventoryTransactionsList';
+import InventoryTransactionSummaryCard from './InventoryTransactionSummaryCard';
 import PackageSizesList from './PackageSizesList';
 
 interface InventoryItemDetailContentProps {
@@ -24,6 +24,10 @@ interface InventoryItemDetailContentProps {
   canDelete: boolean;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
+  totalReceipts?: number;
+  totalSales?: number;
+  totalValueIn?: number;
+  totalValueOut?: number;
   onImageUploaded: (url: string) => void;
   onSegmentChange: (segment: 'transactions' | 'manage') => void;
   onEdit: () => void;
@@ -76,6 +80,10 @@ const InventoryItemDetailContent: React.FC<InventoryItemDetailContentProps> = ({
   canDelete,
   hasNextPage,
   isFetchingNextPage,
+  totalReceipts,
+  totalSales,
+  totalValueIn,
+  totalValueOut,
   onImageUploaded,
   onSegmentChange,
   onEdit,
@@ -104,6 +112,18 @@ const InventoryItemDetailContent: React.FC<InventoryItemDetailContentProps> = ({
       {/* General Details Card */}
       <InventoryGeneralDetailsCard item={item} disabled={!canEdit} />
 
+      {/* Transaction Summary Card */}
+      <InventoryTransactionSummaryCard
+        baseUom={item.base_uom}
+        currentCount={item.current_count}
+        unitCost={item.unit_cost}
+        totalReceipts={totalReceipts}
+        totalSales={totalSales}
+        totalValueIn={totalValueIn}
+        totalValueOut={totalValueOut}
+        formatCurrency={formatCurrency}
+      />
+
       {/* Actions Card */}
       <InventoryActionsCard
         onEdit={onEdit}
@@ -112,63 +132,24 @@ const InventoryItemDetailContent: React.FC<InventoryItemDetailContentProps> = ({
         onOptions={onOptions}
         disabled={!canEdit}
       />
-
-      {/* Segment Control */}
-      <SegmentContainer>
-        <IonSegment
-          color="dark"
-          value={selectedSegment}
-          onIonChange={(e) => onSegmentChange(e.detail.value as 'transactions' | 'manage')}
-        >
-          <IonSegmentButton value="transactions" color="dark">
-            <IonLabel color="dark" className="ion-text-capitalize">
-              Transactions
-            </IonLabel>
-          </IonSegmentButton>
-          <IonSegmentButton value="manage" color="dark">
-            <IonLabel color="dark" className="ion-text-capitalize">
-              Manage
-            </IonLabel>
-          </IonSegmentButton>
-        </IonSegment>
-      </SegmentContainer>
-
-      {/* Content based on segment */}
-      {selectedSegment === 'transactions' ? (
-        <CardContainer title="Transaction History" noPadding>
-          <InventoryTransactionsList
-            transactions={transactions}
-            isLoading={transactionsLoading}
-            baseUom={item.base_uom}
-            canEdit={canEdit}
-            onTransactionClick={onTransactionClick}
-            onReceiveClick={onReceiveClick}
-            onLoadMore={onLoadMore}
-            hasMore={hasNextPage}
-            isLoadingMore={isFetchingNextPage}
-          />
-        </CardContainer>
-      ) : (
-        <CardContainer title="Package Sizes" noPadding>
-          <PackageSizesList
-            packageSizes={packageSizes}
-            baseUom={item.base_uom}
-            formatCurrency={formatCurrency}
-            onAdd={onAddPackageSize}
-            onEdit={onEditPackageSize}
-            onDelete={onDeletePackageSize}
-            canEdit={canEdit}
-          />
-        </CardContainer>
-      )}
+      {/* Package Sizes */}
+      <PackageSizesList
+        packageSizes={packageSizes}
+        baseUom={item.base_uom}
+        formatCurrency={formatCurrency}
+        onAdd={onAddPackageSize}
+        onEdit={onEditPackageSize}
+        onDelete={onDeletePackageSize}
+        canEdit={canEdit}
+      />
 
       {/* Danger Zone */}
       {canDelete && (
         <DangerCardContainer title="Danger Zone">
           <DangerZoneContent>
             <DangerZoneDescription>
-              Deleting this inventory item will permanently remove it and all its transaction history.
-              This action cannot be undone.
+              Deleting this inventory item will permanently remove it and all its transaction
+              history. This action cannot be undone.
             </DangerZoneDescription>
             <DeleteButton
               isDeleting={false}

@@ -13,6 +13,7 @@ import {
   useDeleteInventoryItem,
   useDeletePackageSize,
   useInventoryItem,
+  useInventoryItemTransactionsSummary,
   useInventoryTransactionsInfinite,
   usePackageSizes,
   useUpdateInventoryItem,
@@ -100,6 +101,9 @@ const InventoryItemDetailPanel: React.FC<InventoryItemDetailPanelProps> = ({
 
   // Flatten paginated transactions data
   const transactions = transactionsData?.pages.flatMap((page) => page.data) ?? [];
+
+  // Fetch aggregated transaction summary statistics from the server
+  const { data: transactionSummary } = useInventoryItemTransactionsSummary(itemId || '');
 
   // Package sizes
   const { data: packageSizes } = usePackageSizes(itemId || '');
@@ -241,6 +245,10 @@ const InventoryItemDetailPanel: React.FC<InventoryItemDetailPanelProps> = ({
             canDelete={canDelete}
             hasNextPage={hasNextPage ?? false}
             isFetchingNextPage={isFetchingNextPage}
+            totalReceipts={transactionSummary?.totalReceipts}
+            totalSales={transactionSummary?.totalSales}
+            totalValueIn={transactionSummary?.totalValueIn}
+            totalValueOut={transactionSummary?.totalValueOut}
             onImageUploaded={handleImageUploaded}
             onSegmentChange={setSelectedSegment}
             onEdit={handleEdit}
