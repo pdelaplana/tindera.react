@@ -1,15 +1,14 @@
 // Inventory Transactions List Panel - Right panel content for showing all transactions
 
 import type React from 'react';
-import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { DetailPanelHeader } from '@/components/shared';
-import { useShop } from '@/hooks/useShop';
 import type { InventoryTransaction } from '@/types';
 import InventoryTransactionsContent from './InventoryTransactionsContent';
 
 interface InventoryTransactionsListPanelProps {
   onBack: () => void;
+  onTransactionClick: (transactionId: string) => void;
 }
 
 // Styled components
@@ -21,15 +20,11 @@ const Container = styled.div`
 
 const InventoryTransactionsListPanel: React.FC<InventoryTransactionsListPanelProps> = ({
   onBack,
+  onTransactionClick,
 }) => {
-  const history = useHistory();
-  const { currentShop } = useShop();
-
-  // Handle transaction click
+  // Handle transaction click - call the parent's handler with transaction ID
   const handleTransactionClick = (transaction: InventoryTransaction) => {
-    history.push(
-      `/shops/${currentShop?.id}/inventory/${transaction.item_id}/transactions/${transaction.id}`
-    );
+    onTransactionClick(transaction.id);
   };
 
   return (

@@ -25,6 +25,7 @@ import { createCurrencyFormatter } from '@/utils/currency';
 import InventoryItemDetailPanel from './components/InventoryItemDetailPanel';
 import InventoryItemFormModal from './components/InventoryItemFormModal';
 import InventoryItemListItem from './components/InventoryItemListItem';
+import InventoryTransactionDetailsPanel from './components/InventoryTransactionDetailsPanel';
 import InventoryTransactionsListPanel from './components/InventoryTransactionsListPanel';
 import InventoryTransactionsSummaryCard from './components/InventoryTransactionsSummaryCard';
 
@@ -169,6 +170,7 @@ const InventoryListPage: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [showTransactionsList, setShowTransactionsList] = useState(false);
+  const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
 
   // Fetch inventory items and categories
   const { data: items, isLoading: itemsLoading } = useInventoryItems({
@@ -251,6 +253,7 @@ const InventoryListPage: React.FC = () => {
   const handleItemClick = (item: InventoryItemWithCategory) => {
     if (isDesktop) {
       setShowTransactionsList(false);
+      setSelectedTransactionId(null);
       setSelectedItemId(item.id);
     } else {
       history.push(`/shops/${currentShop?.id}/inventory/${item.id}/manage`);
@@ -271,6 +274,7 @@ const InventoryListPage: React.FC = () => {
   const handleNavigateToTransactions = () => {
     if (isDesktop) {
       setSelectedItemId(null);
+      setSelectedTransactionId(null);
       setShowTransactionsList(true);
     } else {
       history.push(`/shops/${currentShop?.id}/inventory/transactions`);
@@ -280,6 +284,21 @@ const InventoryListPage: React.FC = () => {
   // Handle back from transactions list to summary
   const handleBackToSummary = () => {
     setShowTransactionsList(false);
+    setSelectedTransactionId(null);
+  };
+
+  // Handle transaction details view (desktop: show panel, mobile: navigate)
+  const handleTransactionClick = (transactionId: string) => {
+    if (isDesktop) {
+      setSelectedTransactionId(transactionId);
+    } else {
+      // Mobile navigation handled by InventoryTransactionsContent component
+    }
+  };
+
+  // Handle back from transaction details to transactions list
+  const handleBackToTransactionsList = () => {
+    setSelectedTransactionId(null);
   };
 
   // Close modal
@@ -291,6 +310,7 @@ const InventoryListPage: React.FC = () => {
   const handleItemDeleted = () => {
     setSelectedItemId(null);
     setShowTransactionsList(false);
+    setSelectedTransactionId(null);
   };
 
   // Render individual inventory item
@@ -432,9 +452,17 @@ const InventoryListPage: React.FC = () => {
     </>
   );
 
-  // Render right panel content (detail, transactions list, or summary)
-  const rightPanelContent = showTransactionsList ? (
-    <InventoryTransactionsListPanel onBack={handleBackToSummary} />
+  // Render right panel content (transaction details, transactions list, item detail, or summary)
+  const rightPanelContent = selectedTransactionId ? (
+    <InventoryTransactionDetailsPanel
+      transactionId={selectedTransactionId}
+      onBack={handleBackToTransactionsList}
+    />
+  ) : showTransactionsList ? (
+    <InventoryTransactionsListPanel
+      onBack={handleBackToSummary}
+      onTransactionClick={handleTransactionClick}
+    />
   ) : selectedItemId ? (
     <InventoryItemDetailPanel itemId={selectedItemId} onItemDeleted={handleItemDeleted} />
   ) : (

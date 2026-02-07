@@ -530,7 +530,10 @@ export const inventoryService = {
     try {
       let query = supabase
         .from('inventory_transactions')
-        .select('*')
+        .select(`
+          *,
+          inventory_items!inner(base_uom)
+        `)
         .eq('shop_id', shopId)
         .order('transaction_on', { ascending: false });
 
@@ -698,6 +701,13 @@ export const inventoryService = {
         .eq('id', transaction.user_id)
         .single();
 
+      // Fetch inventory item base_uom
+      const { data: inventoryItem } = await supabase
+        .from('inventory_items')
+        .select('base_uom')
+        .eq('id', transaction.item_id)
+        .single();
+
       // Fetch package size information if this was a package-based receipt
       let packageSize:
         | { package_name: string; package_uom: string; units_per_package: number }
@@ -714,10 +724,11 @@ export const inventoryService = {
         }
       }
 
-      // Combine transaction with user profile and package size
+      // Combine transaction with user profile, inventory item, and package size
       const result = {
         ...transaction,
         user_profile: userProfile ? { display_name: userProfile.display_name } : undefined,
+        inventory_items: inventoryItem ? { base_uom: inventoryItem.base_uom } : undefined,
         package_size: packageSize,
       } as InventoryTransaction & {
         user_profile?: { display_name: string };

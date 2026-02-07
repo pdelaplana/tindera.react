@@ -359,6 +359,9 @@ export interface InventoryTransaction extends Auditable {
   adjustment_reason_other: string | null;
   unit_cost: number;
   supplier: string | null;
+  inventory_items?: {
+    base_uom: string;
+  };
 }
 
 export interface InventoryCount extends Auditable {

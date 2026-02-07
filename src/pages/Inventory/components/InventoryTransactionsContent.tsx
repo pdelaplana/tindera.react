@@ -61,7 +61,6 @@ const ScrollableSection = styled.div`
 const ScrollContent = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 0 16px;
 `;
 
 const EmptyContainer = styled.div`
@@ -279,7 +278,7 @@ const InventoryTransactionsContent: React.FC<InventoryTransactionsContentProps> 
                                     ? `+${txn.quantity_in}`
                                     : `-${txn.quantity_out}`}
                                 </h3>
-                                <IonNote>units</IonNote>
+                                <IonNote>{txn.inventory_items?.base_uom || 'units'}</IonNote>
                               </IonLabel>
                             </StyledIonItem>
                           );
