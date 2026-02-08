@@ -7,8 +7,8 @@ import BaseModal from '@/components/shared/BaseModal';
 import { PriceDisplay } from '@/components/ui';
 import { designSystem } from '@/theme/designSystem';
 import type { CartItemAddon, CartItemModifier, Product, ProductWithDetails } from '@/types';
-import { AddonQuantityControl } from './AddonQuantityControl';
-import { ModifierGroupControl } from './ModifierGroupControl';
+import { AddonQuantityControl } from '../modifiers/AddonQuantityControl';
+import { ModifierGroupControl } from '../modifiers/ModifierGroupControl';
 
 interface ProductCustomizationModalProps {
   isOpen: boolean;

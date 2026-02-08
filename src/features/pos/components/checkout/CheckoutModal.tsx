@@ -6,7 +6,7 @@ import type React from 'react';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import styled from 'styled-components';
-import { OrderTotals } from '@/components/pos/OrderTotals';
+import { OrderTotals } from '../cart/OrderTotals';
 import BaseModal from '@/components/shared/BaseModal';
 import { NumberField, PriceField, SelectField, TextField } from '@/components/shared/FormFields';
 import { PriceDisplay } from '@/components/ui';

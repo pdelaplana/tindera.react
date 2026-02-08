@@ -29,7 +29,7 @@ import {
   CheckoutModal,
   ProductCard,
   ProductCustomizationModal,
-} from '@/components/pos';
+} from '../components';
 // UI Components
 import { BottomSheet } from '@/components/ui';
 import { useIsMobile, useIsTabletOrLarger } from '@/hooks/useBreakpoint';

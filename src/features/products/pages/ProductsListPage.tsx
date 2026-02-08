@@ -6,7 +6,7 @@ import { useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { MasterDetailLayout, PlaceholderContainer } from '@/components/layouts';
-import { CategoryPillScroller } from '@/components/pos';
+import { CategoryPillScroller } from '@/features/pos/components';
 import PageHeader from '@/components/shared/PageHeader';
 import { LoadingSpinner } from '@/components/ui';
 import { useIsTabletOrLarger } from '@/hooks/useBreakpoint';

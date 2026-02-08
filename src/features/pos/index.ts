@@ -1,3 +1,3 @@
 // POS Pages - Barrel Export
 
-export { default as POSPage } from './POSPage';
+export { default as POSPage } from './pages/POSPage';

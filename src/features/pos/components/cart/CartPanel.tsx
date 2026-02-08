@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import { designSystem } from '@/theme/designSystem';
 import type { CartItem as CartItemType } from '@/types';
 import { CartItem } from './CartItem';
-import { ChargeButton } from './ChargeButton';
+import { ChargeButton } from '../checkout/ChargeButton';
 import { OrderTotals } from './OrderTotals';
 
 interface CartPanelProps {
