@@ -22,12 +22,12 @@ import { useShop } from '@/hooks/useShop';
 import { designSystem } from '@/theme/designSystem';
 import type { FilterOption, InventoryCategory, InventoryItemWithCategory } from '@/types';
 import { createCurrencyFormatter } from '@/utils/currency';
-import InventoryItemDetailPanel from './components/InventoryItemDetailPanel';
-import InventoryItemFormModal from './components/InventoryItemFormModal';
-import InventoryItemListItem from './components/InventoryItemListItem';
-import InventoryTransactionDetailsPanel from './components/InventoryTransactionDetailsPanel';
-import InventoryTransactionsListPanel from './components/InventoryTransactionsListPanel';
-import InventoryTransactionsSummaryCard from './components/InventoryTransactionsSummaryCard';
+import InventoryItemDetailPanel from './components/items/panels/InventoryItemDetailPanel';
+import InventoryItemFormModal from './components/items/modals/InventoryItemFormModal';
+import InventoryItemListItem from './components/items/lists/InventoryItemListItem';
+import InventoryTransactionDetailsPanel from './components/transactions/panels/InventoryTransactionDetailsPanel';
+import InventoryTransactionsListPanel from './components/transactions/panels/InventoryTransactionsListPanel';
+import InventoryTransactionsSummaryCard from './components/transactions/cards/InventoryTransactionsSummaryCard';
 
 // Styled components
 const LeftPanelHeader = styled.div`

@@ -4,7 +4,7 @@ import type React from 'react';
 import styled from 'styled-components';
 import { CenteredLayout } from '@/components/layouts';
 import { DetailPanelHeader } from '@/components/shared';
-import InventoryTransactionDetailsContent from './InventoryTransactionDetailsContent';
+import InventoryTransactionDetailsContent from '../sections/InventoryTransactionDetailsContent';
 
 interface InventoryTransactionDetailsPanelProps {
   transactionId: string;

@@ -4,7 +4,7 @@ import type React from 'react';
 import styled from 'styled-components';
 import { CardContainer } from '@/components/shared';
 import { designSystem } from '@/theme/designSystem';
-import InventoryActionButtons from './InventoryActionButtons';
+import InventoryActionButtons from '../sections/InventoryActionButtons';
 
 interface InventoryActionsCardProps {
   onEdit: () => void;

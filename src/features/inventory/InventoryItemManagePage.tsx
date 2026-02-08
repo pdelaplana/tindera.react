@@ -28,12 +28,12 @@ import { useToastNotification } from '@/hooks/useToastNotification';
 import { logger } from '@/services/sentry';
 import type { PackageSize } from '@/types';
 import { createCurrencyFormatter } from '@/utils/currency';
-import AdjustInventoryModal from './components/AdjustInventoryModal';
-import InventoryItemDetailContent from './components/details/InventoryItemDetailContent';
-import InitiateCountModal from './components/InitiateCountModal';
-import InventoryItemFormModal from './components/InventoryItemFormModal';
-import PackageSizeFormModal from './components/PackageSizeFormModal';
-import ReceiveInventoryModal from './components/ReceiveInventoryModal';
+import AdjustInventoryModal from './components/items/modals/AdjustInventoryModal';
+import InventoryItemDetailContent from './components/items/sections/InventoryItemDetailContent';
+import InitiateCountModal from './components/items/modals/InitiateCountModal';
+import InventoryItemFormModal from './components/items/modals/InventoryItemFormModal';
+import PackageSizeFormModal from './components/package-sizes/modals/PackageSizeFormModal';
+import ReceiveInventoryModal from './components/items/modals/ReceiveInventoryModal';
 
 interface RouteParams {
   itemId: string;

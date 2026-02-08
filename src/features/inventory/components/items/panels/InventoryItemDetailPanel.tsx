@@ -24,12 +24,12 @@ import { logger } from '@/services/sentry';
 import { designSystem } from '@/theme/designSystem';
 import type { PackageSize } from '@/types';
 import { createCurrencyFormatter } from '@/utils/currency';
-import AdjustInventoryModal from './AdjustInventoryModal';
-import InventoryItemDetailContent from './details/InventoryItemDetailContent';
-import InitiateCountModal from './InitiateCountModal';
-import InventoryItemFormModal from './InventoryItemFormModal';
-import PackageSizeFormModal from './PackageSizeFormModal';
-import ReceiveInventoryModal from './ReceiveInventoryModal';
+import AdjustInventoryModal from '../modals/AdjustInventoryModal';
+import InventoryItemDetailContent from '../sections/InventoryItemDetailContent';
+import InitiateCountModal from '../modals/InitiateCountModal';
+import InventoryItemFormModal from '../modals/InventoryItemFormModal';
+import PackageSizeFormModal from '../../package-sizes/modals/PackageSizeFormModal';
+import ReceiveInventoryModal from '../modals/ReceiveInventoryModal';
 
 const Container = styled.div`
   height: 100%;
