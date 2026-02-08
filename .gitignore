@@ -11,6 +11,9 @@
 # production
 /dist
 
+# git worktrees
+.worktrees
+
 # misc
 .DS_Store
 .env.local
