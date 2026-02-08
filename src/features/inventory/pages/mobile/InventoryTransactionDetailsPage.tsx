@@ -12,7 +12,7 @@ import {
 import type React from 'react';
 import { useParams } from 'react-router-dom';
 import { CenteredLayout } from '@/components/layouts';
-import InventoryTransactionDetailsContent from '../components/transactions/sections/InventoryTransactionDetailsContent';
+import InventoryTransactionDetailsContent from '../../components/transactions/sections/InventoryTransactionDetailsContent';
 
 interface RouteParams {
   shopId: string;

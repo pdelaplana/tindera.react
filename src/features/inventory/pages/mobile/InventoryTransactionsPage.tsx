@@ -5,7 +5,7 @@ import { useHistory } from 'react-router-dom';
 import { BasePage } from '@/components/layouts';
 import { useShop } from '@/hooks/useShop';
 import type { InventoryTransaction } from '@/types';
-import InventoryTransactionsContent from '../components/transactions/lists/InventoryTransactionsContent';
+import InventoryTransactionsContent from '../../components/transactions/lists/InventoryTransactionsContent';
 
 const InventoryTransactionsPage: React.FC = () => {
   const history = useHistory();
