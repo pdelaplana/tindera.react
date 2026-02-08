@@ -5,9 +5,9 @@ import styled from 'styled-components';
 import { CardContainer, DeleteButton } from '@/components/shared';
 import { designSystem } from '@/theme/designSystem';
 import type { InventoryItemWithCategory, InventoryTransaction, PackageSize } from '@/types';
-import InventoryActionsCard from '../InventoryActionsCard';
-import InventoryGeneralDetailsCard from '../InventoryGeneralDetailsCard';
-import InventoryTransactionSummaryCard from '../InventoryTransactionSummaryCard';
+import InventoryActionsCard from './InventoryActionsCard';
+import InventoryGeneralDetailsCard from './InventoryGeneralDetailsCard';
+import InventoryTransactionSummaryCard from './InventoryTransactionSummaryCard';
 import PackageSizesList from '../PackageSizesList';
 import InventoryImageSection from './InventoryImageSection';
 

@@ -7,9 +7,9 @@ import AuthGuard from '@/components/AuthGuard';
 import SideMenu from '@/components/SideMenu';
 // Contexts
 import { AppProviders } from '@/contexts';
-import LoginPage from '@/pages/Auth/LoginPage';
-import LogoutPage from '@/pages/Auth/LogoutPage';
-import SignupPage from '@/pages/Auth/SignupPage';
+import LoginPage from '@/features/auth/LoginPage';
+import LogoutPage from '@/features/auth/LogoutPage';
+import SignupPage from '@/features/auth/SignupPage';
 import {
   InventoryCategoriesListPage,
   InventoryItemManagePage,
@@ -17,20 +17,20 @@ import {
   InventoryTransactionDetailsPage,
   InventoryTransactionsPage,
   PackageSizesPage,
-} from '@/pages/Inventory';
-import { POSPage } from '@/pages/POS';
+} from '@/features/inventory';
+import { POSPage } from '@/features/pos';
 import {
   CategoriesListPage,
   ModifierGroupManagePage,
   ModifiersListPage,
   ProductManagePage,
   ProductsListPage,
-} from '@/pages/Products';
-import { OrderDetailPage, SalesListPage } from '@/pages/Sales';
-import { SettingsPage } from '@/pages/Settings';
-import { ShopFormPage, ShopSelectionPage } from '@/pages/Shop';
+} from '@/features/products';
+import { OrderDetailPage, SalesListPage } from '@/features/sales';
+import { SettingsPage } from '@/features/settings';
+import { ShopFormPage, ShopSelectionPage } from '@/features/shop';
 // Pages
-import Home from './pages/Home';
+import Home from './features/Home';
 
 // Note: All Ionic CSS and theme variables are imported in main.tsx via global.scss
 
