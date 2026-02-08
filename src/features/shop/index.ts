@@ -1,4 +1,4 @@
 // Shop Pages - Barrel Export
 
-export { default as ShopFormPage } from './ShopFormPage';
-export { default as ShopSelectionPage } from './ShopSelectionPage';
+export { default as ShopFormPage } from './pages/ShopFormPage';
+export { default as ShopSelectionPage } from './pages/ShopSelectionPage';

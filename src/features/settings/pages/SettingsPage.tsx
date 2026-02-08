@@ -20,7 +20,7 @@ import { CenteredLayout } from '@/components/layouts';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import PageHeader from '@/components/shared/PageHeader';
 import { useDeleteShop, useShop } from '@/hooks/useShop';
-import { DiscountTypeSettings, TaxSettings, VoidRefundReasonSettings } from './components';
+import { DiscountTypeSettings, TaxSettings, VoidRefundReasonSettings } from '../components';
 
 const SettingsPage: React.FC = () => {
   const history = useHistory();
