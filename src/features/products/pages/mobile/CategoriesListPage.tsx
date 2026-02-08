@@ -22,9 +22,9 @@ import { CardContainer } from '@/components/shared';
 import { Div } from '@/components/shared/base/Div';
 import { LoadingSpinner } from '@/components/ui';
 import type { ProductCategory } from '@/types';
-import { useProductCategories, useUpdateProductCategory } from '../../hooks/useProduct';
-import { useShop } from '../../hooks/useShop';
-import { CategoryFormModal } from './components';
+import { useProductCategories, useUpdateProductCategory } from '@/hooks/useProduct';
+import { useShop } from '@/hooks/useShop';
+import { CategoryFormModal } from '../../components';
 
 export const CategoriesListPage: React.FC = () => {
   const { currentShop, isLoading: shopLoading, hasPermission } = useShop();

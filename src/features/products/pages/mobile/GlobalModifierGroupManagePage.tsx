@@ -23,10 +23,10 @@ import { useToastNotification } from '@/hooks/useToastNotification';
 import { logger } from '@/services/sentry';
 import type { Modifier } from '@/types';
 import { createCurrencyFormatter } from '@/utils/currency';
-import { GlobalModifierFormModal } from './components/globalModifiers/GlobalModifierFormModal';
-import { GlobalModifierGroupFormModal } from './components/globalModifiers/GlobalModifierGroupFormModal';
-import ModifiersList from './components/globalModifiers/ModifiersList';
-import ModifierGroupActionButtons from './components/ModifierGroupActionButtons';
+import { GlobalModifierFormModal } from '../../components/globalModifiers/GlobalModifierFormModal';
+import { GlobalModifierGroupFormModal } from '../../components/globalModifiers/GlobalModifierGroupFormModal';
+import ModifiersList from '../../components/globalModifiers/ModifiersList';
+import ModifierGroupActionButtons from '../../components/ModifierGroupActionButtons';
 
 interface RouteParams {
   shopId: string;

@@ -15,7 +15,7 @@ import { useShop } from '@/hooks/useShop';
 import { designSystem } from '@/theme/designSystem';
 import type { ProductWithCategory } from '@/types';
 import { createCurrencyFormatter } from '@/utils/currency';
-import { ProductDetailPanel, ProductFormModal, ProductListItem } from './components';
+import { ProductDetailPanel, ProductFormModal, ProductListItem } from '../components';
 
 // Styled components
 const SearchBarContainer = styled.div`

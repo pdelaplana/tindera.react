@@ -40,7 +40,7 @@ import {
   ProductItemModal,
   ProductModifierModal,
   ProductModifierSelectModal,
-} from './components';
+} from '../../components';
 
 interface RouteParams {
   id: string;

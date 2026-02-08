@@ -1,7 +1,7 @@
 // Products Pages - Export
 
-export { CategoriesListPage } from './CategoriesListPage';
-export { default as ModifierGroupManagePage } from './GlobalModifierGroupManagePage';
-export { default as ModifiersListPage } from './GlobalModifiersListPage';
-export { default as ProductManagePage } from './ProductManagePage';
-export { default as ProductsListPage } from './ProductsListPage';
+export { CategoriesListPage } from './pages/mobile/CategoriesListPage';
+export { default as ModifierGroupManagePage } from './pages/mobile/GlobalModifierGroupManagePage';
+export { default as ModifiersListPage } from './pages/mobile/GlobalModifiersListPage';
+export { default as ProductManagePage } from './pages/mobile/ProductManagePage';
+export { default as ProductsListPage } from './pages/ProductsListPage';

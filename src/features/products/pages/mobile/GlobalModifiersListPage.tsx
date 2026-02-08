@@ -24,7 +24,7 @@ import { FilterPillScroller, IonText2, LoadingSpinner } from '@/components/ui';
 import { useModifierGroups } from '@/hooks';
 import { useShop } from '@/hooks/useShop';
 import type { FilterOption, ModifierGroupWithModifiers } from '@/types';
-import { GlobalModifierGroupFormModal } from './components/globalModifiers/GlobalModifierGroupFormModal';
+import { GlobalModifierGroupFormModal } from '../../components/globalModifiers/GlobalModifierGroupFormModal';
 
 // Filter options
 const buildFilterOptions = (): FilterOption[] => {
