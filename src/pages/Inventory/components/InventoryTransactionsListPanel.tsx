@@ -4,7 +4,7 @@ import type React from 'react';
 import styled from 'styled-components';
 import { DetailPanelHeader } from '@/components/shared';
 import type { InventoryTransaction } from '@/types';
-import InventoryTransactionsContent from './InventoryTransactionsContent';
+import InventoryTransactionsContent from './transactions/InventoryTransactionsContent';
 
 interface InventoryTransactionsListPanelProps {
   onBack: () => void;

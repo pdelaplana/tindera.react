@@ -125,7 +125,7 @@ const InventoryTransactionSummaryCard: React.FC<InventoryTransactionSummaryCardP
         </StatItem>
 
         <StatItem>
-          <StatIcon color={designSystem.colors.primary}>
+          <StatIcon color={designSystem.colors.brand.primary}>
             <IonIcon icon={listOutline} />
           </StatIcon>
           <StatValue>{formatCurrency(currentValue)}</StatValue>

@@ -1,16 +1,15 @@
 // InventoryItemDetailContent - Shared inventory item detail content
 
-import { IonLabel, IonSegment, IonSegmentButton } from '@ionic/react';
 import type React from 'react';
 import styled from 'styled-components';
 import { CardContainer, DeleteButton } from '@/components/shared';
 import { designSystem } from '@/theme/designSystem';
 import type { InventoryItemWithCategory, InventoryTransaction, PackageSize } from '@/types';
-import InventoryActionsCard from './InventoryActionsCard';
-import InventoryGeneralDetailsCard from './InventoryGeneralDetailsCard';
+import InventoryActionsCard from '../InventoryActionsCard';
+import InventoryGeneralDetailsCard from '../InventoryGeneralDetailsCard';
+import InventoryTransactionSummaryCard from '../InventoryTransactionSummaryCard';
+import PackageSizesList from '../PackageSizesList';
 import InventoryImageSection from './InventoryImageSection';
-import InventoryTransactionSummaryCard from './InventoryTransactionSummaryCard';
-import PackageSizesList from './PackageSizesList';
 
 interface InventoryItemDetailContentProps {
   item: InventoryItemWithCategory;
@@ -43,10 +42,6 @@ interface InventoryItemDetailContentProps {
   onDeleteItem: () => void;
 }
 
-const SegmentContainer = styled.div`
-  margin-bottom: ${designSystem.spacing.md};
-`;
-
 const DangerCardContainer = styled(CardContainer)`
   margin-top: ${designSystem.spacing.xl};
   border: 1px solid ${designSystem.colors.danger};
@@ -71,28 +66,19 @@ const DangerZoneDescription = styled.p`
 const InventoryItemDetailContent: React.FC<InventoryItemDetailContentProps> = ({
   item,
   shopId,
-  transactions,
-  transactionsLoading,
   packageSizes,
-  selectedSegment,
   formatCurrency,
   canEdit,
   canDelete,
-  hasNextPage,
-  isFetchingNextPage,
   totalReceipts,
   totalSales,
   totalValueIn,
   totalValueOut,
   onImageUploaded,
-  onSegmentChange,
   onEdit,
   onReceive,
   onAdjust,
   onOptions,
-  onTransactionClick,
-  onReceiveClick,
-  onLoadMore,
   onAddPackageSize,
   onEditPackageSize,
   onDeletePackageSize,

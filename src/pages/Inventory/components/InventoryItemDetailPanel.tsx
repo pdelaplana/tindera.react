@@ -25,8 +25,8 @@ import { designSystem } from '@/theme/designSystem';
 import type { PackageSize } from '@/types';
 import { createCurrencyFormatter } from '@/utils/currency';
 import AdjustInventoryModal from './AdjustInventoryModal';
+import InventoryItemDetailContent from './details/InventoryItemDetailContent';
 import InitiateCountModal from './InitiateCountModal';
-import InventoryItemDetailContent from './InventoryItemDetailContent';
 import InventoryItemFormModal from './InventoryItemFormModal';
 import PackageSizeFormModal from './PackageSizeFormModal';
 import ReceiveInventoryModal from './ReceiveInventoryModal';
@@ -265,7 +265,6 @@ const InventoryItemDetailPanel: React.FC<InventoryItemDetailPanelProps> = ({
           />
         </CenteredLayout>
       </ScrollContent>
-
 
       {/* Modals */}
       <ReceiveInventoryModal

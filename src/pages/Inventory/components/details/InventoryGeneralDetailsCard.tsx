@@ -69,7 +69,6 @@ const InventoryGeneralDetailsCard: React.FC<InventoryGeneralDetailsCardProps> = 
       category_id: item.category_id || '',
     });
   }, [
-    item.id,
     item.name,
     item.sku,
     item.description,

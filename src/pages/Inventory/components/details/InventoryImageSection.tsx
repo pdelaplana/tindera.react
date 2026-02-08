@@ -5,9 +5,9 @@ import { cameraOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useRef, useState } from 'react';
 import styled from 'styled-components';
-import { designSystem } from '@/theme/designSystem';
-import { uploadInventoryItemImage } from '@/services/storage';
 import { logger } from '@/services/sentry';
+import { uploadInventoryItemImage } from '@/services/storage';
+import { designSystem } from '@/theme/designSystem';
 
 interface InventoryImageSectionProps {
   imageUrl: string | null;
