@@ -1,8 +1,7 @@
 // Sales components exports
 
-export { default as OrderCard } from './OrderCard';
-export { default as OrderDetail } from './OrderDetail';
-export { default as OrderDetailPage } from './OrderDetailPage';
-export { default as OrderList } from './OrderList';
-export { default as RefundModal } from './RefundModal';
-export { default as VoidModal } from './VoidModal';
+export { default as OrderCard } from './orders/cards/OrderCard';
+export { default as OrderDetail } from './orders/sections/OrderDetail';
+export { default as OrderList } from './orders/lists/OrderList';
+export { default as RefundModal } from './orders/modals/RefundModal';
+export { default as VoidModal } from './orders/modals/VoidModal';

@@ -1,4 +1,4 @@
 // Sales page exports
 
-export { OrderDetailPage } from './components';
-export { default as SalesListPage } from './SalesListPage';
+export { default as OrderDetailPage } from './pages/mobile/OrderDetailPage';
+export { default as SalesListPage } from './pages/SalesListPage';

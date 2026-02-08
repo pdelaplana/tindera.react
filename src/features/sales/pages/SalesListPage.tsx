@@ -18,7 +18,10 @@ import { useShopContext } from '@/contexts/ShopContext';
 import { useIsTabletOrLarger } from '@/hooks/useBreakpoint';
 import { useOrders } from '@/hooks/useOrder';
 import type { OrderWithDetails } from '@/types';
-import { OrderDetail, OrderList, RefundModal, VoidModal } from './components';
+import { OrderDetail } from '../components/orders/sections/OrderDetail';
+import { OrderList } from '../components/orders/lists/OrderList';
+import { RefundModal } from '../components/orders/modals/RefundModal';
+import { VoidModal } from '../components/orders/modals/VoidModal';
 
 // Styled components
 const FilterTabsContainer = styled.div`

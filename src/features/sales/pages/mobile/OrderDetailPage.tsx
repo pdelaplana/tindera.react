@@ -17,7 +17,7 @@ import styled from 'styled-components';
 import { useShopContext } from '@/contexts/ShopContext';
 import { useOrderDetail } from '@/hooks';
 import { designSystem } from '@/theme/designSystem';
-import { OrderDetail } from './OrderDetail';
+import { OrderDetail } from '../../components/orders/sections/OrderDetail';
 
 // Styled components
 const LoadingContainer = styled.div`

@@ -5,7 +5,7 @@ import type React from 'react';
 import styled from 'styled-components';
 import { designSystem } from '@/theme/designSystem';
 import type { OrderWithDetails } from '@/types';
-import { OrderCard } from './OrderCard';
+import { OrderCard } from '../cards/OrderCard';
 
 interface OrderListProps {
   orders: OrderWithDetails[];
