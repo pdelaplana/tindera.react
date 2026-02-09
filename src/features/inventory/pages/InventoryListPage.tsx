@@ -22,12 +22,12 @@ import { useShop } from '@/hooks/useShop';
 import { designSystem } from '@/theme/designSystem';
 import type { FilterOption, InventoryCategory, InventoryItemWithCategory } from '@/types';
 import { createCurrencyFormatter } from '@/utils/currency';
-import InventoryItemDetailPanel from '../components/items/panels/InventoryItemDetailPanel';
-import InventoryItemFormModal from '../components/items/modals/InventoryItemFormModal';
 import InventoryItemListItem from '../components/items/lists/InventoryItemListItem';
+import InventoryItemFormModal from '../components/items/modals/InventoryItemFormModal';
+import InventoryItemDetailPanel from '../components/items/panels/InventoryItemDetailPanel';
+import InventoryTransactionsSummaryCard from '../components/transactions/cards/InventoryTransactionsSummaryCard';
 import InventoryTransactionDetailsPanel from '../components/transactions/panels/InventoryTransactionDetailsPanel';
 import InventoryTransactionsListPanel from '../components/transactions/panels/InventoryTransactionsListPanel';
-import InventoryTransactionsSummaryCard from '../components/transactions/cards/InventoryTransactionsSummaryCard';
 
 // Styled components
 const LeftPanelHeader = styled.div`
@@ -36,10 +36,12 @@ const LeftPanelHeader = styled.div`
   gap: ${designSystem.spacing.sm};
   padding: 12px 16px;
   border-bottom: 1px solid var(--ion-color-light-shade);
+
 `;
 
 const SearchBarWrapper = styled.div`
   flex: 1;
+  height: 32px;
 `;
 
 const HeaderButton = styled(IonButton)`

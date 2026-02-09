@@ -8,6 +8,7 @@ import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { CenteredLayout } from '@/components/layouts';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
+import { DetailPanelHeader } from '@/components/shared';
 import { LoadingSpinner } from '@/components/ui';
 import {
   useDeleteInventoryItem,
@@ -30,6 +31,8 @@ import InitiateCountModal from '../modals/InitiateCountModal';
 import InventoryItemFormModal from '../modals/InventoryItemFormModal';
 import PackageSizeFormModal from '../../package-sizes/modals/PackageSizeFormModal';
 import ReceiveInventoryModal from '../modals/ReceiveInventoryModal';
+import InventoryItemTransactionsPanel from './InventoryItemTransactionsPanel';
+import InventoryTransactionDetailsPanel from '../../transactions/panels/InventoryTransactionDetailsPanel';
 
 const Container = styled.div`
   height: 100%;
@@ -88,6 +91,11 @@ const InventoryItemDetailPanel: React.FC<InventoryItemDetailPanelProps> = ({
   const [editingPackage, setEditingPackage] = useState<PackageSize | null>(null);
   const [deletingPackageId, setDeletingPackageId] = useState<string | null>(null);
   const [selectedSegment, setSelectedSegment] = useState<'transactions' | 'manage'>('transactions');
+
+  // Panel navigation state
+  type PanelView = 'detail' | 'transactions' | 'transactionDetail';
+  const [currentView, setCurrentView] = useState<PanelView>('detail');
+  const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
 
   // Transactions with infinite scroll
   const {
@@ -150,8 +158,27 @@ const InventoryItemDetailPanel: React.FC<InventoryItemDetailPanelProps> = ({
     setShowOptionsSheet(true);
   };
 
-  const navigateToTransactionDetails = (transactionId: string) => {
-    history.push(`/shops/${currentShop?.id}/inventory/${itemId}/transactions/${transactionId}`);
+  const handleViewAllTransactions = () => {
+    setCurrentView('transactions');
+  };
+
+  const handleBackFromTransactions = () => {
+    setCurrentView('detail');
+  };
+
+  const handleTransactionClick = (transactionId: string) => {
+    setSelectedTransactionId(transactionId);
+    setCurrentView('transactionDetail');
+  };
+
+  const handleBackFromTransactionDetail = () => {
+    setSelectedTransactionId(null);
+    setCurrentView('transactions');
+  };
+
+  const handleBackToItemFromTransactionDetail = () => {
+    setSelectedTransactionId(null);
+    setCurrentView('detail');
   };
 
   // Package size handlers
@@ -229,42 +256,80 @@ const InventoryItemDetailPanel: React.FC<InventoryItemDetailPanelProps> = ({
     );
   }
 
+  // Render appropriate panel based on current view
+  const renderPanelContent = () => {
+    if (currentView === 'transactions') {
+      return (
+        <InventoryItemTransactionsPanel
+          itemId={itemId}
+          itemName={item.name}
+          onBack={handleBackFromTransactions}
+          onTransactionClick={handleTransactionClick}
+        />
+      );
+    }
+
+    if (currentView === 'transactionDetail' && selectedTransactionId) {
+      return (
+        <InventoryTransactionDetailsPanel
+          transactionId={selectedTransactionId}
+          itemName={item.name}
+          onBack={handleBackFromTransactionDetail}
+          onBackToItem={handleBackToItemFromTransactionDetail}
+        />
+      );
+    }
+
+    // Default: detail view
+    return (
+      <>
+        <DetailPanelHeader
+          title={item.name}
+          icon={cubeOutline}
+          breadcrumbs={[{ label: item.name }]}
+        />
+        <ScrollContent>
+          <CenteredLayout>
+            <InventoryItemDetailContent
+              item={item}
+              shopId={currentShop?.id || ''}
+              transactions={transactions}
+              transactionsLoading={transactionsLoading}
+              packageSizes={packageSizes || []}
+              selectedSegment={selectedSegment}
+              formatCurrency={formatCurrency}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              hasNextPage={hasNextPage ?? false}
+              isFetchingNextPage={isFetchingNextPage}
+              totalReceipts={transactionSummary?.totalReceipts}
+              totalSales={transactionSummary?.totalSales}
+              totalValueIn={transactionSummary?.totalValueIn}
+              totalValueOut={transactionSummary?.totalValueOut}
+              onImageUploaded={handleImageUploaded}
+              onSegmentChange={setSelectedSegment}
+              onEdit={handleEdit}
+              onReceive={() => setShowReceiveModal(true)}
+              onAdjust={() => setShowAdjustModal(true)}
+              onOptions={handleOptions}
+              onTransactionClick={handleTransactionClick}
+              onReceiveClick={() => setShowReceiveModal(true)}
+              onLoadMore={() => fetchNextPage()}
+              onAddPackageSize={handleAddPackageSize}
+              onEditPackageSize={handleEditPackageSize}
+              onDeletePackageSize={handleDeletePackageSize}
+              onDeleteItem={() => setShowDeleteAlert(true)}
+              onViewAllTransactions={handleViewAllTransactions}
+            />
+          </CenteredLayout>
+        </ScrollContent>
+      </>
+    );
+  };
+
   return (
     <Container>
-      <ScrollContent>
-        <CenteredLayout>
-          <InventoryItemDetailContent
-            item={item}
-            shopId={currentShop?.id || ''}
-            transactions={transactions}
-            transactionsLoading={transactionsLoading}
-            packageSizes={packageSizes || []}
-            selectedSegment={selectedSegment}
-            formatCurrency={formatCurrency}
-            canEdit={canEdit}
-            canDelete={canDelete}
-            hasNextPage={hasNextPage ?? false}
-            isFetchingNextPage={isFetchingNextPage}
-            totalReceipts={transactionSummary?.totalReceipts}
-            totalSales={transactionSummary?.totalSales}
-            totalValueIn={transactionSummary?.totalValueIn}
-            totalValueOut={transactionSummary?.totalValueOut}
-            onImageUploaded={handleImageUploaded}
-            onSegmentChange={setSelectedSegment}
-            onEdit={handleEdit}
-            onReceive={() => setShowReceiveModal(true)}
-            onAdjust={() => setShowAdjustModal(true)}
-            onOptions={handleOptions}
-            onTransactionClick={navigateToTransactionDetails}
-            onReceiveClick={() => setShowReceiveModal(true)}
-            onLoadMore={() => fetchNextPage()}
-            onAddPackageSize={handleAddPackageSize}
-            onEditPackageSize={handleEditPackageSize}
-            onDeletePackageSize={handleDeletePackageSize}
-            onDeleteItem={() => setShowDeleteAlert(true)}
-          />
-        </CenteredLayout>
-      </ScrollContent>
+      {renderPanelContent()}
 
       {/* Modals */}
       <ReceiveInventoryModal

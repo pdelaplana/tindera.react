@@ -13,6 +13,7 @@ import SignupPage from '@/features/auth/SignupPage';
 import {
   InventoryCategoriesListPage,
   InventoryItemManagePage,
+  InventoryItemTransactionsPage,
   InventoryListPage,
   InventoryTransactionDetailsPage,
   InventoryTransactionsPage,
@@ -122,6 +123,11 @@ const App: React.FC = () => (
               <Route exact path="/shops/:shopId/inventory/:itemId/packages">
                 <AuthGuard>
                   <PackageSizesPage />
+                </AuthGuard>
+              </Route>
+              <Route exact path="/shops/:shopId/inventory/:itemId/transactions">
+                <AuthGuard>
+                  <InventoryItemTransactionsPage />
                 </AuthGuard>
               </Route>
               <Route exact path="/shops/:shopId/inventory/:itemId/transactions/:transactionId">

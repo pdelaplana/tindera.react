@@ -2,6 +2,7 @@
 
 import { IonIcon } from '@ionic/react';
 import {
+  chevronForwardOutline,
   cubeOutline,
   listOutline,
   receiptOutline,
@@ -22,6 +23,7 @@ interface InventoryTransactionSummaryCardProps {
   totalValueIn?: number;
   totalValueOut?: number;
   formatCurrency: (amount: number) => string;
+  onViewAllClick?: () => void;
 }
 
 const StatsGrid = styled.div`
@@ -69,6 +71,31 @@ const StatLabel = styled.div`
   letter-spacing: 0.5px;
 `;
 
+const ViewAllLink = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${designSystem.spacing.xs};
+  width: 100%;
+  padding: ${designSystem.spacing.md};
+  background: transparent;
+  border: none;
+  border-top: 1px solid ${designSystem.colors.gray[200]};
+  color: ${designSystem.colors.brand.primary};
+  font-size: ${designSystem.typography.fontSize.sm};
+  font-weight: ${designSystem.typography.fontWeight.medium};
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: ${designSystem.colors.surface.variant};
+  }
+
+  ion-icon {
+    font-size: 18px;
+  }
+`;
+
 const InventoryTransactionSummaryCard: React.FC<InventoryTransactionSummaryCardProps> = ({
   baseUom,
   currentCount,
@@ -78,6 +105,7 @@ const InventoryTransactionSummaryCard: React.FC<InventoryTransactionSummaryCardP
   totalValueIn = 0,
   totalValueOut = 0,
   formatCurrency,
+  onViewAllClick,
 }) => {
   const currentValue = currentCount * unitCost;
 
@@ -132,6 +160,13 @@ const InventoryTransactionSummaryCard: React.FC<InventoryTransactionSummaryCardP
           <StatLabel>Current Value</StatLabel>
         </StatItem>
       </StatsGrid>
+
+      {onViewAllClick && (
+        <ViewAllLink onClick={onViewAllClick}>
+          View All Transactions
+          <IonIcon icon={chevronForwardOutline} />
+        </ViewAllLink>
+      )}
     </CardContainer>
   );
 };

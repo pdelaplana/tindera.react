@@ -126,6 +126,10 @@ const InventoryItemManagePage: React.FC = () => {
     setShowOptionsSheet(true);
   };
 
+  const handleViewAllTransactions = () => {
+    history.push(`/shops/${currentShop?.id}/inventory/${itemId}/transactions`);
+  };
+
   const navigateToTransactionDetails = (transactionId: string) => {
     history.push(`/shops/${currentShop?.id}/inventory/${itemId}/transactions/${transactionId}`);
   };
@@ -231,6 +235,7 @@ const InventoryItemManagePage: React.FC = () => {
           onEditPackageSize={handleEditPackageSize}
           onDeletePackageSize={handleDeletePackageSize}
           onDeleteItem={() => setShowDeleteAlert(true)}
+          onViewAllTransactions={handleViewAllTransactions}
         />
       </CenteredLayout>
 

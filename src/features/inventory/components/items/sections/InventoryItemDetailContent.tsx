@@ -40,6 +40,7 @@ interface InventoryItemDetailContentProps {
   onEditPackageSize: (pkg: PackageSize) => void;
   onDeletePackageSize: (packageId: string) => void;
   onDeleteItem: () => void;
+  onViewAllTransactions?: () => void;
 }
 
 const DangerCardContainer = styled(CardContainer)`
@@ -83,6 +84,7 @@ const InventoryItemDetailContent: React.FC<InventoryItemDetailContentProps> = ({
   onEditPackageSize,
   onDeletePackageSize,
   onDeleteItem,
+  onViewAllTransactions,
 }) => {
   return (
     <>
@@ -108,6 +110,7 @@ const InventoryItemDetailContent: React.FC<InventoryItemDetailContentProps> = ({
         totalValueIn={totalValueIn}
         totalValueOut={totalValueOut}
         formatCurrency={formatCurrency}
+        onViewAllClick={onViewAllTransactions}
       />
 
       {/* Actions Card */}

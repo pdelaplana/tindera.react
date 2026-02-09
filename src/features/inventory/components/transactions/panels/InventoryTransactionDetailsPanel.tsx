@@ -1,5 +1,6 @@
 // Inventory Transaction Details Panel - Right panel content for transaction details
 
+import { cubeOutline } from 'ionicons/icons';
 import type React from 'react';
 import styled from 'styled-components';
 import { CenteredLayout } from '@/components/layouts';
@@ -8,7 +9,9 @@ import InventoryTransactionDetailsContent from '../sections/InventoryTransaction
 
 interface InventoryTransactionDetailsPanelProps {
   transactionId: string;
+  itemName?: string;
   onBack: () => void;
+  onBackToItem?: () => void;
 }
 
 // Styled components
@@ -29,11 +32,25 @@ const ContentWrapper = styled.div`
 
 const InventoryTransactionDetailsPanel: React.FC<InventoryTransactionDetailsPanelProps> = ({
   transactionId,
+  itemName,
   onBack,
+  onBackToItem,
 }) => {
+  const breadcrumbs = itemName
+    ? [
+        { label: itemName, onClick: onBackToItem },
+        { label: 'Transactions', onClick: onBack },
+        { label: 'Details' },
+      ]
+    : undefined;
+
   return (
     <Container>
-      <DetailPanelHeader title="Transaction Details" onBack={onBack} backLabel="Back to transactions" />
+      <DetailPanelHeader
+        title="Transaction Details"
+        icon={cubeOutline}
+        breadcrumbs={breadcrumbs}
+      />
 
       <ScrollContent>
         <CenteredLayout>
