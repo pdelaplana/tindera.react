@@ -458,6 +458,7 @@ const InventoryListPage: React.FC = () => {
   const rightPanelContent = selectedTransactionId ? (
     <InventoryTransactionDetailsPanel
       transactionId={selectedTransactionId}
+      fromAllTransactions={true}
       onBack={handleBackToTransactionsList}
     />
   ) : showTransactionsList ? (

@@ -1,5 +1,6 @@
 // Inventory Transactions List Panel - Right panel content for showing all transactions
 
+import { cubeOutline } from 'ionicons/icons';
 import type React from 'react';
 import styled from 'styled-components';
 import { DetailPanelHeader } from '@/components/shared';
@@ -29,7 +30,11 @@ const InventoryTransactionsListPanel: React.FC<InventoryTransactionsListPanelPro
 
   return (
     <Container>
-      <DetailPanelHeader title="All Transactions" onBack={onBack} backLabel="Back to summary" />
+      <DetailPanelHeader
+        title="All Transactions"
+        icon={cubeOutline}
+        breadcrumbs={[{ label: 'All Transactions' }]}
+      />
 
       <InventoryTransactionsContent
         onTransactionClick={handleTransactionClick}

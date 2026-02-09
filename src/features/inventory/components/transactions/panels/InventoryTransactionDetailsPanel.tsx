@@ -10,6 +10,7 @@ import InventoryTransactionDetailsContent from '../sections/InventoryTransaction
 interface InventoryTransactionDetailsPanelProps {
   transactionId: string;
   itemName?: string;
+  fromAllTransactions?: boolean;
   onBack: () => void;
   onBackToItem?: () => void;
 }
@@ -33,16 +34,20 @@ const ContentWrapper = styled.div`
 const InventoryTransactionDetailsPanel: React.FC<InventoryTransactionDetailsPanelProps> = ({
   transactionId,
   itemName,
+  fromAllTransactions,
   onBack,
   onBackToItem,
 }) => {
+  // Determine breadcrumbs based on navigation context
   const breadcrumbs = itemName
     ? [
         { label: itemName, onClick: onBackToItem },
         { label: 'Transactions', onClick: onBack },
         { label: 'Details' },
       ]
-    : undefined;
+    : fromAllTransactions
+      ? [{ label: 'All Transactions', onClick: onBack }, { label: 'Details' }]
+      : [{ label: 'Transaction Details' }];
 
   return (
     <Container>
