@@ -2,8 +2,7 @@
 
 import { cubeOutline } from 'ionicons/icons';
 import type React from 'react';
-import styled from 'styled-components';
-import { DetailPanelHeader } from '@/components/shared';
+import { DetailPanel } from '@/components/layouts';
 import type { InventoryTransaction } from '@/types';
 import InventoryItemTransactionsContent from '../lists/InventoryItemTransactionsContent';
 
@@ -13,20 +12,6 @@ interface InventoryItemTransactionsPanelProps {
   onBack: () => void;
   onTransactionClick: (transactionId: string) => void;
 }
-
-// Styled components
-const Container = styled.div`
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-`;
-
-const ContentWrapper = styled.div`
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-`;
 
 const InventoryItemTransactionsPanel: React.FC<InventoryItemTransactionsPanelProps> = ({
   itemId,
@@ -39,23 +24,20 @@ const InventoryItemTransactionsPanel: React.FC<InventoryItemTransactionsPanelPro
   };
 
   return (
-    <Container>
-      <DetailPanelHeader
-        title="Transactions"
-        icon={cubeOutline}
-        breadcrumbs={[
-          { label: itemName, onClick: onBack },
-          { label: 'Transactions' },
-        ]}
+    <DetailPanel
+      title="Transactions"
+      icon={cubeOutline}
+      breadcrumbs={[
+        { label: itemName, onClick: onBack },
+        { label: 'Transactions' },
+      ]}
+      scrollable={false}
+    >
+      <InventoryItemTransactionsContent
+        itemId={itemId}
+        onTransactionClick={handleTransactionClick}
       />
-
-      <ContentWrapper>
-        <InventoryItemTransactionsContent
-          itemId={itemId}
-          onTransactionClick={handleTransactionClick}
-        />
-      </ContentWrapper>
-    </Container>
+    </DetailPanel>
   );
 };
 

@@ -3,8 +3,7 @@
 import { cubeOutline } from 'ionicons/icons';
 import type React from 'react';
 import styled from 'styled-components';
-import { CenteredLayout } from '@/components/layouts';
-import { DetailPanelHeader } from '@/components/shared';
+import { CenteredLayout, DetailPanel } from '@/components/layouts';
 import InventoryTransactionDetailsContent from '../sections/InventoryTransactionDetailsContent';
 
 interface InventoryTransactionDetailsPanelProps {
@@ -14,18 +13,6 @@ interface InventoryTransactionDetailsPanelProps {
   onBack: () => void;
   onBackToItem?: () => void;
 }
-
-// Styled components
-const Container = styled.div`
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-`;
-
-const ScrollContent = styled.div`
-  flex: 1;
-  overflow-y: auto;
-`;
 
 const ContentWrapper = styled.div`
   padding: 16px 0;
@@ -38,7 +25,6 @@ const InventoryTransactionDetailsPanel: React.FC<InventoryTransactionDetailsPane
   onBack,
   onBackToItem,
 }) => {
-  // Determine breadcrumbs based on navigation context
   const breadcrumbs = itemName
     ? [
         { label: itemName, onClick: onBackToItem },
@@ -50,21 +36,13 @@ const InventoryTransactionDetailsPanel: React.FC<InventoryTransactionDetailsPane
       : [{ label: 'Transaction Details' }];
 
   return (
-    <Container>
-      <DetailPanelHeader
-        title="Transaction Details"
-        icon={cubeOutline}
-        breadcrumbs={breadcrumbs}
-      />
-
-      <ScrollContent>
-        <CenteredLayout>
-          <ContentWrapper>
-            <InventoryTransactionDetailsContent transactionId={transactionId} />
-          </ContentWrapper>
-        </CenteredLayout>
-      </ScrollContent>
-    </Container>
+    <DetailPanel title="Transaction Details" icon={cubeOutline} breadcrumbs={breadcrumbs}>
+      <CenteredLayout>
+        <ContentWrapper>
+          <InventoryTransactionDetailsContent transactionId={transactionId} />
+        </ContentWrapper>
+      </CenteredLayout>
+    </DetailPanel>
   );
 };
 

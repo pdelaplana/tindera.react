@@ -5,8 +5,7 @@ import { close, cubeOutline, list, trashOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import styled from 'styled-components';
-import { CenteredLayout } from '@/components/layouts';
-import { DetailPanelHeader } from '@/components/shared';
+import { CenteredLayout, DetailPanel } from '@/components/layouts';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import { LoadingSpinner } from '@/components/ui';
 import {
@@ -54,11 +53,6 @@ const EmptyText = styled.div`
   color: ${designSystem.colors.text.secondary};
 `;
 
-const ScrollContent = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  width: 100%;
-`;
 
 interface InventoryItemDetailPanelProps {
   itemId: string | null;
@@ -280,48 +274,45 @@ const InventoryItemDetailPanel: React.FC<InventoryItemDetailPanelProps> = ({
 
     // Default: detail view
     return (
-      <>
-        <DetailPanelHeader
-          title={item.name}
-          icon={cubeOutline}
-          breadcrumbs={[{ label: item.name }]}
-        />
-        <ScrollContent>
-          <CenteredLayout>
-            <InventoryItemDetailContent
-              item={item}
-              shopId={currentShop?.id || ''}
-              transactions={transactions}
-              transactionsLoading={transactionsLoading}
-              packageSizes={packageSizes || []}
-              selectedSegment={selectedSegment}
-              formatCurrency={formatCurrency}
-              canEdit={canEdit}
-              canDelete={canDelete}
-              hasNextPage={hasNextPage ?? false}
-              isFetchingNextPage={isFetchingNextPage}
-              totalReceipts={transactionSummary?.totalReceipts}
-              totalSales={transactionSummary?.totalSales}
-              totalValueIn={transactionSummary?.totalValueIn}
-              totalValueOut={transactionSummary?.totalValueOut}
-              onImageUploaded={handleImageUploaded}
-              onSegmentChange={setSelectedSegment}
-              onEdit={handleEdit}
-              onReceive={() => setShowReceiveModal(true)}
-              onAdjust={() => setShowAdjustModal(true)}
-              onOptions={handleOptions}
-              onTransactionClick={handleTransactionClick}
-              onReceiveClick={() => setShowReceiveModal(true)}
-              onLoadMore={() => fetchNextPage()}
-              onAddPackageSize={handleAddPackageSize}
-              onEditPackageSize={handleEditPackageSize}
-              onDeletePackageSize={handleDeletePackageSize}
-              onDeleteItem={() => setShowDeleteAlert(true)}
-              onViewAllTransactions={handleViewAllTransactions}
-            />
-          </CenteredLayout>
-        </ScrollContent>
-      </>
+      <DetailPanel
+        title={item.name}
+        icon={cubeOutline}
+        breadcrumbs={[{ label: item.name }]}
+      >
+        <CenteredLayout>
+          <InventoryItemDetailContent
+            item={item}
+            shopId={currentShop?.id || ''}
+            transactions={transactions}
+            transactionsLoading={transactionsLoading}
+            packageSizes={packageSizes || []}
+            selectedSegment={selectedSegment}
+            formatCurrency={formatCurrency}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            hasNextPage={hasNextPage ?? false}
+            isFetchingNextPage={isFetchingNextPage}
+            totalReceipts={transactionSummary?.totalReceipts}
+            totalSales={transactionSummary?.totalSales}
+            totalValueIn={transactionSummary?.totalValueIn}
+            totalValueOut={transactionSummary?.totalValueOut}
+            onImageUploaded={handleImageUploaded}
+            onSegmentChange={setSelectedSegment}
+            onEdit={handleEdit}
+            onReceive={() => setShowReceiveModal(true)}
+            onAdjust={() => setShowAdjustModal(true)}
+            onOptions={handleOptions}
+            onTransactionClick={handleTransactionClick}
+            onReceiveClick={() => setShowReceiveModal(true)}
+            onLoadMore={() => fetchNextPage()}
+            onAddPackageSize={handleAddPackageSize}
+            onEditPackageSize={handleEditPackageSize}
+            onDeletePackageSize={handleDeletePackageSize}
+            onDeleteItem={() => setShowDeleteAlert(true)}
+            onViewAllTransactions={handleViewAllTransactions}
+          />
+        </CenteredLayout>
+      </DetailPanel>
     );
   };
 

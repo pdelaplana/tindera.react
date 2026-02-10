@@ -5,8 +5,7 @@ import { bagHandleOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useState } from 'react';
 import styled from 'styled-components';
-import { CenteredLayout } from '@/components/layouts';
-import { DetailPanelHeader } from '@/components/shared';
+import { CenteredLayout, DetailPanel } from '@/components/layouts';
 import { LoadingSpinner } from '@/components/ui';
 import type { SalesPeriod } from '@/hooks/useOrder';
 import { useProductSalesOrders } from '@/hooks/useOrder';
@@ -21,16 +20,10 @@ interface ProductSalesPanelProps {
   onBack: () => void;
 }
 
-const Container = styled.div`
-  height: 100%;
-
-`;
-
 const FilterRow = styled.div`
   display: flex;
   gap: ${designSystem.spacing.xs};
   padding: ${designSystem.spacing.md};
-  border-bottom: 1px solid ${designSystem.colors.gray[200]};
   flex-wrap: wrap;
 `;
 
@@ -175,13 +168,11 @@ const ProductSalesPanel: React.FC<ProductSalesPanelProps> = ({
   const shopPrefix = currentShop?.order_prefix;
 
   return (
-    <Container>
-      <DetailPanelHeader
-        title="Sales"
-        icon={bagHandleOutline}
-        breadcrumbs={[{ label: productName, onClick: onBack }, { label: 'Sales' }]}
-      />
-
+    <DetailPanel
+      title="Sales"
+      icon={bagHandleOutline}
+      breadcrumbs={[{ label: productName, onClick: onBack }, { label: 'Sales' }]}
+    >
       <CenteredLayout>
         <FilterRow>
           {PERIODS.map((p) => (
@@ -226,7 +217,7 @@ const ProductSalesPanel: React.FC<ProductSalesPanelProps> = ({
           </OrdersList>
         )}
       </CenteredLayout>
-    </Container>
+    </DetailPanel>
   );
 };
 

@@ -2,8 +2,7 @@
 
 import { cubeOutline } from 'ionicons/icons';
 import type React from 'react';
-import styled from 'styled-components';
-import { DetailPanelHeader } from '@/components/shared';
+import { DetailPanel } from '@/components/layouts';
 import type { InventoryTransaction } from '@/types';
 import InventoryTransactionsContent from '../lists/InventoryTransactionsContent';
 
@@ -12,35 +11,26 @@ interface InventoryTransactionsListPanelProps {
   onTransactionClick: (transactionId: string) => void;
 }
 
-// Styled components
-const Container = styled.div`
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-`;
-
 const InventoryTransactionsListPanel: React.FC<InventoryTransactionsListPanelProps> = ({
   onBack,
   onTransactionClick,
 }) => {
-  // Handle transaction click - call the parent's handler with transaction ID
   const handleTransactionClick = (transaction: InventoryTransaction) => {
     onTransactionClick(transaction.id);
   };
 
   return (
-    <Container>
-      <DetailPanelHeader
-        title="All Transactions"
-        icon={cubeOutline}
-        breadcrumbs={[{ label: 'All Transactions' }]}
-      />
-
+    <DetailPanel
+      title="All Transactions"
+      icon={cubeOutline}
+      breadcrumbs={[{ label: 'All Transactions' }]}
+      scrollable={false}
+    >
       <InventoryTransactionsContent
         onTransactionClick={handleTransactionClick}
         showSearchInContent={true}
       />
-    </Container>
+    </DetailPanel>
   );
 };
 

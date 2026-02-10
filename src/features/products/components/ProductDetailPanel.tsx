@@ -6,8 +6,7 @@ import { pricetagOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
-import { CenteredLayout } from '@/components/layouts';
-import { DetailPanelHeader } from '@/components/shared';
+import { CenteredLayout, DetailPanel } from '@/components/layouts';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import { LoadingSpinner } from '@/components/ui';
 import { useUnlinkModifierGroup, useUpdateLinkSequence } from '@/hooks';
@@ -57,12 +56,6 @@ const EmptyState = styled.div`
 const EmptyText = styled.div`
   font-size: ${designSystem.typography.fontSize.lg};
   color: ${designSystem.colors.text.secondary};
-`;
-
-const ScrollContent = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  width: 100%;
 `;
 
 const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({ productId, onProductDeleted }) => {
@@ -230,7 +223,6 @@ const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({ productId, onPr
     }
   };
 
-
   // Empty state
   if (!productId) {
     return (
@@ -265,7 +257,7 @@ const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({ productId, onPr
   }
 
   return (
-    <Container>
+    <>
       {currentView === 'sales' ? (
         <ProductSalesPanel
           productId={product.id}
@@ -274,34 +266,31 @@ const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({ productId, onPr
           onBack={() => setCurrentView('detail')}
         />
       ) : (
-        <>
-          <DetailPanelHeader
-            title={product.name}
-            icon={pricetagOutline}
-            breadcrumbs={[{ label: product.name }]}
-          />
-          <ScrollContent>
-            <CenteredLayout>
-              <ProductDetailContent
-                product={product}
-                shopId={currentShop?.id || ''}
-                formatCurrency={formatCurrency}
-                canEdit={canEdit}
-                canDelete={canDelete}
-                onImageUploaded={handleImageUploaded}
-                onAddModifierGroup={handleAddModifierGroup}
-                onEditModifierGroup={handleEditModifierGroup}
-                onReorderModifierGroup={handleReorderModifierGroup}
-                onAddAddon={() => setShowAddonModal(true)}
-                onEditAddon={handleEditAddon}
-                onAddItem={() => setShowItemModal(true)}
-                onEditItem={handleEditItem}
-                onDeleteProduct={() => setShowDeleteAlert(true)}
-                onViewSales={() => setCurrentView('sales')}
-              />
-            </CenteredLayout>
-          </ScrollContent>
-        </>
+        <DetailPanel
+          title={product.name}
+          icon={pricetagOutline}
+          breadcrumbs={[{ label: product.name }]}
+        >
+          <CenteredLayout>
+            <ProductDetailContent
+              product={product}
+              shopId={currentShop?.id || ''}
+              formatCurrency={formatCurrency}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              onImageUploaded={handleImageUploaded}
+              onAddModifierGroup={handleAddModifierGroup}
+              onEditModifierGroup={handleEditModifierGroup}
+              onReorderModifierGroup={handleReorderModifierGroup}
+              onAddAddon={() => setShowAddonModal(true)}
+              onEditAddon={handleEditAddon}
+              onAddItem={() => setShowItemModal(true)}
+              onEditItem={handleEditItem}
+              onDeleteProduct={() => setShowDeleteAlert(true)}
+              onViewSales={() => setCurrentView('sales')}
+            />
+          </CenteredLayout>
+        </DetailPanel>
       )}
 
       {/* Modals */}
@@ -358,7 +347,7 @@ const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({ productId, onPr
         formatCurrency={formatCurrency}
         onDelete={handleUnlinkModifierGroup}
       />
-    </Container>
+    </>
   );
 };
 

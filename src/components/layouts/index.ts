@@ -1,6 +1,8 @@
 // Layout Components - Barrel Export
 
 export { default as BasePage } from './BasePage';
+export { DetailPanel } from './DetailPanel';
+export type { DetailPanelProps } from './DetailPanel';
 export { BentoGrid } from './BentoGrid';
 export { BentoTile } from './BentoTile';
 export { CenteredLayout } from './CenteredLayout';
