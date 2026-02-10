@@ -20,19 +20,19 @@ interface ProductImageSectionProps {
 
 const Container = styled.div`
   position: relative;
-  width: 100%;
   height: 300px;
   border-radius: ${designSystem.borderRadius.lg};
   overflow: hidden;
-  background: ${designSystem.colors.gray[100]};
-  margin-top: ${designSystem.spacing.lg};
-  margin-bottom: ${designSystem.spacing.lg};
+  background: ${designSystem.colors.gray[300]};
+  margin: ${designSystem.spacing.lg} ${designSystem.spacing.md};
+  border: 1px solid ${designSystem.colors.gray[200]};
+  box-shadow: ${designSystem.shadows.md};
 `;
 
 const Image = styled.img`
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 `;
 
 const Placeholder = styled.div`
