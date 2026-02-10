@@ -25,6 +25,7 @@ const Container = styled.div`
   border-radius: ${designSystem.borderRadius.lg};
   overflow: hidden;
   background: ${designSystem.colors.gray[100]};
+  margin-top: ${designSystem.spacing.lg};
   margin-bottom: ${designSystem.spacing.lg};
 `;
 

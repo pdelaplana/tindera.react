@@ -12,7 +12,6 @@ import type {
 } from '@/types';
 import {
   ProductAddonsList,
-  ProductDetailHeader,
   ProductGeneralDetailsCard,
   ProductImageSection,
   ProductItemsList,
@@ -76,8 +75,6 @@ const ProductDetailContent: React.FC<ProductDetailContentProps> = ({
 }) => {
   return (
     <>
-      <ProductDetailHeader productName={product.name} />
-
       <ProductImageSection
         imageUrl={product.image_url}
         productId={product.id}

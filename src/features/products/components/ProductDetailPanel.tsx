@@ -2,10 +2,12 @@
 
 import type { ItemReorderEventDetail } from '@ionic/react';
 import { useIonLoading } from '@ionic/react';
+import { pricetagOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { CenteredLayout } from '@/components/layouts';
+import { DetailPanelHeader } from '@/components/shared';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import { LoadingSpinner } from '@/components/ui';
 import { useUnlinkModifierGroup, useUpdateLinkSequence } from '@/hooks';
@@ -254,6 +256,11 @@ const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({ productId, onPr
 
   return (
     <Container>
+      <DetailPanelHeader
+        title={product.name}
+        icon={pricetagOutline}
+        breadcrumbs={[{ label: product.name }]}
+      />
       <ScrollContent>
         <CenteredLayout>
           <ProductDetailContent
