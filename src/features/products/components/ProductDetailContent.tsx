@@ -16,6 +16,7 @@ import {
   ProductImageSection,
   ProductItemsList,
   ProductModifiersList,
+  ProductSalesSummaryCard,
 } from './';
 
 interface ProductDetailContentProps {
@@ -33,6 +34,7 @@ interface ProductDetailContentProps {
   onAddItem: () => void;
   onEditItem: (item: ProductItem) => void;
   onDeleteProduct: () => void;
+  onViewSales?: () => void;
 }
 
 const DangerCardContainer = styled(CardContainer)`
@@ -72,6 +74,7 @@ const ProductDetailContent: React.FC<ProductDetailContentProps> = ({
   onAddItem,
   onEditItem,
   onDeleteProduct,
+  onViewSales,
 }) => {
   return (
     <>
@@ -84,6 +87,12 @@ const ProductDetailContent: React.FC<ProductDetailContentProps> = ({
       />
 
       <ProductGeneralDetailsCard product={product} disabled={!canEdit} />
+
+      <ProductSalesSummaryCard
+        productId={product.id}
+        formatCurrency={formatCurrency}
+        onViewAll={onViewSales}
+      />
 
       <ProductModifiersList
         linkedGroups={product.linkedModifierGroups || []}

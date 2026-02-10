@@ -16,7 +16,35 @@ export const orderKeys = {
   details: () => [...orderKeys.all, 'detail'] as const,
   detail: (orderId: string) => [...orderKeys.details(), orderId] as const,
   paymentTypes: (shopId: string) => [...orderKeys.all, 'payment-types', shopId] as const,
+  productSummary: (shopId: string, productId: string, period: string) =>
+    [...orderKeys.all, 'product-summary', shopId, productId, period] as const,
+  productOrders: (shopId: string, productId: string, period: string) =>
+    [...orderKeys.all, 'product-orders', shopId, productId, period] as const,
 };
+
+export type SalesPeriod = 'today' | 'week' | 'month' | 'all';
+
+function getDateRange(period: SalesPeriod): { startDate?: string; endDate?: string } {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const toIso = (d: Date) =>
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T00:00:00.000Z`;
+
+  if (period === 'today') {
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return { startDate: toIso(start) };
+  }
+  if (period === 'week') {
+    const day = now.getDay(); // 0 = Sunday
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day);
+    return { startDate: toIso(start) };
+  }
+  if (period === 'month') {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    return { startDate: toIso(start) };
+  }
+  return {};
+}
 
 /**
  * Hook to fetch orders for current shop
@@ -186,5 +214,43 @@ export function useRefundOrder() {
     onError: (error: Error) => {
       showError(error.message || 'Failed to refund order');
     },
+  });
+}
+
+/**
+ * Hook to fetch sales summary (total qty sold + total revenue) for a specific product
+ */
+export function useProductSalesSummary(productId: string | undefined, period: SalesPeriod) {
+  const { currentShop } = useShopContext();
+
+  return useQuery({
+    queryKey: orderKeys.productSummary(currentShop?.id || '', productId || '', period),
+    queryFn: async () => {
+      if (!currentShop || !productId) return { totalQty: 0, totalAmount: 0 };
+      const dateRange = getDateRange(period);
+      const result = await orderService.getProductSalesSummary(currentShop.id, productId, dateRange);
+      if (result.error) throw result.error;
+      return result.data ?? { totalQty: 0, totalAmount: 0 };
+    },
+    enabled: !!currentShop && !!productId,
+  });
+}
+
+/**
+ * Hook to fetch all orders that contain a specific product
+ */
+export function useProductSalesOrders(productId: string | undefined, period: SalesPeriod) {
+  const { currentShop } = useShopContext();
+
+  return useQuery({
+    queryKey: orderKeys.productOrders(currentShop?.id || '', productId || '', period),
+    queryFn: async () => {
+      if (!currentShop || !productId) return [];
+      const dateRange = getDateRange(period);
+      const result = await orderService.getProductSalesOrders(currentShop.id, productId, dateRange);
+      if (result.error) throw result.error;
+      return result.data ?? [];
+    },
+    enabled: !!currentShop && !!productId,
   });
 }

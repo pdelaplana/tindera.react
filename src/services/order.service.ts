@@ -602,6 +602,102 @@ export const orderService = {
   },
 
   /**
+   * Get sales summary for a specific product (total qty sold and total revenue)
+   */
+  async getProductSalesSummary(
+    shopId: string,
+    productId: string,
+    options?: { startDate?: string; endDate?: string }
+  ): Promise<ApiResponse<{ totalQty: number; totalAmount: number }>> {
+    try {
+      const { data, error } = await supabase
+        .from('order_items')
+        .select('quantity, product_unit_price, order:orders!inner(id, shop_id, order_date)')
+        .eq('product_id', productId);
+
+      if (error) {
+        logger.error(new Error(error.message), { context: 'getProductSalesSummary', productId });
+        return { data: null, error: new Error(error.message) };
+      }
+
+      const items = (data ?? []) as unknown as Array<{
+        quantity: number;
+        product_unit_price: number;
+        order: { id: string; shop_id: string; order_date: string };
+      }>;
+
+      const filtered = items.filter((item) => {
+        if (item.order.shop_id !== shopId) return false;
+        if (options?.startDate && item.order.order_date < options.startDate) return false;
+        if (options?.endDate && item.order.order_date > options.endDate) return false;
+        return true;
+      });
+
+      const totalQty = filtered.reduce((sum, item) => sum + item.quantity, 0);
+      const totalAmount = filtered.reduce(
+        (sum, item) => sum + item.quantity * item.product_unit_price,
+        0
+      );
+
+      return { data: { totalQty, totalAmount }, error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'getProductSalesSummary', productId });
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Get all orders that contain a specific product
+   */
+  async getProductSalesOrders(
+    shopId: string,
+    productId: string,
+    options?: { startDate?: string; endDate?: string }
+  ): Promise<ApiResponse<OrderWithDetails[]>> {
+    try {
+      let query = supabase
+        .from('orders')
+        .select(`
+          *,
+          payment_type:payment_types(*),
+          order_items(
+            *,
+            modifiers:order_item_modifiers(*),
+            addons:order_item_addons(*)
+          ),
+          order_taxes(*)
+        `)
+        .eq('shop_id', shopId)
+        .order('order_date', { ascending: false });
+
+      if (options?.startDate) {
+        query = query.gte('order_date', options.startDate);
+      }
+      if (options?.endDate) {
+        query = query.lte('order_date', options.endDate);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        logger.error(new Error(error.message), { context: 'getProductSalesOrders', productId });
+        return { data: null, error: new Error(error.message) };
+      }
+
+      const orders = (data as unknown as OrderWithDetails[]).filter((order) =>
+        order.order_items.some((item) => item.product_id === productId)
+      );
+
+      return { data: orders, error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'getProductSalesOrders', productId });
+      return { data: null, error };
+    }
+  },
+
+  /**
    * Get a single order with full details
    */
   async getOrder(orderId: string): Promise<ApiResponse<OrderWithDetails>> {

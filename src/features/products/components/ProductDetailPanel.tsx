@@ -4,7 +4,7 @@ import type { ItemReorderEventDetail } from '@ionic/react';
 import { useIonLoading } from '@ionic/react';
 import { pricetagOutline } from 'ionicons/icons';
 import type React from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { CenteredLayout } from '@/components/layouts';
 import { DetailPanelHeader } from '@/components/shared';
@@ -30,6 +30,7 @@ import {
   ProductItemModal,
   ProductModifierModal,
   ProductModifierSelectModal,
+  ProductSalesPanel,
 } from './';
 
 interface ProductDetailPanelProps {
@@ -85,6 +86,15 @@ const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({ productId, onPr
     () => createCurrencyFormatter(currentShop?.currency_code || 'USD'),
     [currentShop?.currency_code]
   );
+
+  // Panel navigation state
+  type PanelView = 'detail' | 'sales';
+  const [currentView, setCurrentView] = useState<PanelView>('detail');
+
+  // Reset to detail view when selected product changes
+  useEffect(() => {
+    setCurrentView('detail');
+  }, [productId]);
 
   // Modal states
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
@@ -256,31 +266,43 @@ const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({ productId, onPr
 
   return (
     <Container>
-      <DetailPanelHeader
-        title={product.name}
-        icon={pricetagOutline}
-        breadcrumbs={[{ label: product.name }]}
-      />
-      <ScrollContent>
-        <CenteredLayout>
-          <ProductDetailContent
-            product={product}
-            shopId={currentShop?.id || ''}
-            formatCurrency={formatCurrency}
-            canEdit={canEdit}
-            canDelete={canDelete}
-            onImageUploaded={handleImageUploaded}
-            onAddModifierGroup={handleAddModifierGroup}
-            onEditModifierGroup={handleEditModifierGroup}
-            onReorderModifierGroup={handleReorderModifierGroup}
-            onAddAddon={() => setShowAddonModal(true)}
-            onEditAddon={handleEditAddon}
-            onAddItem={() => setShowItemModal(true)}
-            onEditItem={handleEditItem}
-            onDeleteProduct={() => setShowDeleteAlert(true)}
+      {currentView === 'sales' ? (
+        <ProductSalesPanel
+          productId={product.id}
+          productName={product.name}
+          formatCurrency={formatCurrency}
+          onBack={() => setCurrentView('detail')}
+        />
+      ) : (
+        <>
+          <DetailPanelHeader
+            title={product.name}
+            icon={pricetagOutline}
+            breadcrumbs={[{ label: product.name }]}
           />
-        </CenteredLayout>
-      </ScrollContent>
+          <ScrollContent>
+            <CenteredLayout>
+              <ProductDetailContent
+                product={product}
+                shopId={currentShop?.id || ''}
+                formatCurrency={formatCurrency}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                onImageUploaded={handleImageUploaded}
+                onAddModifierGroup={handleAddModifierGroup}
+                onEditModifierGroup={handleEditModifierGroup}
+                onReorderModifierGroup={handleReorderModifierGroup}
+                onAddAddon={() => setShowAddonModal(true)}
+                onEditAddon={handleEditAddon}
+                onAddItem={() => setShowItemModal(true)}
+                onEditItem={handleEditItem}
+                onDeleteProduct={() => setShowDeleteAlert(true)}
+                onViewSales={() => setCurrentView('sales')}
+              />
+            </CenteredLayout>
+          </ScrollContent>
+        </>
+      )}
 
       {/* Modals */}
       <ProductAddonModal

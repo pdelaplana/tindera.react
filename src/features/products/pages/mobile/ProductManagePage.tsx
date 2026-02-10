@@ -275,6 +275,9 @@ const ProductManagePage: React.FC = () => {
             onAddItem={() => setShowItemModal(true)}
             onEditItem={handleEditItem}
             onDeleteProduct={() => setShowDeleteAlert(true)}
+            onViewSales={() =>
+              history.push(`/shops/${currentShop?.id}/products/${id}/sales`)
+            }
           />
         </ContentContainer>
 
