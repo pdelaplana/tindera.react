@@ -1,7 +1,7 @@
 // ProductSalesPanel - Panel showing all sales orders for a specific product
 
 import { IonIcon } from '@ionic/react';
-import { bagHandleOutline } from 'ionicons/icons';
+import { bagHandleOutline, pricetagOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useState } from 'react';
 import styled from 'styled-components';
@@ -170,7 +170,7 @@ const ProductSalesPanel: React.FC<ProductSalesPanelProps> = ({
   return (
     <DetailPanel
       title="Sales"
-      icon={bagHandleOutline}
+      icon={pricetagOutline}
       breadcrumbs={[{ label: productName, onClick: onBack }, { label: 'Sales' }]}
     >
       <CenteredLayout>
