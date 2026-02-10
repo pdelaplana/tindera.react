@@ -1,8 +1,10 @@
 // Inventory Transaction Summary Card - Display summary statistics for inventory transactions
 
-import { IonIcon } from '@ionic/react';
+import { IonButton, IonButtons, IonIcon } from '@ionic/react';
 import {
+  chevronDownOutline,
   chevronForwardOutline,
+  chevronUpOutline,
   cubeOutline,
   listOutline,
   receiptOutline,
@@ -10,6 +12,7 @@ import {
   trendingDown,
 } from 'ionicons/icons';
 import type React from 'react';
+import { useState } from 'react';
 import styled from 'styled-components';
 import { CardContainer } from '@/components/shared';
 import { designSystem } from '@/theme/designSystem';
@@ -107,42 +110,66 @@ const InventoryTransactionSummaryCard: React.FC<InventoryTransactionSummaryCardP
   formatCurrency,
   onViewAllClick,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const currentValue = currentCount * unitCost;
 
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const toggleButton = (
+    <IonButtons>
+      <IonButton
+        onClick={toggleExpanded}
+        size="default"
+        fill="clear"
+        color="dark"
+        aria-label={isExpanded ? 'Collapse' : 'Expand'}
+      >
+        <IonIcon slot="icon-only" icon={isExpanded ? chevronUpOutline : chevronDownOutline} />
+      </IonButton>
+    </IonButtons>
+  );
+
   return (
-    <CardContainer title="Transaction Summary" noPadding>
+    <CardContainer title="Transaction Summary" actionButton={toggleButton} noPadding>
+
       <StatsGrid>
-        <StatItem>
-          <StatIcon color={designSystem.colors.status.paid}>
-            <IonIcon icon={receiptOutline} />
-          </StatIcon>
-          <StatValue>{totalReceipts.toLocaleString()}</StatValue>
-          <StatLabel>Total Receipts</StatLabel>
-        </StatItem>
+        {isExpanded && (
+          <>
+            <StatItem>
+              <StatIcon color={designSystem.colors.status.paid}>
+                <IonIcon icon={receiptOutline} />
+              </StatIcon>
+              <StatValue>{totalReceipts.toLocaleString()}</StatValue>
+              <StatLabel>Total Receipts</StatLabel>
+            </StatItem>
 
-        <StatItem>
-          <StatIcon color={designSystem.colors.danger}>
-            <IonIcon icon={trendingDown} />
-          </StatIcon>
-          <StatValue>{totalSales.toLocaleString()}</StatValue>
-          <StatLabel>Total Sales</StatLabel>
-        </StatItem>
+            <StatItem>
+              <StatIcon color={designSystem.colors.danger}>
+                <IonIcon icon={trendingDown} />
+              </StatIcon>
+              <StatValue>{totalSales.toLocaleString()}</StatValue>
+              <StatLabel>Total Sales</StatLabel>
+            </StatItem>
 
-        <StatItem>
-          <StatIcon color={designSystem.colors.success}>
-            <IonIcon icon={swapVerticalSharp} />
-          </StatIcon>
-          <StatValue>{formatCurrency(totalValueIn)}</StatValue>
-          <StatLabel>Value In</StatLabel>
-        </StatItem>
+            <StatItem>
+              <StatIcon color={designSystem.colors.success}>
+                <IonIcon icon={swapVerticalSharp} />
+              </StatIcon>
+              <StatValue>{formatCurrency(totalValueIn)}</StatValue>
+              <StatLabel>Value In</StatLabel>
+            </StatItem>
 
-        <StatItem>
-          <StatIcon color={designSystem.colors.warning}>
-            <IonIcon icon={swapVerticalSharp} />
-          </StatIcon>
-          <StatValue>{formatCurrency(totalValueOut)}</StatValue>
-          <StatLabel>Value Out</StatLabel>
-        </StatItem>
+            <StatItem>
+              <StatIcon color={designSystem.colors.warning}>
+                <IonIcon icon={swapVerticalSharp} />
+              </StatIcon>
+              <StatValue>{formatCurrency(totalValueOut)}</StatValue>
+              <StatLabel>Value Out</StatLabel>
+            </StatItem>
+          </>
+        )}
 
         <StatItem>
           <StatIcon color={designSystem.colors.info}>

@@ -5,10 +5,10 @@ import styled from 'styled-components';
 import { CardContainer, DeleteButton } from '@/components/shared';
 import { designSystem } from '@/theme/designSystem';
 import type { InventoryItemWithCategory, InventoryTransaction, PackageSize } from '@/types';
+import PackageSizesList from '../../package-sizes/lists/PackageSizesList';
 import InventoryActionsCard from '../cards/InventoryActionsCard';
 import InventoryGeneralDetailsCard from '../cards/InventoryGeneralDetailsCard';
-import InventoryTransactionSummaryCard from '../../transactions/cards/InventoryTransactionSummaryCard';
-import PackageSizesList from '../../package-sizes/lists/PackageSizesList';
+import InventoryTransactionSummaryCard from '../cards/InventoryTransactionSummaryCard';
 import InventoryImageSection from './InventoryImageSection';
 
 interface InventoryItemDetailContentProps {

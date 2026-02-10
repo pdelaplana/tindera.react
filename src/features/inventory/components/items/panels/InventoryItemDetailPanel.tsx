@@ -4,11 +4,10 @@ import { IonActionSheet, useIonLoading } from '@ionic/react';
 import { close, cubeOutline, list, trashOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useMemo, useState } from 'react';
-import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { CenteredLayout } from '@/components/layouts';
-import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import { DetailPanelHeader } from '@/components/shared';
+import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import { LoadingSpinner } from '@/components/ui';
 import {
   useDeleteInventoryItem,
@@ -25,14 +24,14 @@ import { logger } from '@/services/sentry';
 import { designSystem } from '@/theme/designSystem';
 import type { PackageSize } from '@/types';
 import { createCurrencyFormatter } from '@/utils/currency';
+import PackageSizeFormModal from '../../package-sizes/modals/PackageSizeFormModal';
+import InventoryTransactionDetailsPanel from '../../transactions/panels/InventoryTransactionDetailsPanel';
 import AdjustInventoryModal from '../modals/AdjustInventoryModal';
-import InventoryItemDetailContent from '../sections/InventoryItemDetailContent';
 import InitiateCountModal from '../modals/InitiateCountModal';
 import InventoryItemFormModal from '../modals/InventoryItemFormModal';
-import PackageSizeFormModal from '../../package-sizes/modals/PackageSizeFormModal';
 import ReceiveInventoryModal from '../modals/ReceiveInventoryModal';
+import InventoryItemDetailContent from '../sections/InventoryItemDetailContent';
 import InventoryItemTransactionsPanel from './InventoryItemTransactionsPanel';
-import InventoryTransactionDetailsPanel from '../../transactions/panels/InventoryTransactionDetailsPanel';
 
 const Container = styled.div`
   height: 100%;
@@ -70,7 +69,6 @@ const InventoryItemDetailPanel: React.FC<InventoryItemDetailPanelProps> = ({
   itemId,
   onItemDeleted,
 }) => {
-  const history = useHistory();
   const { currentShop, hasPermission } = useShop();
   const { showSuccess, showError } = useToastNotification();
   const [present, dismiss] = useIonLoading();
