@@ -1,7 +1,6 @@
-// Settings Page - Application and Shop Settings
+// Settings Page - Navigation menu for all shop settings
 
 import {
-  IonButton,
   IonCard,
   IonCardContent,
   IonContent,
@@ -12,44 +11,30 @@ import {
   IonPage,
   IonTitle,
 } from '@ionic/react';
-import { chevronForwardOutline, storefrontOutline, trashOutline } from 'ionicons/icons';
+import {
+  arrowUndoOutline,
+  cashOutline,
+  chevronForwardOutline,
+  cubeOutline,
+  optionsOutline,
+  pricetagOutline,
+  pricetagsOutline,
+  storefrontOutline,
+} from 'ionicons/icons';
 import type React from 'react';
-import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { CenteredLayout } from '@/components/layouts';
-import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import PageHeader from '@/components/shared/PageHeader';
-import { useDeleteShop, useShop } from '@/hooks/useShop';
-import { DiscountTypeSettings, TaxSettings, VoidRefundReasonSettings } from '../components';
+import { useShop } from '@/hooks/useShop';
 
 const SettingsPage: React.FC = () => {
   const history = useHistory();
   const { currentShop } = useShop();
-  const deleteShopMutation = useDeleteShop();
-  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
-  const handleEditShop = () => {
-    if (currentShop) {
-      history.push(`/shops/${currentShop.id}/settings/shop`);
-    }
-  };
+  const shopId = currentShop?.id;
 
-  const handleDeleteShop = () => {
-    setShowDeleteAlert(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!currentShop) return;
-
-    try {
-      await deleteShopMutation.mutateAsync(currentShop.id);
-      setShowDeleteAlert(false);
-      // After successful deletion, redirect to home
-      history.push('/');
-    } catch (error) {
-      console.error('Failed to delete shop:', error);
-      // Keep the alert open on error
-    }
+  const navigate = (path: string) => {
+    history.push(path);
   };
 
   return (
@@ -58,14 +43,18 @@ const SettingsPage: React.FC = () => {
 
       <IonContent fullscreen className="ion-padding-top">
         <CenteredLayout className="ion-margin-top">
-          {/* Shop Settings */}
           {currentShop && (
             <>
-              <IonTitle>Shop Settings</IonTitle>
+              {/* Shop */}
+              <IonTitle>Shop</IonTitle>
               <IonCard className="flat-card">
                 <IonCardContent>
                   <IonList lines="none" className="ion-no-padding">
-                    <IonItem button onClick={handleEditShop} detail={false}>
+                    <IonItem
+                      button
+                      onClick={() => navigate(`/shops/${shopId}/settings/shop`)}
+                      detail={false}
+                    >
                       <IonIcon slot="start" icon={storefrontOutline} />
                       <IonLabel>
                         <h2>Edit Shop Details</h2>
@@ -77,50 +66,104 @@ const SettingsPage: React.FC = () => {
                 </IonCardContent>
               </IonCard>
 
-              {/* Tax Configuration */}
-              <IonTitle>Tax Configuration</IonTitle>
-              <TaxSettings />
-
-              {/* Discount Types */}
-              <IonTitle>Discount Types</IonTitle>
-              <DiscountTypeSettings />
-
-              {/* Void & Refund Reasons */}
-              <IonTitle>Void & Refund Reasons</IonTitle>
-              <VoidRefundReasonSettings />
-
-              <IonTitle>Danger Zone</IonTitle>
-              <IonCard
-                className="flat-card"
-                style={{ marginTop: '16px', border: '1px solid var(--ion-color-danger)' }}
-              >
+              {/* Products */}
+              <IonTitle>Products</IonTitle>
+              <IonCard className="flat-card">
                 <IonCardContent>
-                  <IonList lines="none">
-                    <IonItem>
+                  <IonList lines="none" className="ion-no-padding">
+                    <IonItem
+                      button
+                      onClick={() => navigate(`/shops/${shopId}/settings/products/categories`)}
+                      detail={false}
+                    >
+                      <IonIcon slot="start" icon={pricetagOutline} />
                       <IonLabel>
-                        <h2>Delete Shop</h2>
+                        <h2>Product Categories</h2>
+                        <p>Organize products into categories</p>
                       </IonLabel>
-                      <IonButton
-                        color="danger"
-                        fill="solid"
-                        size="default"
-                        onClick={handleDeleteShop}
-                      >
-                        <IonIcon slot="start" icon={trashOutline} />
-                        Delete
-                      </IonButton>
+                      <IonIcon slot="end" icon={chevronForwardOutline} />
+                    </IonItem>
+                    <IonItem
+                      button
+                      onClick={() => navigate(`/shops/${shopId}/settings/products/modifiers`)}
+                      detail={false}
+                    >
+                      <IonIcon slot="start" icon={optionsOutline} />
+                      <IonLabel>
+                        <h2>Global Modifiers</h2>
+                        <p>Manage reusable modifier groups for products</p>
+                      </IonLabel>
+                      <IonIcon slot="end" icon={chevronForwardOutline} />
                     </IonItem>
                   </IonList>
                 </IonCardContent>
               </IonCard>
 
-              <DeleteConfirmationAlert
-                isOpen={showDeleteAlert}
-                onDismiss={() => setShowDeleteAlert(false)}
-                onConfirm={handleConfirmDelete}
-                itemName={currentShop.name}
-                itemType="Shop"
-              />
+              {/* Inventory */}
+              <IonTitle>Inventory</IonTitle>
+              <IonCard className="flat-card">
+                <IonCardContent>
+                  <IonList lines="none" className="ion-no-padding">
+                    <IonItem
+                      button
+                      onClick={() => navigate(`/shops/${shopId}/settings/inventory/categories`)}
+                      detail={false}
+                    >
+                      <IonIcon slot="start" icon={cubeOutline} />
+                      <IonLabel>
+                        <h2>Inventory Categories</h2>
+                        <p>Organize inventory items into categories</p>
+                      </IonLabel>
+                      <IonIcon slot="end" icon={chevronForwardOutline} />
+                    </IonItem>
+                  </IonList>
+                </IonCardContent>
+              </IonCard>
+
+              {/* POS Configuration */}
+              <IonTitle>POS Configuration</IonTitle>
+              <IonCard className="flat-card">
+                <IonCardContent>
+                  <IonList lines="none" className="ion-no-padding">
+                    <IonItem
+                      button
+                      onClick={() => navigate(`/shops/${shopId}/settings/pos/taxes`)}
+                      detail={false}
+                    >
+                      <IonIcon slot="start" icon={cashOutline} />
+                      <IonLabel>
+                        <h2>Taxes</h2>
+                        <p>Configure tax rates applied at checkout</p>
+                      </IonLabel>
+                      <IonIcon slot="end" icon={chevronForwardOutline} />
+                    </IonItem>
+                    <IonItem
+                      button
+                      onClick={() => navigate(`/shops/${shopId}/settings/pos/discounts`)}
+                      detail={false}
+                    >
+                      <IonIcon slot="start" icon={pricetagsOutline} />
+                      <IonLabel>
+                        <h2>Discount Types</h2>
+                        <p>Manage discount types available at checkout</p>
+                      </IonLabel>
+                      <IonIcon slot="end" icon={chevronForwardOutline} />
+                    </IonItem>
+                    <IonItem
+                      button
+                      onClick={() => navigate(`/shops/${shopId}/settings/pos/void-refund`)}
+                      detail={false}
+                    >
+                      <IonIcon slot="start" icon={arrowUndoOutline} />
+                      <IonLabel>
+                        <h2>Void & Refund Reasons</h2>
+                        <p>Define reasons for voiding or refunding orders</p>
+                      </IonLabel>
+                      <IonIcon slot="end" icon={chevronForwardOutline} />
+                    </IonItem>
+                  </IonList>
+                </IonCardContent>
+              </IonCard>
             </>
           )}
         </CenteredLayout>
