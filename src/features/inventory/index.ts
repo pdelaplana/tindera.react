@@ -1,7 +1,5 @@
 // Inventory Pages - Export
-
 export { default as InventoryItemFormModal } from './components/items/modals/InventoryItemFormModal';
-export { default as InventoryCategoriesListPage } from './pages/mobile/InventoryCategoriesListPage';
 export { default as InventoryItemManagePage } from './pages/mobile/InventoryItemManagePage';
 export { default as InventoryItemTransactionsPage } from './pages/mobile/InventoryItemTransactionsPage';
 export { default as InventoryListPage } from './pages/InventoryListPage';
