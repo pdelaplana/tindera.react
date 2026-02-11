@@ -151,7 +151,7 @@ const InventoryItemTransactionsContent: React.FC<InventoryItemTransactionsConten
 }) => {
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
 
-  // Fetch transactions
+  // Fetch transactionsz
   const {
     data: transactionsData,
     isLoading,
