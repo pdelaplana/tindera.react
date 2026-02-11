@@ -150,7 +150,7 @@ const ProductCategoriesPage: React.FC = () => {
   // No shop selected state
   if (!currentShop && !shopLoading) {
     return (
-      <BasePage title="Product Categories" backHref={`/shops/${currentShop?.id}/settings`}>
+      <BasePage title="Product Categories" backHref="/shops">
         <CenteredLayout>
           <div className="empty-state ion-text-center" style={{ padding: '48px 16px' }}>
             <h2>No Shop Selected</h2>
