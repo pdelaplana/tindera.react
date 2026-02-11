@@ -89,11 +89,6 @@ const SideMenu: React.FC = () => {
           url: currentShop ? `/shops/${currentShop.id}/products` : '/products',
           icon: pricetagOutline,
         },
-        {
-          title: t('navigation.modifiers'),
-          url: currentShop ? `/shops/${currentShop.id}/modifiers` : '/modifiers',
-          icon: optionsOutline,
-        },
       ],
     },
     {
