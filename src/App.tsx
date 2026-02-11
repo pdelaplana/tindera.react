@@ -11,7 +11,6 @@ import LoginPage from '@/features/auth/LoginPage';
 import LogoutPage from '@/features/auth/LogoutPage';
 import SignupPage from '@/features/auth/SignupPage';
 import {
-  InventoryCategoriesListPage,
   InventoryItemManagePage,
   InventoryItemTransactionsPage,
   InventoryListPage,
@@ -21,15 +20,21 @@ import {
 } from '@/features/inventory';
 import { POSPage } from '@/features/pos';
 import {
-  CategoriesListPage,
-  ModifierGroupManagePage,
-  ModifiersListPage,
   ProductManagePage,
   ProductSalesPage,
   ProductsListPage,
 } from '@/features/products';
 import { OrderDetailPage, SalesListPage } from '@/features/sales';
-import { SettingsPage } from '@/features/settings';
+import {
+  DiscountTypeSettingsPage,
+  GlobalModifierGroupManagePage,
+  GlobalModifiersPage,
+  InventoryCategoriesPage,
+  ProductCategoriesPage,
+  SettingsPage,
+  TaxSettingsPage,
+  VoidRefundSettingsPage,
+} from '@/features/settings';
 import { ShopFormPage, ShopSelectionPage } from '@/features/shop';
 // Pages
 import Home from './features/Home';
@@ -73,22 +78,6 @@ const App: React.FC = () => (
                 </AuthGuard>
               </Route>
               {/* Products Routes */}
-              <Route exact path="/shops/:shopId/products/categories">
-                <AuthGuard>
-                  <CategoriesListPage />
-                </AuthGuard>
-              </Route>{' '}
-              {/* Modifier Group Manage Page - MUST come before list page to avoid route conflict */}
-              <Route exact path="/shops/:shopId/modifiers/:id/manage">
-                <AuthGuard>
-                  <ModifierGroupManagePage />
-                </AuthGuard>
-              </Route>{' '}
-              <Route exact path="/shops/:shopId/modifiers">
-                <AuthGuard>
-                  <ModifiersListPage />
-                </AuthGuard>
-              </Route>
               <Route exact path="/shops/:shopId/products">
                 <AuthGuard>
                   <ProductsListPage />
@@ -114,11 +103,6 @@ const App: React.FC = () => (
               <Route exact path="/shops/:shopId/inventory/transactions">
                 <AuthGuard>
                   <InventoryTransactionsPage />
-                </AuthGuard>
-              </Route>
-              <Route exact path="/shops/:shopId/inventory/categories">
-                <AuthGuard>
-                  <InventoryCategoriesListPage />
                 </AuthGuard>
               </Route>
               <Route exact path="/shops/:shopId/inventory/:itemId/manage">
@@ -167,6 +151,47 @@ const App: React.FC = () => (
               <Route exact path="/shops/:shopId/settings/shop">
                 <AuthGuard>
                   <ShopFormPage />
+                </AuthGuard>
+              </Route>
+              {/* Settings — Products */}
+              <Route exact path="/shops/:shopId/settings/products/categories">
+                <AuthGuard>
+                  <ProductCategoriesPage />
+                </AuthGuard>
+              </Route>
+              {/* Modifier Group Manage - MUST come before list route */}
+              <Route exact path="/shops/:shopId/settings/products/modifiers/:id/manage">
+                <AuthGuard>
+                  <GlobalModifierGroupManagePage />
+                </AuthGuard>
+              </Route>
+              <Route exact path="/shops/:shopId/settings/products/modifiers">
+                <AuthGuard>
+                  <GlobalModifiersPage />
+                </AuthGuard>
+              </Route>
+
+              {/* Settings — Inventory */}
+              <Route exact path="/shops/:shopId/settings/inventory/categories">
+                <AuthGuard>
+                  <InventoryCategoriesPage />
+                </AuthGuard>
+              </Route>
+
+              {/* Settings — POS Configuration */}
+              <Route exact path="/shops/:shopId/settings/pos/taxes">
+                <AuthGuard>
+                  <TaxSettingsPage />
+                </AuthGuard>
+              </Route>
+              <Route exact path="/shops/:shopId/settings/pos/discounts">
+                <AuthGuard>
+                  <DiscountTypeSettingsPage />
+                </AuthGuard>
+              </Route>
+              <Route exact path="/shops/:shopId/settings/pos/void-refund">
+                <AuthGuard>
+                  <VoidRefundSettingsPage />
                 </AuthGuard>
               </Route>
               {/* Shop Routes */}
