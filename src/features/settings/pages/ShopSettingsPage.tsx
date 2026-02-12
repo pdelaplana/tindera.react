@@ -2,20 +2,13 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  IonBackButton,
   IonButton,
-  IonButtons,
   IonCard,
   IonCardContent,
-  IonContent,
-  IonHeader,
   IonIcon,
   IonItem,
   IonLabel,
   IonList,
-  IonPage,
-  IonTitle,
-  IonToolbar,
 } from '@ionic/react';
 import { trashOutline } from 'ionicons/icons';
 import type React from 'react';
@@ -23,6 +16,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useHistory, useParams } from 'react-router-dom';
 import { z } from 'zod';
+import { BasePage } from '@/components/layouts';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import { SelectField, TextAreaField, TextField } from '@/components/shared/FormFields';
 import { SaveButton } from '@/components/shared/SaveButton';
@@ -171,25 +165,19 @@ const ShopSettingsPage: React.FC = () => {
   };
 
   return (
-    <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonButtons slot="start">
-            <IonBackButton defaultHref={`/shops/${shopId}/settings`} />
-          </IonButtons>
-          <IonTitle>Edit Shop Details</IonTitle>
-          <IonButtons slot="end">
-            <SaveButton
-              isSaving={isSaving}
-              disabled={!isDirty}
-              onClick={handleSubmit(onSubmit)}
-              iconOnly
-            />
-          </IonButtons>
-        </IonToolbar>
-      </IonHeader>
-
-      <IonContent className="ion-padding">
+    <BasePage
+      title="Edit Shop Details"
+      backHref={`/shops/${shopId}/settings`}
+      endButtons={
+        <SaveButton
+          isSaving={isSaving}
+          disabled={!isDirty}
+          onClick={handleSubmit(onSubmit)}
+          iconOnly
+        />
+      }
+    >
+      <div className="ion-padding">
         <form onSubmit={handleSubmit(onSubmit)}>
           <FormContainer>
             <FormSection>
@@ -307,8 +295,8 @@ const ShopSettingsPage: React.FC = () => {
             />
           </>
         )}
-      </IonContent>
-    </IonPage>
+      </div>
+    </BasePage>
   );
 };
 
