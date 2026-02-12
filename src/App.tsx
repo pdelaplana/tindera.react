@@ -35,7 +35,7 @@ import {
   TaxSettingsPage,
   VoidRefundSettingsPage,
 } from '@/features/settings';
-import { ShopFormPage, ShopSelectionPage } from '@/features/shop';
+import { ShopFormPage, ShopSelectionPage, ShopSettingsPage } from '@/features/shop';
 // Pages
 import Home from './features/Home';
 
@@ -150,7 +150,7 @@ const App: React.FC = () => (
               </Route>
               <Route exact path="/shops/:shopId/settings/shop">
                 <AuthGuard>
-                  <ShopFormPage />
+                  <ShopSettingsPage />
                 </AuthGuard>
               </Route>
               {/* Settings — Products */}
