@@ -108,7 +108,7 @@ const ModifiersList: React.FC<ModifiersListProps> = ({
         <>
           <IonReorderGroup
             disabled={!canEdit || !reorderEnabled}
-            onIonItemReorder={handleReorder}
+            onIonReorderEnd={handleReorder}
             style={{
               display: 'flex',
               flexDirection: 'column',

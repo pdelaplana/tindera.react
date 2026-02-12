@@ -104,12 +104,7 @@ const ModifierListItem: React.FC<ModifierListItemProps> = ({
       tabIndex={canEdit && !showReorderHandle ? 0 : undefined}
     >
       <CardContent>
-        {showReorderHandle && (
-          <IonReorder slot="start">
-            <IonIcon icon={reorderTwoOutline} size="small" />
-          </IonReorder>
-        )}
-
+        
         <LeftContent>
           <ModifierName>{modifier.name}</ModifierName>
           <ModifierMeta>
@@ -120,6 +115,12 @@ const ModifierListItem: React.FC<ModifierListItemProps> = ({
         <RightContent>
           {modifier.is_default && <DefaultBadge>Default</DefaultBadge>}
         </RightContent>
+        {showReorderHandle && (
+          <IonReorder slot="start">
+            <IonIcon icon={reorderTwoOutline} size="small" />
+          </IonReorder>
+        )}
+
       </CardContent>
     </Card>
   );
