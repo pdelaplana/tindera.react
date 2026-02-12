@@ -46,6 +46,7 @@ const SettingsPage: React.FC = () => {
           {currentShop && (
             <>
               {/* Shop */}
+             
               <IonTitle>Shop</IonTitle>
               <IonCard className="flat-card">
                 <IonCardContent>

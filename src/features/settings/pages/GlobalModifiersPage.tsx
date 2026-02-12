@@ -100,9 +100,9 @@ const GlobalModifiersPage: React.FC = () => {
 
   // Render individual modifier group
   const renderModifierGroup = (group: ModifierGroupWithModifiers, index: number) => {
-    const modifierCount = group.modifiers?.length || 0;
+    const modifiers = group.modifiers ?? [];
     const selectionText = group.max_select
-      ? `Select ${group.min_select}-${group.max_select}`
+      ? `Select ${group.min_select}–${group.max_select}`
       : `Select ${group.min_select}+`;
 
     return (
@@ -123,9 +123,15 @@ const GlobalModifiersPage: React.FC = () => {
               • {selectionText}
             </IonText2>
           </div>
-          <IonText2 color="medium" fontSize="0.85em">
-            {modifierCount} {modifierCount === 1 ? 'modifier' : 'modifiers'}
-          </IonText2>
+          {modifiers.length > 0 && (
+            <IonText2 color="medium" fontSize="0.8em">
+              {modifiers
+                .slice()
+                .sort((a, b) => a.sequence - b.sequence)
+                .map((m) => m.name)
+                .join(' · ')}
+            </IonText2>
+          )}
         </IonLabel>
       </IonItem>
     );

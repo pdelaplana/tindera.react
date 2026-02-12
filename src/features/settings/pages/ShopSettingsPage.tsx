@@ -16,22 +16,19 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useHistory, useParams } from 'react-router-dom';
 import { z } from 'zod';
-import { BasePage } from '@/components/layouts';
+import { BasePage, CenteredLayout } from '@/components/layouts';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import { SelectField, TextAreaField, TextField } from '@/components/shared/FormFields';
 import { SaveButton } from '@/components/shared/SaveButton';
-import { ImageUpload } from '@/components/ui';
 import { useDeleteShop, useShop, useUpdateShop } from '@/hooks/useShop';
 import { useToastNotification } from '@/hooks/useToastNotification';
-import { uploadShopLogo } from '@/services/storage';
 import type { ShopUpdate } from '@/types';
 import {
   ButtonContainer,
-  FormContainer,
   FormSection,
-  ImageUploadSection,
-  SectionTitle,
 } from '@/features/shop/pages/ShopFormPage.styles';
+import { CardContainer } from '@/components/shared';
+import ShopImageSection from '../components/ShopImageSection';
 
 // Common currency codes
 const CURRENCY_OPTIONS = [
@@ -58,7 +55,6 @@ const shopSchema = z.object({
   location: z.string().max(200, 'Location too long').optional().nullable(),
   currency_code: z.string().min(3, 'Currency is required').max(3),
   order_prefix: z.string().max(10, 'Prefix too long').optional().nullable(),
-  image_url: z.string().optional().nullable(),
 });
 
 type ShopFormData = z.infer<typeof shopSchema>;
@@ -76,16 +72,14 @@ const ShopSettingsPage: React.FC = () => {
   const deleteShopMutation = useDeleteShop();
   const { showSuccess, showError } = useToastNotification();
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
 
   const {
     control,
     handleSubmit,
-    setValue,
     reset,
-    watch,
     formState: { errors, isDirty },
   } = useForm<ShopFormData>({
     resolver: zodResolver(shopSchema),
@@ -95,11 +89,8 @@ const ShopSettingsPage: React.FC = () => {
       location: '',
       currency_code: 'USD',
       order_prefix: '',
-      image_url: '',
     },
   });
-
-  const currentImageUrl = watch('image_url');
 
   // Load shop data
   useEffect(() => {
@@ -111,8 +102,8 @@ const ShopSettingsPage: React.FC = () => {
         location: shop.location || '',
         currency_code: shop.currency_code,
         order_prefix: shop.order_prefix || '',
-        image_url: shop.image_url || '',
       });
+      setCurrentImageUrl(shop.image_url || null);
     }
   }, [shopId, shops, currentShop, reset]);
 
@@ -120,24 +111,11 @@ const ShopSettingsPage: React.FC = () => {
     try {
       setIsSaving(true);
 
-      let imageUrl = data.image_url;
-
-      if (selectedFile) {
-        try {
-          imageUrl = await uploadShopLogo(selectedFile, shopId);
-        } catch (uploadError) {
-          throw new Error(
-            uploadError instanceof Error ? uploadError.message : 'Failed to upload image'
-          );
-        }
-      }
-
       const cleanData = {
         ...data,
         description: data.description || null,
         location: data.location || null,
         order_prefix: data.order_prefix || null,
-        image_url: imageUrl || null,
       };
 
       await updateShop.mutateAsync({
@@ -150,6 +128,20 @@ const ShopSettingsPage: React.FC = () => {
       showError(message);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleImageUploaded = async (url: string) => {
+    setCurrentImageUrl(url);
+    try {
+      await updateShop.mutateAsync({
+        shopId,
+        data: { image_url: url } as ShopUpdate,
+      });
+      showSuccess('Shop logo updated');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to save logo';
+      showError(message);
     }
   };
 
@@ -177,74 +169,65 @@ const ShopSettingsPage: React.FC = () => {
         />
       }
     >
-      <div className="ion-padding">
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <FormContainer>
-            <FormSection>
-              <SectionTitle>Shop Information</SectionTitle>
+      <CenteredLayout>
+        <ShopImageSection
+          imageUrl={currentImageUrl}
+          shopId={shopId}
+          onImageUploaded={handleImageUploaded}
+          onUploadError={(err) => showError(err.message)}
+          disabled={isSaving}
+        />
 
-              <TextField
-                name="name"
-                control={control}
-                label="Shop Name"
-                placeholder="Enter shop name"
-                required
-                error={errors.name}
-                disabled={isSaving}
-              />
-              <TextField
-                name="order_prefix"
-                control={control}
-                label="Order Number Prefix"
-                placeholder="e.g., PC, CAFE (optional)"
-                maxLength={10}
-                error={errors.order_prefix}
-                disabled={isSaving}
-                helperText="Used for order numbers like #PC-0001"
-              />
-              <TextAreaField
-                name="description"
-                control={control}
-                label="Description"
-                placeholder="Describe your shop"
-                rows={3}
-                error={errors.description}
-                disabled={isSaving}
-              />
-              <TextField
-                name="location"
-                control={control}
-                label="Location"
-                placeholder="e.g., New York, NY"
-                error={errors.location}
-                disabled={isSaving}
-              />
-              <SelectField
-                name="currency_code"
-                control={control}
-                label="Currency"
-                placeholder="Select currency"
-                required
-                options={CURRENCY_OPTIONS}
-                error={errors.currency_code}
-                disabled={isSaving}
-              />
-              <ImageUploadSection>
-                <SectionTitle>Shop Logo</SectionTitle>
-                <ImageUpload
-                  value={currentImageUrl}
-                  onFileSelect={(file) => {
-                    setSelectedFile(file);
-                    setValue('image_url', 'pending_upload', { shouldDirty: true });
-                  }}
-                  onRemove={() => {
-                    setSelectedFile(null);
-                    setValue('image_url', '', { shouldDirty: true });
-                  }}
-                  disabled={isSaving}
-                />
-              </ImageUploadSection>
-            </FormSection>
+        <CardContainer title="Shop Information">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <TextField
+              name="name"
+              control={control}
+              label="Shop Name"
+              placeholder="Enter shop name"
+              required
+              error={errors.name}
+              disabled={isSaving}
+            />
+            <TextField
+              name="order_prefix"
+              control={control}
+              label="Order Number Prefix"
+              placeholder="e.g., PC, CAFE (optional)"
+              maxLength={10}
+              error={errors.order_prefix}
+              disabled={isSaving}
+              helperText="Used for order numbers like #PC-0001"
+            />
+            <TextAreaField
+              name="description"
+              control={control}
+              label="Description"
+              placeholder="Describe your shop"
+              rows={3}
+              error={errors.description}
+              disabled={isSaving}
+            />
+            <TextField
+              name="location"
+              control={control}
+              label="Location"
+              placeholder="e.g., New York, NY"
+              error={errors.location}
+              disabled={isSaving}
+            />
+            <SelectField
+              name="currency_code"
+              control={control}
+              label="Currency"
+              placeholder="Select currency"
+              required
+              options={CURRENCY_OPTIONS}
+              error={errors.currency_code}
+              disabled={isSaving}
+            />
+
+            <FormSection />
 
             <ButtonContainer>
               <SaveButton
@@ -255,8 +238,8 @@ const ShopSettingsPage: React.FC = () => {
                 type="submit"
               />
             </ButtonContainer>
-          </FormContainer>
-        </form>
+          </form>
+        </CardContainer>
 
         {/* Danger Zone */}
         {currentShop && (
@@ -295,7 +278,7 @@ const ShopSettingsPage: React.FC = () => {
             />
           </>
         )}
-      </div>
+      </CenteredLayout>
     </BasePage>
   );
 };

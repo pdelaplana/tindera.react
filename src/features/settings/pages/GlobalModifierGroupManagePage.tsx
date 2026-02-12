@@ -1,22 +1,26 @@
 // Modifier Group Manage Page - Manage modifiers within a group
 
 import {
-  IonActionSheet,
+  IonButton,
+  IonCard,
+  IonCardContent,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  IonList,
   IonRefresher,
   IonRefresherContent,
   type RefresherEventDetail,
   useIonLoading,
 } from '@ionic/react';
-import { close, trashOutline } from 'ionicons/icons';
+import { addOutline, trashOutline } from 'ionicons/icons';
 import type React from 'react';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-import { CenteredLayout, PageWithCollapsibleHeader } from '@/components/layouts';
-import { Div } from '@/components/shared/base/Div';
+import { BasePage, CenteredLayout } from '@/components/layouts';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import PageLoadingState from '@/components/shared/PageLoadingState';
 import PageNotFoundState from '@/components/shared/PageNotFoundState';
-import { IonText2 } from '@/components/ui';
 import { useDeleteModifierGroup, useModifierGroup } from '@/hooks/useModifier';
 import { useShop } from '@/hooks/useShop';
 import { useToastNotification } from '@/hooks/useToastNotification';
@@ -24,9 +28,8 @@ import { logger } from '@/services/sentry';
 import type { Modifier } from '@/types';
 import { createCurrencyFormatter } from '@/utils/currency';
 import { GlobalModifierFormModal } from '@/features/products/components/globalModifiers/GlobalModifierFormModal';
-import { GlobalModifierGroupFormModal } from '@/features/products/components/globalModifiers/GlobalModifierGroupFormModal';
 import ModifiersList from '@/features/products/components/globalModifiers/ModifiersList';
-import ModifierGroupActionButtons from '@/features/products/components/ModifierGroupActionButtons';
+import ModifierGroupSettingsCard from '../components/ModifierGroupSettingsCard';
 
 interface RouteParams {
   shopId: string;
@@ -37,53 +40,31 @@ const ModifierGroupManagePage: React.FC = () => {
   const { shopId, id } = useParams<RouteParams>();
   const history = useHistory();
 
-  // Hooks
   const { currentShop, hasPermission } = useShop();
   const { data: group, isLoading: groupLoading, refetch: refetchGroup } = useModifierGroup(id);
   const deleteGroup = useDeleteModifierGroup();
   const { showSuccess, showError } = useToastNotification();
   const [present, dismiss] = useIonLoading();
 
-  // Modal states
   const [showModifierModal, setShowModifierModal] = useState(false);
-  const [showGroupFormModal, setShowGroupFormModal] = useState(false);
-  const [showOptionsSheet, setShowOptionsSheet] = useState(false);
   const [showDeleteGroupAlert, setShowDeleteGroupAlert] = useState(false);
-
-  // Selected modifier state
   const [selectedModifier, setSelectedModifier] = useState<Modifier | null>(null);
 
-  // Ref for collapsible header
-  const groupNameRef = useRef<HTMLHeadingElement>(null);
-  const observedElementRef = groupNameRef as React.RefObject<HTMLElement>;
-
-  // Permissions
   const canEdit = hasPermission('staff');
   const canDelete = hasPermission('admin');
 
-  // Currency formatter
   const formatCurrency = useMemo(
     () => createCurrencyFormatter(currentShop?.currency_code || 'USD'),
     [currentShop?.currency_code]
   );
 
-  // Handlers
   const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
     await refetchGroup();
     event.detail.complete();
   };
 
-  const handleEditGroup = () => {
-    setShowGroupFormModal(true);
-  };
-
-  const handleOptions = () => {
-    setShowOptionsSheet(true);
-  };
-
   const handleDeleteGroup = async () => {
     if (!group) return;
-
     try {
       await present({ message: 'Deleting...' });
       await deleteGroup.mutateAsync(id);
@@ -113,175 +94,94 @@ const ModifierGroupManagePage: React.FC = () => {
     refetchGroup();
   };
 
-  // Loading state
   if (groupLoading) {
     return <PageLoadingState backHref={`/shops/${shopId}/settings/products/modifiers`} />;
   }
 
   if (!group) {
     return (
-      <PageNotFoundState backHref={`/shops/${shopId}/settings/products/modifiers`} title="Modifier Group Not Found" />
+      <PageNotFoundState
+        backHref={`/shops/${shopId}/settings/products/modifiers`}
+        title="Modifier Group Not Found"
+      />
     );
   }
 
   const modifiers = group.modifiers || [];
   const hasModifiers = modifiers.length > 0;
-  const selectionText = group.max_select
-    ? `${group.min_select}-${group.max_select}`
-    : `${group.min_select}+`;
+
+  const addButton = (
+    <IonButton fill="clear" onClick={handleAddModifier} disabled={!canEdit} aria-label="Add modifier">
+      <IonIcon slot="icon-only" icon={addOutline} />
+    </IonButton>
+  );
 
   return (
-    <PageWithCollapsibleHeader
+    <BasePage
       title={group.name}
       backHref={`/shops/${shopId}/settings/products/modifiers`}
-      observedElementRef={observedElementRef}
+      endButtons={addButton}
       isLoading={groupLoading}
       notFound={!groupLoading && !group}
     >
-      {/* Pull to refresh */}
       <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
         <IonRefresherContent />
       </IonRefresher>
 
-      {/* Top Section - Group Summary and Action Buttons */}
-      <Div
-        style={{
-          paddingBottom: '24px',
-          marginBottom: '24px',
-          borderBottom: '1px solid var(--ion-color-light-shade)',
-        }}
-      >
-        <CenteredLayout>
-          <Div style={{ maxWidth: '800px', width: '100%', padding: '16px', textAlign: 'center' }}>
-            <h2 ref={groupNameRef} style={{ marginTop: 0, fontSize: '1.5rem' }}>
-              {group.name}
-            </h2>
-            {group.description && (
-              <IonText2 color="medium" style={{ display: 'block', marginBottom: '12px' }}>
-                {group.description}
-              </IonText2>
-            )}
-
-            <Div
-              style={{
-                display: 'flex',
-                gap: '12px',
-                marginBottom: '16px',
-                flexWrap: 'wrap',
-                textAlign: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Div
-                style={{
-                  padding: '8px 12px',
-                  background: group.is_required
-                    ? 'var(--ion-color-danger-tint)'
-                    : 'var(--ion-color-medium-tint)',
-                  borderRadius: '8px',
-                }}
-              >
-                <IonText2 fontSize="0.875rem" fontWeight="500">
-                  {group.is_required ? 'Required' : 'Optional'}
-                </IonText2>
-              </Div>
-              <Div
-                style={{
-                  padding: '8px 12px',
-                  background: 'var(--ion-color-light)',
-                  borderRadius: '8px',
-                }}
-              >
-                <IonText2 fontSize="0.875rem" fontWeight="500">
-                  Select {selectionText}
-                </IonText2>
-              </Div>
-              <Div
-                style={{
-                  padding: '8px 12px',
-                  background: 'var(--ion-color-light)',
-                  borderRadius: '8px',
-                }}
-              >
-                <IonText2 fontSize="0.875rem" fontWeight="500">
-                  {modifiers.length} {modifiers.length === 1 ? 'modifier' : 'modifiers'}
-                </IonText2>
-              </Div>
-            </Div>
-
-            <ModifierGroupActionButtons
-              onEditGroup={handleEditGroup}
-              onAddModifier={handleAddModifier}
-              onOptions={handleOptions}
-              disabled={!canEdit}
-            />
-          </Div>
-        </CenteredLayout>
-      </Div>
-
-      {/* Content Section */}
       <CenteredLayout>
-        <Div style={{ maxWidth: '800px', width: '100%' }}>
-          <ModifiersList
-            modifiers={modifiers}
-            formatCurrency={formatCurrency}
-            onAdd={handleAddModifier}
-            onEdit={handleEditModifier}
-            canEdit={canEdit}
-          />
-        </Div>
+        <ModifierGroupSettingsCard group={group} onSaved={refetchGroup} />
+
+        <ModifiersList
+          modifiers={modifiers}
+          formatCurrency={formatCurrency}
+          onAdd={handleAddModifier}
+          onEdit={handleEditModifier}
+          canEdit={canEdit}
+        />
+
+        {/* Danger Zone */}
+        {canDelete && (
+          <IonCard
+            className="flat-card"
+            style={{ marginTop: '16px', border: '1px solid var(--ion-color-danger)' }}
+          >
+            <IonCardContent>
+              <IonList lines="none">
+                <IonItem>
+                  <IonLabel>
+                    <h2>Delete Modifier Group</h2>
+                    <p>
+                      {hasModifiers
+                        ? 'Remove all modifiers before deleting this group'
+                        : 'Permanently delete this modifier group'}
+                    </p>
+                  </IonLabel>
+                  <IonButton
+                    color="danger"
+                    fill="solid"
+                    size="default"
+                    disabled={hasModifiers}
+                    onClick={() => setShowDeleteGroupAlert(true)}
+                  >
+                    <IonIcon slot="start" icon={trashOutline} />
+                    Delete
+                  </IonButton>
+                </IonItem>
+              </IonList>
+            </IonCardContent>
+          </IonCard>
+        )}
       </CenteredLayout>
 
-      {/* Modals */}
       <GlobalModifierFormModal
         isOpen={showModifierModal}
         onClose={handleCloseModifierModal}
         initialData={selectedModifier || undefined}
         modifierGroupId={id}
         onSuccess={refetchGroup}
-        nextSequence={group?.modifiers?.length || 0}
+        nextSequence={modifiers.length}
       />
 
-      <GlobalModifierGroupFormModal
-        isOpen={showGroupFormModal}
-        onClose={() => {
-          setShowGroupFormModal(false);
-          refetchGroup();
-        }}
-        group={group}
-      />
-
-      {/* Options Action Sheet */}
-      <IonActionSheet
-        isOpen={showOptionsSheet}
-        onDidDismiss={() => setShowOptionsSheet(false)}
-        header="Options"
-        buttons={[
-          ...(canDelete
-            ? [
-                {
-                  text: 'Delete Group',
-                  icon: trashOutline,
-                  role: 'destructive' as const,
-                  handler: () => {
-                    if (hasModifiers) {
-                      showError('Cannot delete group with modifiers. Remove all modifiers first.');
-                    } else {
-                      setShowDeleteGroupAlert(true);
-                    }
-                  },
-                },
-              ]
-            : []),
-          {
-            text: 'Cancel',
-            role: 'cancel',
-            icon: close,
-          },
-        ]}
-      />
-
-      {/* Delete Confirmation */}
       <DeleteConfirmationAlert
         isOpen={showDeleteGroupAlert}
         onDismiss={() => setShowDeleteGroupAlert(false)}
@@ -289,7 +189,7 @@ const ModifierGroupManagePage: React.FC = () => {
         itemName={group.name}
         itemType="Modifier Group"
       />
-    </PageWithCollapsibleHeader>
+    </BasePage>
   );
 };
 
