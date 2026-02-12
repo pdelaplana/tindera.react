@@ -37,7 +37,7 @@ import {
   FormSection,
   ImageUploadSection,
   SectionTitle,
-} from './ShopFormPage.styles';
+} from '@/features/shop/pages/ShopFormPage.styles';
 
 // Common currency codes
 const CURRENCY_OPTIONS = [

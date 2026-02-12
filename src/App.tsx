@@ -32,10 +32,11 @@ import {
   InventoryCategoriesPage,
   ProductCategoriesPage,
   SettingsPage,
+  ShopSettingsPage,
   TaxSettingsPage,
   VoidRefundSettingsPage,
 } from '@/features/settings';
-import { ShopFormPage, ShopSelectionPage, ShopSettingsPage } from '@/features/shop';
+import { ShopFormPage, ShopSelectionPage } from '@/features/shop';
 // Pages
 import Home from './features/Home';
 
