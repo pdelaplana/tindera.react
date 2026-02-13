@@ -1,15 +1,12 @@
 // GlobalModifierGroupFormModal - Combined Add/Edit Modal for Modifier Groups
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { IonButton, IonIcon, IonText } from '@ionic/react';
-import { checkmarkCircle, closeCircle } from 'ionicons/icons';
+import { IonButton, IonItem, IonText, IonToggle } from '@ionic/react';
 import type React from 'react';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import BaseModal from '@/components/shared/BaseModal';
-import { FieldLabel } from '@/components/shared/FieldLabel';
 import { NumberField, TextField } from '@/components/shared/FormFields';
 import { SaveButton } from '@/components/shared/SaveButton';
 import {
@@ -25,6 +22,7 @@ import type { ModifierGroupWithModifiers } from '@/types';
 const modifierGroupSchema = z
   .object({
     name: z.string().min(1, 'Name is required'),
+    description: z.string().max(200).optional().nullable(),
     min_select: z.number().min(0, 'Minimum selections must be at least 0'),
     max_select: z.number().min(1, 'Maximum selections must be at least 1').nullable(),
     is_required: z.boolean(),
@@ -47,7 +45,6 @@ export const GlobalModifierGroupFormModal: React.FC<GlobalModifierGroupFormModal
   onClose,
   group,
 }) => {
-  const { t } = useTranslation();
   const { showSuccess, showError } = useToastNotification();
   const { currentShop } = useShop();
   const isEditMode = !!group;
@@ -70,6 +67,7 @@ export const GlobalModifierGroupFormModal: React.FC<GlobalModifierGroupFormModal
     resolver: zodResolver(modifierGroupSchema),
     defaultValues: {
       name: '',
+      description: '',
       min_select: 0,
       max_select: 1,
       is_required: false,
@@ -79,7 +77,6 @@ export const GlobalModifierGroupFormModal: React.FC<GlobalModifierGroupFormModal
 
   const minSelect = watch('min_select');
   const maxSelect = watch('max_select');
-  const _isRequired = watch('is_required');
 
   // Reset form when modal opens or group changes
   useEffect(() => {
@@ -88,12 +85,14 @@ export const GlobalModifierGroupFormModal: React.FC<GlobalModifierGroupFormModal
         group
           ? {
               name: group.name,
+              description: group.description ?? '',
               min_select: group.min_select,
               max_select: group.max_select,
               is_required: group.is_required,
             }
           : {
               name: '',
+              description: '',
               min_select: 0,
               max_select: 1,
               is_required: false,
@@ -121,6 +120,7 @@ export const GlobalModifierGroupFormModal: React.FC<GlobalModifierGroupFormModal
           groupId: group.id,
           updates: {
             name: data.name,
+            description: data.description || null,
             min_select: data.min_select,
             max_select: data.max_select,
             is_required: data.is_required,
@@ -131,7 +131,7 @@ export const GlobalModifierGroupFormModal: React.FC<GlobalModifierGroupFormModal
         await createModifierGroup.mutateAsync({
           shop_id: currentShop.id,
           name: data.name,
-          description: null,
+          description: data.description || null,
           min_select: data.min_select,
           max_select: data.max_select,
           is_required: data.is_required,
@@ -180,39 +180,35 @@ export const GlobalModifierGroupFormModal: React.FC<GlobalModifierGroupFormModal
         <TextField
           name="name"
           control={control}
-          label="Group Name"
-          placeholder="e.g., Size, Toppings, Add-ons"
+          label="Internal Name"
+          placeholder="e.g., Flavour, Size, Toppings"
+          helperText="Used internally to identify this group"
           error={errors.name}
           required
         />
 
-        <FieldLabel label="Required or Optional" required={false} />
+        <TextField
+          name="description"
+          control={control}
+          label="POS Label"
+          placeholder="e.g., Choose a Flavour, Pick a Size"
+          helperText="Shown on the POS to guide staff. Optional."
+          error={errors.description}
+        />
+
         <Controller
           name="is_required"
           control={control}
           render={({ field }) => (
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-              <IonButton
-                expand="block"
-                fill={field.value ? 'solid' : 'outline'}
-                color={field.value ? 'danger' : 'medium'}
-                onClick={() => field.onChange(true)}
-                style={{ flex: 1 }}
+            <IonItem lines="none" style={{ marginBottom: '16px' }}>
+              <IonToggle
+                checked={field.value}
+                onIonChange={(e) => field.onChange(e.detail.checked)}
+                labelPlacement="end"
               >
-                <IonIcon slot="start" icon={checkmarkCircle} />
                 Required
-              </IonButton>
-              <IonButton
-                expand="block"
-                fill={!field.value ? 'solid' : 'outline'}
-                color={!field.value ? 'medium' : 'medium'}
-                onClick={() => field.onChange(false)}
-                style={{ flex: 1 }}
-              >
-                <IonIcon slot="start" icon={closeCircle} />
-                Optional
-              </IonButton>
-            </div>
+              </IonToggle>
+            </IonItem>
           )}
         />
 
