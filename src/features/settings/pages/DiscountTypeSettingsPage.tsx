@@ -155,21 +155,22 @@ const DiscountTypeSettingsPage: React.FC = () => {
             </Div>
           ) : (
             <IonList>
-              {filteredTypes.map((discountType) => (
+              {filteredTypes.map((discountType, index) => (
                 <IonItem
                   key={discountType.id}
                   button
-                  lines="full"
+                  lines={index === filteredTypes.length - 1 ? 'none' : 'full'}
                   onClick={() => handleEdit(discountType)}
                 >
                   <IonLabel>
                     <h2>{discountType.name}</h2>
-                  </IonLabel>
-                  {discountType.is_system && (
-                    <IonBadge color="primary" style={{ marginRight: '8px' }}>
+                      {discountType.is_system && (
+                    <IonBadge color="primary" style={{ marginTop: '8px' }}>
                       System
                     </IonBadge>
                   )}
+                  </IonLabel>
+                
                   {!discountType.is_active && <IonBadge color="medium">Inactive</IonBadge>}
                 </IonItem>
               ))}
@@ -194,7 +195,7 @@ const DiscountTypeSettingsPage: React.FC = () => {
             error={errors.name}
             required
           />
-          {editingType && (
+          {editingType && !editingType.is_system && (
             <Controller
               control={control}
               name="is_active"
@@ -212,13 +213,15 @@ const DiscountTypeSettingsPage: React.FC = () => {
             />
           )}
 
-          <SaveButton
-            type="submit"
-            expand="block"
-            isSaving={isSaving}
-            disabled={isSaving}
-            label="Save Discount Type"
-          />
+          {!editingType?.is_system && (
+            <SaveButton
+              type="submit"
+              expand="block"
+              isSaving={isSaving}
+              disabled={isSaving}
+              label="Save Discount Type"
+            />
+          )}
 
           {editingType && !editingType.is_system && (
             <IonButton

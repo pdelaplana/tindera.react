@@ -155,21 +155,22 @@ const VoidRefundSettingsPage: React.FC = () => {
             </Div>
           ) : (
             <IonList>
-              {filteredReasons.map((reason) => (
+              {filteredReasons.map((reason, index) => (
                 <IonItem
                   key={reason.id}
                   button
-                  lines="full"
+                  lines={index === filteredReasons.length - 1 ? 'none' : 'full'}
                   onClick={() => handleEdit(reason)}
                 >
                   <IonLabel>
                     <h2>{reason.name}</h2>
-                  </IonLabel>
-                  {reason.is_system && (
-                    <IonBadge color="primary" style={{ marginRight: '8px' }}>
+                    {reason.is_system && (
+                    <IonBadge color="primary" style={{ marginTop: '8px' }}>
                       System
                     </IonBadge>
                   )}
+                  </IonLabel>
+                  
                   {!reason.is_active && <IonBadge color="medium">Inactive</IonBadge>}
                 </IonItem>
               ))}
@@ -194,7 +195,7 @@ const VoidRefundSettingsPage: React.FC = () => {
             error={errors.name}
             required
           />
-          {editingReason && (
+          {editingReason && !editingReason.is_system && (
             <Controller
               control={control}
               name="is_active"
@@ -212,13 +213,15 @@ const VoidRefundSettingsPage: React.FC = () => {
             />
           )}
 
-          <SaveButton
-            type="submit"
-            expand="block"
-            isSaving={isSaving}
-            disabled={isSaving}
-            label="Save Reason"
-          />
+          {!editingReason?.is_system && (
+            <SaveButton
+              type="submit"
+              expand="block"
+              isSaving={isSaving}
+              disabled={isSaving}
+              label="Save Reason"
+            />
+          )}
 
           {editingReason && !editingReason.is_system && (
             <IonButton
