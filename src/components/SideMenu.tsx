@@ -4,6 +4,7 @@ import {
   IonButton,
   IonButtons,
   IonContent,
+  IonFooter,
   IonHeader,
   IonIcon,
   IonItem,
@@ -22,8 +23,8 @@ import {
   cubeOutline,
   documentTextOutline,
   homeOutline,
-  optionsOutline,
   pricetagOutline,
+  returnDownBackOutline,
   settingsOutline,
   statsChartOutline,
   swapHorizontalOutline,
@@ -83,13 +84,7 @@ const SideMenu: React.FC = () => {
       title: t('navigation.products'),
       url: currentShop ? `/shops/${currentShop.id}/products` : '/products',
       icon: pricetagOutline,
-      submenu: [
-        {
-          title: t('navigation.catalog'),
-          url: currentShop ? `/shops/${currentShop.id}/products` : '/products',
-          icon: pricetagOutline,
-        },
-      ],
+      
     },
     {
       title: t('navigation.sales'),
@@ -113,24 +108,23 @@ const SideMenu: React.FC = () => {
     },
   ];
 
+  const returnToShopsItem: MenuItem = {
+    title: t('Return To Shops'),
+    url: '/shops',
+    icon: returnDownBackOutline,
+  };
+
   return (
     <IonMenu contentId="main" type="overlay">
       <IonHeader>
-        <IonToolbar style={{ '--background': 'white' }}>
+        <IonToolbar style={{ '--background': 'white', height: '102px', paddingTop: '26px', paddingBottom: '16px' }}>
           <IonTitle>
             <AppLogo
               showText={true}
-              height="36px"
-              text={currentShop?.name || t('common.appName')}
+              height="42px"
+              text={t('common.appName')}
             />
           </IonTitle>
-          <IonButtons slot="end">
-            <IonMenuToggle autoHide={false}>
-              <IonButton onClick={() => router.push('/shops', 'root')}>
-                <IonIcon slot="icon-only" icon={swapHorizontalOutline} />
-              </IonButton>
-            </IonMenuToggle>
-          </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent>
@@ -200,6 +194,22 @@ const SideMenu: React.FC = () => {
           })}
         </IonList>
       </IonContent>
+      <IonFooter style={{ boxShadow: 'none' }}>
+        <hr style={{ margin: 0, border: 'none', borderTop: '1px solid var(--ion-color-light)' }} />
+        <IonList lines="none">
+          <IonMenuToggle autoHide={false}>
+            <IonItem
+              routerLink={returnToShopsItem.url}
+              routerDirection="none"
+              className={location.pathname === returnToShopsItem.url ? 'selected' : ''}
+              detail={false}
+            >
+              <IonIcon slot="start" icon={returnToShopsItem.icon} />
+              <IonLabel>{returnToShopsItem.title}</IonLabel>
+            </IonItem>
+          </IonMenuToggle>
+        </IonList>
+      </IonFooter>
     </IonMenu>
   );
 };
