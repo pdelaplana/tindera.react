@@ -1,6 +1,7 @@
 // Settings Page - Navigation menu for all shop settings
 
 import {
+  IonButton,
   IonCard,
   IonCardContent,
   IonContent,
@@ -20,21 +21,38 @@ import {
   pricetagOutline,
   pricetagsOutline,
   storefrontOutline,
+  trashOutline,
 } from 'ionicons/icons';
 import type React from 'react';
+import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { CenteredLayout } from '@/components/layouts';
+import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import PageHeader from '@/components/shared/PageHeader';
-import { useShop } from '@/hooks/useShop';
+import { useDeleteShop, useShop } from '@/hooks/useShop';
 
 const SettingsPage: React.FC = () => {
   const history = useHistory();
   const { currentShop } = useShop();
+  const deleteShopMutation = useDeleteShop();
 
   const shopId = currentShop?.id;
 
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+
   const navigate = (path: string) => {
     history.push(path);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!currentShop) return;
+    try {
+      await deleteShopMutation.mutateAsync(currentShop.id);
+      setShowDeleteAlert(false);
+      history.push('/shops');
+    } catch (error) {
+      console.error('Failed to delete shop:', error);
+    }
   };
 
   return (
@@ -165,6 +183,40 @@ const SettingsPage: React.FC = () => {
                   </IonList>
                 </IonCardContent>
               </IonCard>
+              {/* Danger Zone */}
+              <IonTitle>Danger Zone</IonTitle>
+              <IonCard
+                className="flat-card"
+                style={{ border: '1px solid var(--ion-color-danger)' }}
+              >
+                <IonCardContent>
+                  <IonList lines="none" className="ion-no-padding">
+                    <IonItem>
+                      <IonLabel>
+                        <h2>Delete Shop</h2>
+                        <p>Permanently delete this shop and all its data</p>
+                      </IonLabel>
+                      <IonButton
+                        color="danger"
+                        fill="solid"
+                        size="default"
+                        onClick={() => setShowDeleteAlert(true)}
+                      >
+                        <IonIcon slot="start" icon={trashOutline} />
+                        Delete
+                      </IonButton>
+                    </IonItem>
+                  </IonList>
+                </IonCardContent>
+              </IonCard>
+
+              <DeleteConfirmationAlert
+                isOpen={showDeleteAlert}
+                onDismiss={() => setShowDeleteAlert(false)}
+                onConfirm={handleConfirmDelete}
+                itemName={currentShop.name}
+                itemType="Shop"
+              />
             </>
           )}
         </CenteredLayout>

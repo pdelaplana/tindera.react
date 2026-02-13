@@ -1,26 +1,15 @@
 // Shop Settings Page - Edit current shop details
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  IonButton,
-  IonCard,
-  IonCardContent,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-} from '@ionic/react';
-import { trashOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useHistory, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { z } from 'zod';
 import { BasePage, CenteredLayout } from '@/components/layouts';
-import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import { SelectField, TextAreaField, TextField } from '@/components/shared/FormFields';
 import { SaveButton } from '@/components/shared/SaveButton';
-import { useDeleteShop, useShop, useUpdateShop } from '@/hooks/useShop';
+import { useShop, useUpdateShop } from '@/hooks/useShop';
 import { useToastNotification } from '@/hooks/useToastNotification';
 import type { ShopUpdate } from '@/types';
 import {
@@ -65,15 +54,12 @@ interface RouteParams {
 
 const ShopSettingsPage: React.FC = () => {
   const { shopId } = useParams<RouteParams>();
-  const history = useHistory();
   const { shops, currentShop } = useShop();
 
   const updateShop = useUpdateShop();
-  const deleteShopMutation = useDeleteShop();
   const { showSuccess, showError } = useToastNotification();
 
   const [isSaving, setIsSaving] = useState(false);
-  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
 
   const {
@@ -142,17 +128,6 @@ const ShopSettingsPage: React.FC = () => {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to save logo';
       showError(message);
-    }
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!currentShop) return;
-    try {
-      await deleteShopMutation.mutateAsync(currentShop.id);
-      setShowDeleteAlert(false);
-      history.push('/');
-    } catch (error) {
-      console.error('Failed to delete shop:', error);
     }
   };
 
@@ -241,43 +216,6 @@ const ShopSettingsPage: React.FC = () => {
           </form>
         </CardContainer>
 
-        {/* Danger Zone */}
-        {currentShop && (
-          <>
-            <IonCard
-              className="flat-card"
-              style={{ marginTop: '16px', border: '1px solid var(--ion-color-danger)' }}
-            >
-              <IonCardContent>
-                <IonList lines="none">
-                  <IonItem>
-                    <IonLabel>
-                      <h2>Delete Shop</h2>
-                      <p>Permanently delete this shop and all its data</p>
-                    </IonLabel>
-                    <IonButton
-                      color="danger"
-                      fill="solid"
-                      size="default"
-                      onClick={() => setShowDeleteAlert(true)}
-                    >
-                      <IonIcon slot="start" icon={trashOutline} />
-                      Delete
-                    </IonButton>
-                  </IonItem>
-                </IonList>
-              </IonCardContent>
-            </IonCard>
-
-            <DeleteConfirmationAlert
-              isOpen={showDeleteAlert}
-              onDismiss={() => setShowDeleteAlert(false)}
-              onConfirm={handleConfirmDelete}
-              itemName={currentShop.name}
-              itemType="Shop"
-            />
-          </>
-        )}
       </CenteredLayout>
     </BasePage>
   );
