@@ -20,6 +20,7 @@ import { BaseModal } from '@/components/shared';
 import { CardContainer } from '@/components/shared/CardContainer';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import { TextField } from '@/components/shared/FormFields';
+import { SaveButton } from '@/components/shared/SaveButton';
 import { LoadingSpinner } from '@/components/ui';
 import { Div } from '@/components/shared/base/Div';
 import {
@@ -181,10 +182,6 @@ const VoidRefundSettingsPage: React.FC = () => {
         isOpen={showModal}
         onClose={handleCloseModal}
         title={editingReason ? 'Edit Reason' : 'Add Reason'}
-        showActionButton
-        onActionClick={handleSubmit(onSubmit)}
-        actionButtonDisabled={isSaving}
-        actionButtonLoading={isSaving}
         initialBreakpoint={0.75}
         breakpoints={[0, 0.75, 1]}
       >
@@ -214,6 +211,14 @@ const VoidRefundSettingsPage: React.FC = () => {
               )}
             />
           )}
+
+          <SaveButton
+            type="submit"
+            expand="block"
+            isSaving={isSaving}
+            disabled={isSaving}
+            label="Save Reason"
+          />
 
           {editingReason && !editingReason.is_system && (
             <IonButton

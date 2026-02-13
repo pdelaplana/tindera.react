@@ -20,6 +20,7 @@ import { BaseModal } from '@/components/shared';
 import { CardContainer } from '@/components/shared/CardContainer';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import { NumberField, TextField } from '@/components/shared/FormFields';
+import { SaveButton } from '@/components/shared/SaveButton';
 import { LoadingSpinner } from '@/components/ui';
 import { Div } from '@/components/shared/base/Div';
 import {
@@ -165,10 +166,6 @@ const TaxSettingsPage: React.FC = () => {
         isOpen={showModal}
         onClose={handleCloseModal}
         title={editingTax ? 'Edit Tax' : 'Add Tax'}
-        showActionButton
-        onActionClick={handleSubmit(onSubmit)}
-        actionButtonDisabled={isSaving}
-        actionButtonLoading={isSaving}
         initialBreakpoint={0.75}
         breakpoints={[0, 0.75, 1]}
       >
@@ -206,6 +203,14 @@ const TaxSettingsPage: React.FC = () => {
               )}
             />
           )}
+
+          <SaveButton
+            type="submit"
+            expand="block"
+            isSaving={isSaving}
+            disabled={isSaving}
+            label="Save Tax"
+          />
 
           {editingTax && (
             <IonButton
