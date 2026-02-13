@@ -21,24 +21,28 @@ import {
   IonToolbar,
 } from '@ionic/react';
 import {
+  arrowBackOutline,
   cartOutline,
   cashOutline,
   closeOutline,
   cubeOutline,
   pricetagsOutline,
+  returnDownBackOutline,
   settingsOutline,
   statsChartOutline,
-  storefrontOutline,
+  swapHorizontalOutline,
   timeOutline,
 } from 'ionicons/icons';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHistory, useParams } from 'react-router-dom';
 import { BentoGrid, BentoTile } from '@/components/layouts';
 import PageHeader from '@/components/shared/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
+import { useOrders } from '@/hooks/useOrder';
 import { useShop } from '@/hooks/useShop';
+import { createCurrencyFormatter } from '@/utils/currency';
 
 const Home: React.FC = () => {
   const history = useHistory();
@@ -61,6 +65,24 @@ const Home: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
 
   const displayName = profile?.display_name || user?.email || 'User';
+
+  const todayStart = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.toISOString();
+  }, []);
+
+  const { data: todaysOrders } = useOrders({ status: 'completed', startDate: todayStart });
+
+  const formatCurrency = useMemo(
+    () => createCurrencyFormatter(currentShop?.currency_code || 'USD'),
+    [currentShop?.currency_code]
+  );
+
+  const todaysTotalSales = useMemo(
+    () => (todaysOrders ?? []).reduce((sum, o) => sum + (o.total_sale ?? 0), 0),
+    [todaysOrders]
+  );
 
   const handleCreateShop = async () => {
     if (!shopName.trim()) {
@@ -154,13 +176,13 @@ const Home: React.FC = () => {
               <BentoTile
                 title={t('home.tiles.inventory')}
                 icon={cubeOutline}
-                onClick={() => history.push('/inventory')}
+                onClick={() => history.push(`/shops/${currentShop?.id}/inventory`)}
               />
               <BentoTile
                 title={t('home.tiles.todaysSales')}
                 icon={cashOutline}
-                value="$0.00"
-                onClick={() => history.push('/reports/daily')}
+                value={formatCurrency(todaysTotalSales)}
+                onClick={() => history.push(`/shops/${currentShop?.id}/sales`)}
               />
               <BentoTile
                 title={t('home.tiles.reports')}
@@ -171,6 +193,11 @@ const Home: React.FC = () => {
                 title={t('home.tiles.settings')}
                 icon={settingsOutline}
                 onClick={() => currentShop && history.push(`/shops/${currentShop.id}/settings`)}
+              />
+              <BentoTile
+                title={t('navigation.switchShop')}
+                icon={swapHorizontalOutline}
+                onClick={() => history.push('/shops')}
               />
             </BentoGrid>
           )}
