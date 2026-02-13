@@ -65,6 +65,24 @@ const LowStockBadge = styled.span<{ isOut: boolean }>`
   margin-left: ${designSystem.spacing.sm};
 `;
 
+const ProgressTrack = styled.div`
+  width: 100%;
+  height: 4px;
+  background: ${designSystem.colors.gray[200]};
+  border-radius: ${designSystem.borderRadius.full};
+  margin-top: ${designSystem.spacing.sm};
+  overflow: hidden;
+`;
+
+const ProgressFill = styled.div<{ percent: number; isLow: boolean }>`
+  height: 100%;
+  width: ${(props) => props.percent}%;
+  background: ${(props) =>
+    props.isLow ? designSystem.colors.status.outOfStock : designSystem.colors.status.inStock};
+  border-radius: ${designSystem.borderRadius.full};
+  transition: width ${designSystem.transitions.base};
+`;
+
 const InventoryItemListItem: React.FC<InventoryItemListItemProps> = ({
   item,
   isSelected = false,
@@ -73,6 +91,10 @@ const InventoryItemListItem: React.FC<InventoryItemListItemProps> = ({
 }) => {
   const isOutOfStock = item.current_count === 0;
   const isLowStock = !isOutOfStock && item.current_count <= item.reorder_level;
+  const isAtOrBelowReorder = item.current_count <= item.reorder_level;
+
+  const maxStock = Math.max(item.reorder_level * 2, 1);
+  const stockPercent = Math.min((item.current_count / maxStock) * 100, 100);
 
   const rightContent = (
     <StockInfo>
@@ -93,6 +115,9 @@ const InventoryItemListItem: React.FC<InventoryItemListItemProps> = ({
         {isOutOfStock && <LowStockBadge isOut={true}>Out of Stock</LowStockBadge>}
         {isLowStock && <LowStockBadge isOut={false}>Low Stock</LowStockBadge>}
       </ItemDetails>
+      <ProgressTrack>
+        <ProgressFill percent={stockPercent} isLow={isAtOrBelowReorder} />
+      </ProgressTrack>
     </CardItem>
   );
 };
