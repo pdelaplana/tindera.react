@@ -21,10 +21,11 @@ const LogoImage = styled.img<{ $height: string }>`
 `;
 
 const LogoText = styled.span`
-	color: ${designSystem.colors.brand.primary};
+	color: ${designSystem.colors.gray[900]};
 	font-weight: 700;
 	font-family: 'Poppins', ${designSystem.typography.fontFamily.base};
-    font-size: ${designSystem.typography.fontSize['2xl']};
+  font-size: ${designSystem.typography.fontSize['2xl']};
+
 `;
 
 const AppLogo: React.FC<AppLogoProps> = ({

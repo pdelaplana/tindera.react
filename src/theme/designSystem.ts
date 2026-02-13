@@ -7,7 +7,7 @@ export const designSystem = {
   colors: {
     // Brand Colors (Vibrant orange)
     brand: {
-      primary: '#f27f0d', // Vibrant orange
+      primary: '#E8713C', // Vibrant orange
       secondary: '#fb923c', // Mid orange
       accentLight: '#fed7aa', // Light muted orange
     },
@@ -174,16 +174,17 @@ export const designSystem = {
 export type DesignSystem = typeof designSystem;
 
 // Theme type for styled-components
-export interface DefaultTheme extends DesignSystem {}
+export type DefaultTheme = DesignSystem
 
 // Helper functions for accessing nested values
 export const getColor = (path: string): string => {
   const keys = path.split('.');
-  let value: any = designSystem.colors;
+  let value: string | Record<string, unknown> = designSystem.colors;
 
   for (const key of keys) {
-    value = value[key];
-    if (value === undefined) {
+    if (typeof value === 'object' && value !== null && key in value) {
+      value = value[key as keyof typeof value] as string | Record<string, unknown>;
+    } else {
       console.warn(`Color path "${path}" not found in design system`);
       return '#000000';
     }

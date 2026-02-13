@@ -14,7 +14,9 @@
       "Bash(git -C \"D:\\\\Repos\\\\tindera.react\" log -1 --stat)",
       "Bash(find:*)",
       "mcp__sequential-thinking__sequentialthinking",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
