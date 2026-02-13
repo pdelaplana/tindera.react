@@ -1,19 +1,23 @@
 // Inventory Categories List Page - Manage inventory categories
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { ItemReorderEventDetail } from '@ionic/react';
 import {
   IonButton,
-  IonButtons,
   IonContent,
   IonIcon,
   IonItem,
   IonLabel,
   IonList,
   IonPage,
+  IonReorder,
+  IonReorderGroup,
+  IonSearchbar,
   IonText,
+  IonToggle,
   type RefresherEventDetail,
 } from '@ionic/react';
-import { add, createOutline, trashOutline } from 'ionicons/icons';
+import { add, reorderTwoOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -24,7 +28,6 @@ import { Div } from '@/components/shared/base/Div';
 import { CardContainer } from '@/components/shared/CardContainer';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
 import { NumberField, TextField } from '@/components/shared/FormFields';
-import PageHeader from '@/components/shared/PageHeader';
 import { SaveButton } from '@/components/shared/SaveButton';
 import { LoadingSpinner } from '@/components/ui';
 import {
@@ -50,6 +53,8 @@ const InventoryCategoriesPage: React.FC = () => {
   const { data: categories, isLoading: categoriesLoading, refetch } = useInventoryCategories();
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [reorderEnabled, setReorderEnabled] = useState(false);
   const [editingCategory, setEditingCategory] = useState<InventoryCategory | null>(null);
   const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
 
@@ -58,6 +63,10 @@ const InventoryCategoriesPage: React.FC = () => {
   const deleteCategory = useDeleteInventoryCategory();
 
   const isLoading = shopLoading || categoriesLoading;
+
+  const filteredCategories = (categories ?? [])
+    .filter((c) => c.name.toLowerCase().includes(searchText.toLowerCase()))
+    .sort((a, b) => a.sequence - b.sequence);
 
   // Form setup
   const {
@@ -129,9 +138,31 @@ const InventoryCategoriesPage: React.FC = () => {
     try {
       await deleteCategory.mutateAsync(deletingCategoryId);
       setDeletingCategoryId(null);
+      handleCloseModal();
     } catch (error) {
       console.error('Error deleting category:', error);
     }
+  };
+
+  // Reorder categories
+  const handleReorder = async (event: CustomEvent<ItemReorderEventDetail>) => {
+    event.stopPropagation();
+    const { from, to } = event.detail;
+
+    const reordered = [...filteredCategories];
+    const [moved] = reordered.splice(from, 1);
+    reordered.splice(to, 0, moved);
+
+    for (let i = 0; i < reordered.length; i++) {
+      if (reordered[i].sequence !== i) {
+        await updateCategory.mutateAsync({
+          categoryId: reordered[i].id,
+          updates: { sequence: i },
+        });
+      }
+    }
+
+    event.detail.complete();
   };
 
   // Close modal
@@ -156,9 +187,8 @@ const InventoryCategoriesPage: React.FC = () => {
   // No shop selected state
   if (!currentShop && !shopLoading) {
     return (
-      <IonPage>
-        <PageHeader title="Inventory Categories" showMenu />
-
+      <BasePage title="Inventory Categories" backHref="/shops" onRefresh={handleRefresh}  >
+        
         <IonContent className="ion-padding">
           <CenteredLayout>
             <div className="empty-state ion-text-center" style={{ padding: '48px 16px' }}>
@@ -167,7 +197,7 @@ const InventoryCategoriesPage: React.FC = () => {
             </div>
           </CenteredLayout>
         </IonContent>
-      </IonPage>
+      </BasePage>
     );
   }
 
@@ -178,19 +208,27 @@ const InventoryCategoriesPage: React.FC = () => {
       onRefresh={handleRefresh}
     >
       <CenteredLayout>
-        <CardContainer title="" onActionClick={handleAddCategory} noPadding>
+        <CardContainer
+          showSearch
+          searchValue={searchText}
+          onSearchChange={setSearchText}
+          searchPlaceholder="Search categories..."
+          onActionClick={handleAddCategory}
+          noPadding
+        >
           {isLoading ? (
             <LoadingSpinner />
           ) : !categories || categories.length === 0 ? (
             renderEmptyState()
           ) : (
             <IonList>
-              {categories
-                .sort((a, b) => a.sequence - b.sequence)
-                .map((category, index) => (
+              <IonReorderGroup disabled={!reorderEnabled} onIonReorderEnd={handleReorder}>
+                {filteredCategories.map((category) => (
                   <IonItem
                     key={category.id}
-                    lines={index === categories.length - 1 ? 'none' : 'full'}
+                    lines={'full'}
+                    onClick={() => !reorderEnabled && handleEditCategory(category)}
+                    button={!reorderEnabled}
                   >
                     <IonLabel>
                       <h2>{category.name}</h2>
@@ -200,17 +238,32 @@ const InventoryCategoriesPage: React.FC = () => {
                         </IonText>
                       )}
                     </IonLabel>
-
-                    <IonButtons slot="end">
-                      <IonButton onClick={() => handleEditCategory(category)}>
-                        <IonIcon slot="icon-only" icon={createOutline} />
-                      </IonButton>
-                      <IonButton color="danger" onClick={() => setDeletingCategoryId(category.id)}>
-                        <IonIcon slot="icon-only" icon={trashOutline} />
-                      </IonButton>
-                    </IonButtons>
+                    {reorderEnabled && (
+                      <IonReorder slot="end" className="ion-margin-top">
+                        <IonIcon icon={reorderTwoOutline} size="small"  />
+                      </IonReorder>
+                    )}
                   </IonItem>
                 ))}
+              </IonReorderGroup>
+
+              <Div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  alignItems: 'center',
+                  padding: '12px 16px',
+                  gap: '8px',
+                }}
+              >
+                <IonToggle
+                  checked={reorderEnabled}
+                  onIonChange={(e) => setReorderEnabled(e.detail.checked)}
+                  labelPlacement="start"
+                >
+                  Reorder
+                </IonToggle>
+              </Div>
             </IonList>
           )}
         </CardContainer>
@@ -260,6 +313,20 @@ const InventoryCategoriesPage: React.FC = () => {
             isSaving={createCategory.isPending || updateCategory.isPending}
             label="Save Category"
           />
+
+          {editingCategory && (
+            <IonButton
+              expand="block"
+              fill="outline"
+              color="danger"
+              type="button"
+              onClick={() => setDeletingCategoryId(editingCategory.id)}
+              disabled={deleteCategory.isPending}
+              style={{ marginTop: '16px' }}
+            >
+              Delete Category
+            </IonButton>
+          )}
         </form>
       </BaseModal>
 
