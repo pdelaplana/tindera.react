@@ -4,9 +4,9 @@
 
 :root {
   // ===== Brand Colors (Orange - Vibrant) =====
-  --color-brand-primary: #f27f0d;       // Vibrant orange
-  --color-brand-primary-light: #f59838; // Light orange (hover)
-  --color-brand-primary-dark: #d96d0a;  // Darker orange (pressed)
+  --color-brand-primary: #E8713C;       // Vibrant orange
+  --color-brand-primary-light: #EA7F50; // Light orange (hover)
+  --color-brand-primary-dark: #CC6335;  // Darker orange (pressed)
   --color-brand-secondary: #fb923c;     // Mid orange
   --color-brand-accent: #fed7aa;        // Light muted orange
 
@@ -112,11 +112,11 @@
 
   // ===== Ionic Color Overrides (Orange Brand) =====
   --ion-color-primary: var(--color-brand-primary);
-  --ion-color-primary-rgb: 242, 127, 13;          // #f27f0d
+  --ion-color-primary-rgb: 232, 113, 60;          // #E8713C
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #d96d0a;             // Darker orange
-  --ion-color-primary-tint: #f59838;              // Light orange
+  --ion-color-primary-shade: #CC6335;             // Darker orange
+  --ion-color-primary-tint: #EA7F50;              // Light orange
 
   --ion-color-secondary: var(--color-brand-secondary);
   --ion-color-secondary-rgb: 251, 146, 60;        // #fb923c

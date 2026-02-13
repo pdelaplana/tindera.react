@@ -20,7 +20,7 @@ export const designSystem = {
       300: '#fdba74',
       400: '#fb923c',
       500: '#f97316',
-      600: '#f27f0d', // Primary brand
+      600: '#E8713C', // Primary brand
       700: '#d96d0a',
       800: '#a0520a',
       900: '#7c2d12',
