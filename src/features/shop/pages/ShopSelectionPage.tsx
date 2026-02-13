@@ -71,6 +71,48 @@ const ShopImage = styled.img`
 	object-fit: cover;
 `;
 
+const AddShopCard = styled.div`
+	background: ${designSystem.colors.surface.elevated};
+	border-radius: ${designSystem.borderRadius.lg};
+	box-shadow: ${designSystem.shadows.md};
+	overflow: hidden;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	border: 2px dashed ${designSystem.colors.gray[300]};
+
+	&:hover {
+		box-shadow: ${designSystem.shadows.lg};
+		transform: translateY(-2px);
+		border-color: ${designSystem.colors.brand.primary};
+	}
+
+	&:active {
+		transform: translateY(0);
+	}
+`;
+
+const AddShopCardContent = styled.div`
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: ${designSystem.spacing.lg};
+	aspect-ratio: 16 / 9;
+	gap: ${designSystem.spacing.sm};
+
+	ion-icon {
+		font-size: 48px;
+		color: ${designSystem.colors.gray[400]};
+	}
+`;
+
+const AddShopLabel = styled.p`
+	font-size: ${designSystem.typography.fontSize.base};
+	font-weight: ${designSystem.typography.fontWeight.semibold};
+	color: ${designSystem.colors.text.secondary};
+	margin: 0;
+`;
+
 const ShopImagePlaceholder = styled.div`
 	display: flex;
 	align-items: center;
@@ -244,6 +286,12 @@ const ShopSelectionPage: React.FC = () => {
                     </ShopCardContent>
                   </ShopCard>
                 ))}
+                <AddShopCard onClick={handleCreateShop}>
+                  <AddShopCardContent>
+                    <IonIcon icon={add} />
+                    <AddShopLabel>Add New Shop</AddShopLabel>
+                  </AddShopCardContent>
+                </AddShopCard>
               </ShopGrid>
             </>
           )}
