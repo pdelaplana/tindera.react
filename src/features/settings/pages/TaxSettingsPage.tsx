@@ -189,21 +189,23 @@ const TaxSettingsPage: React.FC = () => {
             error={errors.rate}
             required
           />
-          <Controller
-            control={control}
-            name="is_active"
-            render={({ field }) => (
-              <IonItem lines="none">
-                <IonToggle
-                  checked={field.value}
-                  onIonChange={(e) => field.onChange(e.detail.checked)}
-                  labelPlacement="start"
-                >
-                  Active
-                </IonToggle>
-              </IonItem>
-            )}
-          />
+          {editingTax && (
+            <Controller
+              control={control}
+              name="is_active"
+              render={({ field }) => (
+                <IonItem lines="none">
+                  <IonToggle
+                    checked={field.value}
+                    onIonChange={(e) => field.onChange(e.detail.checked)}
+                    labelPlacement="start"
+                  >
+                    Active
+                  </IonToggle>
+                </IonItem>
+              )}
+            />
+          )}
 
           {editingTax && (
             <IonButton
