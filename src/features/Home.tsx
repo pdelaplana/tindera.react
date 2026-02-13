@@ -21,15 +21,14 @@ import {
   IonToolbar,
 } from '@ionic/react';
 import {
-  arrowBackOutline,
   cartOutline,
   cashOutline,
   closeOutline,
   cubeOutline,
   pricetagsOutline,
-  returnDownBackOutline,
   settingsOutline,
   statsChartOutline,
+  storefrontOutline,
   swapHorizontalOutline,
   timeOutline,
 } from 'ionicons/icons';

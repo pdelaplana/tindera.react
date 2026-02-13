@@ -1,8 +1,6 @@
 // SideMenu - Application side navigation menu
 
 import {
-  IonButton,
-  IonButtons,
   IonContent,
   IonFooter,
   IonHeader,
@@ -14,7 +12,6 @@ import {
   IonMenuToggle,
   IonTitle,
   IonToolbar,
-  useIonRouter,
 } from '@ionic/react';
 import {
   cartOutline,
@@ -27,7 +24,6 @@ import {
   returnDownBackOutline,
   settingsOutline,
   statsChartOutline,
-  swapHorizontalOutline,
 } from 'ionicons/icons';
 import type React from 'react';
 import { useState } from 'react';
@@ -52,7 +48,6 @@ interface MenuItem {
 
 const SideMenu: React.FC = () => {
   const location = useLocation();
-  const router = useIonRouter();
   const { currentShop } = useShop();
   const { t } = useTranslation();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
@@ -163,9 +158,10 @@ const SideMenu: React.FC = () => {
                       routerDirection="none"
                       className={location.pathname === item.url ? 'selected' : ''}
                       detail={false}
+                     
                     >
                       <IonIcon slot="start" icon={item.icon} />
-                      <IonLabel>{item.title}</IonLabel>
+                      <IonLabel style={{marginTop: '14px'}}>{item.title}</IonLabel>
                     </IonItem>
                   </IonMenuToggle>
                 )}
