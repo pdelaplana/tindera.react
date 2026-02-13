@@ -118,7 +118,7 @@ const ProductCategoriesPage: React.FC = () => {
   };
 
   // Render individual category
-  const renderCategory = (category: ProductCategory, _index: number) => {
+  const renderCategory = (category: ProductCategory) => {
     return (
       <IonItem
         key={category.id}
@@ -194,7 +194,7 @@ const ProductCategoriesPage: React.FC = () => {
                   disabled={!canEdit || !reorderEnabled}
                   onIonReorderEnd={handleReorder}
                 >
-                  {filteredCategories.map((category, index) => renderCategory(category, index))}
+                  {filteredCategories.map((category) => renderCategory(category))}
                 </IonReorderGroup>
               </IonList>
 

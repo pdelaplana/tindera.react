@@ -148,8 +148,13 @@ const TaxSettingsPage: React.FC = () => {
             </Div>
           ) : (
             <IonList>
-              {filteredTaxes.map((tax) => (
-                <IonItem key={tax.id} button lines="full" onClick={() => handleEdit(tax)}>
+              {filteredTaxes.map((tax, index) => (
+                <IonItem 
+                  key={tax.id} 
+                  button 
+                  lines={index === filteredTaxes.length - 1 ? 'none' : 'full'}
+                  onClick={() => handleEdit(tax)}
+                >
                   <IonLabel>
                     <h2>{tax.name}</h2>
                     <IonText color="medium"><p>{(tax.rate * 100).toFixed(2)}%</p></IonText>
