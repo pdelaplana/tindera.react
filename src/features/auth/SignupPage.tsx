@@ -105,12 +105,7 @@ const SignupPage: React.FC = () => {
   if (success) {
     return (
       <IonPage>
-        <IonHeader>
-          <IonToolbar>
-            <IonTitle>Sign Up</IonTitle>
-          </IonToolbar>
-        </IonHeader>
-
+        
         <IonContent className="ion-padding">
           <div className="page-container" style={{ maxWidth: '400px', margin: '0 auto' }}>
             <div style={{ textAlign: 'center', marginTop: 'var(--space-12)' }}>
