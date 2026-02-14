@@ -7,6 +7,7 @@ import AuthGuard from '@/components/AuthGuard';
 import SideMenu from '@/components/SideMenu';
 // Contexts
 import { AppProviders } from '@/contexts';
+import AuthCallbackPage from '@/features/auth/AuthCallbackPage';
 import LoginPage from '@/features/auth/LoginPage';
 import LogoutPage from '@/features/auth/LogoutPage';
 import SignupPage from '@/features/auth/SignupPage';
@@ -71,6 +72,9 @@ const App: React.FC = () => (
               </Route>
               <Route exact path="/logout">
                 <LogoutPage />
+              </Route>
+              <Route exact path="/auth/callback">
+                <AuthCallbackPage />
               </Route>
               {/* Protected Routes */}
               <Route exact path="/shops/:shopId/home">

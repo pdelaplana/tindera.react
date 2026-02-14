@@ -1,25 +1,22 @@
 // Signup Page
 
 import {
-  IonBackButton,
   IonButton,
-  IonButtons,
   IonContent,
-  IonHeader,
+  IonIcon,
   IonInput,
   IonPage,
   IonSpinner,
   IonText,
-  IonTitle,
-  IonToolbar,
 } from '@ionic/react';
+import { logoGoogle } from 'ionicons/icons';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
 const SignupPage: React.FC = () => {
   const history = useHistory();
-  const { signUp, isAuthenticated, isLoading } = useAuth();
+  const { signUp, signInWithGoogle, isAuthenticated, isLoading } = useAuth();
 
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -28,6 +25,14 @@ const SignupPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    const result = await signInWithGoogle();
+    if (!result.success) {
+      setError(result.error || 'Failed to sign in with Google');
+    }
+  };
 
   // Redirect if already authenticated
   React.useEffect(() => {
@@ -129,20 +134,31 @@ const SignupPage: React.FC = () => {
 
   return (
     <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonButtons slot="start">
-            <IonBackButton defaultHref="/signin" />
-          </IonButtons>
-          <IonTitle>Sign Up</IonTitle>
-        </IonToolbar>
-      </IonHeader>
-
       <IonContent className="ion-padding">
         <div className="page-container" style={{ maxWidth: '400px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 'var(--space-8)' }}>
             <h1 className="text-heading">Create Account</h1>
             <p className="text-caption">Join Tindera to manage your business</p>
+          </div>
+
+          <IonButton expand="block" fill="outline" onClick={handleGoogleSignIn}>
+            <IonIcon icon={logoGoogle} slot="start" />
+            Continue with Google
+          </IonButton>
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--space-md)',
+              margin: 'var(--space-md) 0',
+            }}
+          >
+            <div style={{ flex: 1, height: '1px', background: 'var(--ion-color-medium)' }} />
+            <IonText color="medium" style={{ fontSize: 'var(--font-size-sm)' }}>
+              or
+            </IonText>
+            <div style={{ flex: 1, height: '1px', background: 'var(--ion-color-medium)' }} />
           </div>
 
           <form onSubmit={handleSubmit}>
