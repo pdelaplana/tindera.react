@@ -290,7 +290,7 @@ export const productService = {
             modifiers: (modifiers || []).filter((m) => m.modifier_group_id === group.id),
           };
         })
-        .filter((g): g is import('@/types').ModifierGroupWithModifiers => g !== null);
+        .filter((g): g is NonNullable<typeof g> => g !== null) as import('@/types').ModifierGroupWithModifiers[];
 
       return { data: groupsWithModifiers, error: null };
     } catch (error) {

@@ -7,7 +7,6 @@ import { supabase } from './supabase';
 export const discountTypeService = {
   async getDiscountTypes(shopId: string): Promise<ApiResponse<DiscountType[]>> {
     try {
-      // @ts-expect-error - discount_types table not in generated types yet (needs db:types regeneration)
       const { data, error } = await supabase
         .from('discount_types')
         .select('*')
@@ -30,7 +29,6 @@ export const discountTypeService = {
 
   async getAllDiscountTypes(shopId: string): Promise<ApiResponse<DiscountType[]>> {
     try {
-      // @ts-expect-error - discount_types table not in generated types yet (needs db:types regeneration)
       const { data, error } = await supabase
         .from('discount_types')
         .select('*')
@@ -57,7 +55,6 @@ export const discountTypeService = {
     userId: string
   ): Promise<ApiResponse<DiscountType>> {
     try {
-      // @ts-expect-error - discount_types table not in generated types yet (needs db:types regeneration)
       const { data, error } = await supabase
         .from('discount_types')
         .insert({
@@ -89,7 +86,6 @@ export const discountTypeService = {
     userId: string
   ): Promise<ApiResponse<DiscountType>> {
     try {
-      // @ts-expect-error - discount_types table not in generated types yet (needs db:types regeneration)
       const { data, error } = await supabase
         .from('discount_types')
         .update({
@@ -116,7 +112,6 @@ export const discountTypeService = {
 
   async deleteDiscountType(typeId: string): Promise<{ error: Error | null }> {
     try {
-      // @ts-expect-error - discount_types table not in generated types yet (needs db:types regeneration)
       const { error } = await supabase
         .from('discount_types')
         .delete()

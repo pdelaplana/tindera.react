@@ -503,6 +503,8 @@ export function useCreateModifierGroup() {
     mutationFn: async (data: {
       product_id: string;
       name: string;
+      description: string | null;
+      is_required: boolean;
       min_select: number;
       max_select: number | null;
       sequence: number;

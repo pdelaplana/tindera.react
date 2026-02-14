@@ -190,7 +190,7 @@ export const shopService = {
         return { data: null, error: new Error(error.message) };
       }
 
-      return { data: data as ShopUser[], error: null };
+      return { data: data as unknown as ShopUser[], error: null };
     } catch (err) {
       const error = err as Error;
       logger.error(error, { context: 'getShopUsers', shopId });

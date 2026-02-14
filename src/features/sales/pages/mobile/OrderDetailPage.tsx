@@ -121,7 +121,7 @@ export const OrderDetailPage: React.FC = () => {
           <IonToolbar>
             <IonButtons slot="start">
               <IonBackButton
-                defaultHref={currentShop ? `/shops/${currentShop.id}/sales` : '/sales'}
+                defaultHref='/sales'
               />
             </IonButtons>
             <IonTitle>Order Details</IonTitle>
