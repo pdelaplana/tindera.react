@@ -10,6 +10,7 @@ import { AppProviders } from '@/contexts';
 import AuthCallbackPage from '@/features/auth/AuthCallbackPage';
 import LoginPage from '@/features/auth/LoginPage';
 import LogoutPage from '@/features/auth/LogoutPage';
+import MerchantWelcomePage from '@/features/auth/MerchantWelcomePage';
 import SignupPage from '@/features/auth/SignupPage';
 import {
   InventoryItemManagePage,
@@ -69,6 +70,9 @@ const App: React.FC = () => (
               </Route>
               <Route exact path="/signup">
                 <SignupPage />
+              </Route>
+              <Route exact path="/welcome">
+                <MerchantWelcomePage />
               </Route>
               <Route exact path="/logout">
                 <LogoutPage />
