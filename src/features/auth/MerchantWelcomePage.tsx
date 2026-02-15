@@ -336,7 +336,8 @@ const MerchantWelcomePage: React.FC = () => {
     e.preventDefault();
     setError(null);
 
-    if (!email.includes('@')) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
       setError('Please enter a valid email address.');
       return;
     }
