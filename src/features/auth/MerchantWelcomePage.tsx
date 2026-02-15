@@ -1,7 +1,8 @@
 // src/features/auth/MerchantWelcomePage.tsx
 import AppLogo from '@/components/shared/AppLogo';
 import { FieldLabel } from '@/components/shared/FieldLabel';
-import { IonButton, IonInput, IonPage, IonText } from '@ionic/react';
+import { IonButton, IonIcon, IonInput, IonPage, IonText } from '@ionic/react';
+import { archive, barChart, flash } from 'ionicons/icons';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
@@ -10,7 +11,7 @@ import styled from 'styled-components';
 
 const PageGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 3fr 2fr;
   min-height: 100vh;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
@@ -24,7 +25,7 @@ const PageGrid = styled.div`
 
 const LeftPanel = styled.div`
   background-color: #e8713c;
-  padding: 48px 48px 40px;
+  padding: 64px 108px ;
   display: flex;
   flex-direction: column;
   gap: 32px;
@@ -45,22 +46,22 @@ const LogoRow = styled.div`
 `;
 
 const LogoIcon = styled.div`
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
-  padding: 6px;
+  padding: 5px;
   background: white;
 `;
 
 const LogoText = styled.span`
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 32px;
+  font-weight: 800;
   color: white;
-  letter-spacing: -0.3px;
+  letter-spacing: -1.5px;
 `;
 
 const HeadlineBlock = styled.div``;
@@ -73,16 +74,6 @@ const HeadlineLine1 = styled.div`
   letter-spacing: -1.5px;
 `;
 
-const HeadlineLine2 = styled.div`
-  font-size: clamp(40px, 5vw, 56px);
-  font-weight: 800;
-  color: #d96d0a;
-  line-height: 1.05;
-  letter-spacing: -1.5px;
-  text-decoration: underline;
-  text-decoration-thickness: 4px;
-  text-underline-offset: 6px;
-`;
 
 const Subheadline = styled.p`
   font-size: 16px;
@@ -113,7 +104,6 @@ const FeatureIconBox = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
 `;
 
 const FeatureTextBlock = styled.div``;
@@ -232,17 +222,17 @@ const TrustBadge = styled.div`
 
 const FEATURES = [
   {
-    icon: '⚡',
+    icon: flash,
     title: 'Fast Checkout',
     desc: 'Serve customers in seconds with our optimized interface.',
   },
   {
-    icon: '📦',
+    icon: archive,
     title: 'Automatic Inventory',
     desc: 'Never run out of stock. Real-time tracking as you sell.',
   },
   {
-    icon: '📊',
+    icon: barChart,
     title: 'Instant Reports',
     desc: 'Track your daily sales anywhere. No more manual logs.',
   },
@@ -287,8 +277,8 @@ const MerchantWelcomePage: React.FC = () => {
           </LogoRow>
 
           <HeadlineBlock>
-            <HeadlineLine1>Start Selling in</HeadlineLine1>
-            <HeadlineLine2>2 Minutes</HeadlineLine2>
+            <HeadlineLine1>Start Selling in 2 Minutes</HeadlineLine1>
+            
           </HeadlineBlock>
 
           <Subheadline>
@@ -299,7 +289,9 @@ const MerchantWelcomePage: React.FC = () => {
           <FeatureList>
             {FEATURES.map((f) => (
               <FeatureRow key={f.title}>
-                <FeatureIconBox>{f.icon}</FeatureIconBox>
+                <FeatureIconBox>
+                  <IonIcon icon={f.icon} style={{ fontSize: '22px', color: 'white' }} />
+                </FeatureIconBox>
                 <FeatureTextBlock>
                   <FeatureTitle>{f.title}</FeatureTitle>
                   <FeatureDesc>{f.desc}</FeatureDesc>
@@ -358,7 +350,7 @@ const MerchantWelcomePage: React.FC = () => {
                 type="submit"
                 expand="block"
                 disabled={!isValid}
-                style={{ marginBottom: 'var(--space-md)', '--border-radius': '50px' }}
+                style={{ marginBottom: 'var(--space-md)', '--border-radius': '10px' }}
               >
                 Get Started →
               </IonButton>
@@ -373,7 +365,7 @@ const MerchantWelcomePage: React.FC = () => {
                 }}
                 href="/signin"
               >
-                Log in
+                Sign in
               </LoginLink>
             </AlreadyHaveAccount>
 
