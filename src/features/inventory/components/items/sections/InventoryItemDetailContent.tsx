@@ -29,10 +29,9 @@ interface InventoryItemDetailContentProps {
   totalValueOut?: number;
   onImageUploaded: (url: string) => void;
   onSegmentChange: (segment: 'transactions' | 'manage') => void;
-  onEdit: () => void;
   onReceive: () => void;
   onAdjust: () => void;
-  onOptions: () => void;
+  onInitiateCount: () => void;
   onTransactionClick: (transactionId: string) => void;
   onReceiveClick: () => void;
   onLoadMore: () => void;
@@ -76,10 +75,9 @@ const InventoryItemDetailContent: React.FC<InventoryItemDetailContentProps> = ({
   totalValueIn,
   totalValueOut,
   onImageUploaded,
-  onEdit,
   onReceive,
   onAdjust,
-  onOptions,
+  onInitiateCount,
   onAddPackageSize,
   onEditPackageSize,
   onDeletePackageSize,
@@ -115,10 +113,9 @@ const InventoryItemDetailContent: React.FC<InventoryItemDetailContentProps> = ({
 
       {/* Actions Card */}
       <InventoryActionsCard
-        onEdit={onEdit}
         onReceive={onReceive}
         onAdjust={onAdjust}
-        onOptions={onOptions}
+        onInitiateCount={onInitiateCount}
         disabled={!canEdit}
       />
       {/* Package Sizes */}

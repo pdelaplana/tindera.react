@@ -1,7 +1,7 @@
 // Inventory Item Detail Panel - Right panel content for master-detail layout
 
-import { IonActionSheet, useIonLoading } from '@ionic/react';
-import { close, cubeOutline, list, trashOutline } from 'ionicons/icons';
+import { useIonLoading } from '@ionic/react';
+import { cubeOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import styled from 'styled-components';
@@ -77,7 +77,6 @@ const InventoryItemDetailPanel: React.FC<InventoryItemDetailPanelProps> = ({
   const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [showCountModal, setShowCountModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showOptionsSheet, setShowOptionsSheet] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [showPackageSizeModal, setShowPackageSizeModal] = useState(false);
   const [editingPackage, setEditingPackage] = useState<PackageSize | null>(null);
@@ -137,17 +136,9 @@ const InventoryItemDetailPanel: React.FC<InventoryItemDetailPanelProps> = ({
   };
 
   // Handlers
-  const handleEdit = () => {
-    setShowEditModal(true);
-  };
-
   const handleCloseEditModal = () => {
     setShowEditModal(false);
     refetchItem();
-  };
-
-  const handleOptions = () => {
-    setShowOptionsSheet(true);
   };
 
   const handleViewAllTransactions = () => {
@@ -298,10 +289,9 @@ const InventoryItemDetailPanel: React.FC<InventoryItemDetailPanelProps> = ({
             totalValueOut={transactionSummary?.totalValueOut}
             onImageUploaded={handleImageUploaded}
             onSegmentChange={setSelectedSegment}
-            onEdit={handleEdit}
             onReceive={() => setShowReceiveModal(true)}
             onAdjust={() => setShowAdjustModal(true)}
-            onOptions={handleOptions}
+            onInitiateCount={() => setShowCountModal(true)}
             onTransactionClick={handleTransactionClick}
             onReceiveClick={() => setShowReceiveModal(true)}
             onLoadMore={() => fetchNextPage()}
@@ -364,45 +354,6 @@ const InventoryItemDetailPanel: React.FC<InventoryItemDetailPanelProps> = ({
         packageSizesCount={packageSizes?.length || 0}
       />
 
-      {/* Options Action Sheet */}
-      <IonActionSheet
-        isOpen={showOptionsSheet}
-        onDidDismiss={() => setShowOptionsSheet(false)}
-        header="Options"
-        buttons={[
-          {
-            text: 'View Package Sizes',
-            icon: cubeOutline,
-            handler: () => {
-              setSelectedSegment('manage');
-            },
-          },
-          {
-            text: 'Initiate Count',
-            icon: list,
-            handler: () => {
-              setShowCountModal(true);
-            },
-          },
-          ...(canDelete
-            ? [
-                {
-                  text: 'Delete Item',
-                  icon: trashOutline,
-                  role: 'destructive' as const,
-                  handler: () => {
-                    setShowDeleteAlert(true);
-                  },
-                },
-              ]
-            : []),
-          {
-            text: 'Cancel',
-            role: 'cancel',
-            icon: close,
-          },
-        ]}
-      />
 
       {/* Delete Confirmation */}
       <DeleteConfirmationAlert

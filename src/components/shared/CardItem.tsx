@@ -37,6 +37,8 @@ const Card = styled.div<{ isSelected: boolean; canClick: boolean }>`
   border: 1px solid
     ${(props) =>
       props.isSelected ? designSystem.colors.brand.primary : designSystem.colors.gray[200]};
+  border-left: ${(props) =>
+    props.isSelected ? `4px solid ${designSystem.colors.brand.primary}` : `1px solid ${designSystem.colors.gray[200]}`};
 
   ${(props) =>
     props.canClick &&

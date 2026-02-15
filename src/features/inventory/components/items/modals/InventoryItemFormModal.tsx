@@ -138,6 +138,25 @@ const InventoryItemFormModal: React.FC<InventoryItemFormModalProps> = ({
     },
   });
 
+  // Reset to empty defaults when opening for a new item
+  useEffect(() => {
+    if (isOpen && isNew) {
+      reset({
+        name: '',
+        description: '',
+        category_id: null,
+        base_uom: UnitOfMeasureEnum.Piece,
+        unit_cost: 0,
+        current_count: 0,
+        qty_received_to_date: 0,
+        reorder_level: 0,
+        notes: '',
+        sku: '',
+        image_url: '',
+      });
+    }
+  }, [isOpen, isNew, reset]);
+
   // Populate form when editing
   useEffect(() => {
     if (item && !isNew) {

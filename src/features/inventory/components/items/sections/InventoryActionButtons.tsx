@@ -1,33 +1,25 @@
 // Inventory Action Buttons Component - Circular action buttons for inventory management
 
 import { IonButton, IonIcon } from '@ionic/react';
-import {
-  arrowDownSharp,
-  createOutline,
-  ellipsisHorizontal,
-  swapVerticalSharp,
-} from 'ionicons/icons';
+import { arrowDownSharp, list, swapVerticalSharp } from 'ionicons/icons';
 import type React from 'react';
 import { Div } from '@/components/shared/base/Div';
 
 interface InventoryActionButtonsProps {
-  /** Handler for edit button click */
-  onEdit: () => void;
   /** Handler for receive button click */
   onReceive: () => void;
   /** Handler for adjust button click */
   onAdjust: () => void;
-  /** Handler for options button click */
-  onOptions: () => void;
+  /** Handler for initiate count button click */
+  onInitiateCount: () => void;
   /** Whether buttons should be disabled */
   disabled?: boolean;
 }
 
 const InventoryActionButtons: React.FC<InventoryActionButtonsProps> = ({
-  onEdit,
   onReceive,
   onAdjust,
-  onOptions,
+  onInitiateCount,
   disabled = false,
 }) => {
   return (
@@ -38,25 +30,6 @@ const InventoryActionButtons: React.FC<InventoryActionButtonsProps> = ({
         gap: '24px',
       }}
     >
-      <Div className="ion-text-center">
-        <IonButton
-          shape="round"
-          color="dark"
-          onClick={onEdit}
-          disabled={disabled}
-          title="Edit Details"
-          style={{
-            '--border-radius': '50%',
-            width: '56px',
-            height: '56px',
-          }}
-        >
-          <IonIcon slot="icon-only" icon={createOutline} />
-        </IonButton>
-        <Div style={{ fontSize: '12px', marginTop: '4px', color: 'var(--ion-color-medium)' }}>
-          Edit
-        </Div>
-      </Div>
       <Div className="ion-text-center">
         <IonButton
           shape="round"
@@ -99,19 +72,19 @@ const InventoryActionButtons: React.FC<InventoryActionButtonsProps> = ({
         <IonButton
           shape="round"
           color="dark"
-          onClick={onOptions}
+          onClick={onInitiateCount}
           disabled={disabled}
-          title="More Options"
+          title="Initiate Count"
           style={{
             '--border-radius': '50%',
             width: '56px',
             height: '56px',
           }}
         >
-          <IonIcon slot="icon-only" icon={ellipsisHorizontal} />
+          <IonIcon slot="icon-only" icon={list} />
         </IonButton>
         <Div style={{ fontSize: '12px', marginTop: '4px', color: 'var(--ion-color-medium)' }}>
-          Options
+          Count
         </Div>
       </Div>
     </Div>

@@ -1,13 +1,11 @@
 // Inventory Item Manage Page - View item details, transactions, and perform inventory operations
 
 import {
-  IonActionSheet,
   IonRefresher,
   IonRefresherContent,
   type RefresherEventDetail,
   useIonLoading,
 } from '@ionic/react';
-import { close, cubeOutline, list, trashOutline } from 'ionicons/icons';
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
@@ -59,7 +57,6 @@ const InventoryItemManagePage: React.FC = () => {
   const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [showCountModal, setShowCountModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showOptionsSheet, setShowOptionsSheet] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [showPackageSizeModal, setShowPackageSizeModal] = useState(false);
   const [editingPackage, setEditingPackage] = useState<PackageSize | null>(null);
@@ -120,10 +117,6 @@ const InventoryItemManagePage: React.FC = () => {
   const handleCloseEditModal = () => {
     setShowEditModal(false);
     refetchItem();
-  };
-
-  const handleOptions = () => {
-    setShowOptionsSheet(true);
   };
 
   const handleViewAllTransactions = () => {
@@ -224,10 +217,9 @@ const InventoryItemManagePage: React.FC = () => {
           isFetchingNextPage={isFetchingNextPage}
           onImageUploaded={handleImageUploaded}
           onSegmentChange={setSelectedSegment}
-          onEdit={navigateToEdit}
           onReceive={() => setShowReceiveModal(true)}
           onAdjust={() => setShowAdjustModal(true)}
-          onOptions={handleOptions}
+          onInitiateCount={() => setShowCountModal(true)}
           onTransactionClick={navigateToTransactionDetails}
           onReceiveClick={() => setShowReceiveModal(true)}
           onLoadMore={() => fetchNextPage()}
@@ -266,45 +258,6 @@ const InventoryItemManagePage: React.FC = () => {
 
       <InitiateCountModal isOpen={showCountModal} onClose={() => setShowCountModal(false)} />
 
-      {/* Options Action Sheet */}
-      <IonActionSheet
-        isOpen={showOptionsSheet}
-        onDidDismiss={() => setShowOptionsSheet(false)}
-        header="Options"
-        buttons={[
-          {
-            text: 'View Package Sizes',
-            icon: cubeOutline,
-            handler: () => {
-              history.push(`/shops/${currentShop?.id}/inventory/${item?.id}/packages`);
-            },
-          },
-          {
-            text: 'Initiate Count',
-            icon: list,
-            handler: () => {
-              setShowCountModal(true);
-            },
-          },
-          ...(canDelete
-            ? [
-                {
-                  text: 'Delete Item',
-                  icon: trashOutline,
-                  role: 'destructive' as const,
-                  handler: () => {
-                    setShowDeleteAlert(true);
-                  },
-                },
-              ]
-            : []),
-          {
-            text: 'Cancel',
-            role: 'cancel',
-            icon: close,
-          },
-        ]}
-      />
 
       {/* Delete Confirmation */}
       {item && (

@@ -7,10 +7,9 @@ import { designSystem } from '@/theme/designSystem';
 import InventoryActionButtons from '../sections/InventoryActionButtons';
 
 interface InventoryActionsCardProps {
-  onEdit: () => void;
   onReceive: () => void;
   onAdjust: () => void;
-  onOptions: () => void;
+  onInitiateCount: () => void;
   disabled?: boolean;
 }
 
@@ -19,20 +18,18 @@ const ActionsContent = styled.div`
 `;
 
 const InventoryActionsCard: React.FC<InventoryActionsCardProps> = ({
-  onEdit,
   onReceive,
   onAdjust,
-  onOptions,
+  onInitiateCount,
   disabled = false,
 }) => {
   return (
     <CardContainer title="Actions">
       <ActionsContent>
         <InventoryActionButtons
-          onEdit={onEdit}
           onReceive={onReceive}
           onAdjust={onAdjust}
-          onOptions={onOptions}
+          onInitiateCount={onInitiateCount}
           disabled={disabled}
         />
       </ActionsContent>
