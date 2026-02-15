@@ -4,9 +4,41 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import MerchantWelcomePage from '../MerchantWelcomePage';
 
-// Minimal Ionic mock — IonPage is just a div wrapper for routing
+// Ionic mock — include all components used by MerchantWelcomePage
 vi.mock('@ionic/react', () => ({
   IonPage: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  IonInput: ({
+    placeholder,
+    value,
+    onIonInput,
+    id,
+  }: {
+    placeholder?: string;
+    value?: string;
+    onIonInput?: (e: { detail: { value: string } }) => void;
+    id?: string;
+  }) => (
+    <input
+      id={id}
+      placeholder={placeholder}
+      value={value ?? ''}
+      onChange={(e) => onIonInput?.({ detail: { value: e.target.value } })}
+    />
+  ),
+  IonButton: ({
+    children,
+    disabled,
+    type,
+  }: {
+    children: React.ReactNode;
+    disabled?: boolean;
+    type?: 'submit' | 'button' | 'reset';
+  }) => (
+    <button type={type} disabled={disabled}>
+      {children}
+    </button>
+  ),
+  IonText: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
 }));
 
 function renderPage() {

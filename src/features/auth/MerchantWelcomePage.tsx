@@ -1,5 +1,7 @@
 // src/features/auth/MerchantWelcomePage.tsx
-import { IonPage } from '@ionic/react';
+import AppLogo from '@/components/shared/AppLogo';
+import { FieldLabel } from '@/components/shared/FieldLabel';
+import { IonButton, IonInput, IonPage, IonText } from '@ionic/react';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
@@ -45,12 +47,13 @@ const LogoRow = styled.div`
 const LogoIcon = styled.div`
   width: 40px;
   height: 40px;
-  background: rgba(255, 255, 255, 0.2);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
+  padding: 6px;
+  background: white;
 `;
 
 const LogoText = styled.span`
@@ -195,83 +198,6 @@ const CardSubtext = styled.p`
   margin: 0 0 28px;
 `;
 
-const FieldLabel = styled.label`
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  color: #3f3f46;
-  margin-bottom: 6px;
-`;
-
-const InputWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border: 1.5px solid #e4e4e7;
-  border-radius: 10px;
-  padding: 12px 14px;
-  background: #fafafa;
-  transition: border-color 150ms;
-  margin-bottom: 20px;
-
-  &:focus-within {
-    border-color: #e8713c;
-    background: white;
-  }
-`;
-
-const InputIcon = styled.span`
-  font-size: 16px;
-  flex-shrink: 0;
-  color: #a1a1aa;
-`;
-
-const StyledInput = styled.input`
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 15px;
-  color: #18181b;
-  width: 100%;
-  font-family: inherit;
-
-  &::placeholder {
-    color: #a1a1aa;
-  }
-`;
-
-const ErrorText = styled.p`
-  font-size: 13px;
-  color: #ef4444;
-  margin: -12px 0 16px;
-`;
-
-const CTAButton = styled.button<{ disabled?: boolean }>`
-  width: 100%;
-  padding: 16px;
-  background: ${({ disabled }) => (disabled ? '#fed7aa' : '#e8713c')};
-  color: white;
-  font-size: 16px;
-  font-weight: 700;
-  border: none;
-  border-radius: 50px;
-  cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
-  transition: background 150ms, transform 100ms;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  letter-spacing: 0.2px;
-  margin-bottom: 24px;
-
-  &:hover:not(:disabled) {
-    background: #d96d0a;
-  }
-
-  &:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-`;
 
 const AlreadyHaveAccount = styled.p`
   text-align: center;
@@ -356,8 +282,8 @@ const MerchantWelcomePage: React.FC = () => {
         {/* ── Left: Marketing Pitch ── */}
         <LeftPanel>
           <LogoRow>
-            <LogoIcon>🏪</LogoIcon>
-            <LogoText>Tindera</LogoText>
+            <LogoIcon><AppLogo /></LogoIcon>
+            <LogoText>Tindera POS</LogoText>
           </LogoRow>
 
           <HeadlineBlock>
@@ -399,36 +325,43 @@ const MerchantWelcomePage: React.FC = () => {
 
             <form onSubmit={handleSubmit} noValidate>
               <FieldLabel htmlFor="businessName">Business Name</FieldLabel>
-              <InputWrapper>
-                <InputIcon>🏬</InputIcon>
-                <StyledInput
-                  id="businessName"
-                  type="text"
-                  placeholder="e.g. Potato Corner SM North"
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  autoComplete="organization"
-                />
-              </InputWrapper>
+              <IonInput
+                id="businessName"
+                fill="outline"
+                type="text"
+                placeholder="e.g. Potato Corner SM North"
+                value={businessName}
+                onIonInput={(e) => setBusinessName(e.detail.value || '')}
+                autocomplete="organization"
+                style={{ marginBottom: 'var(--space-md)' }}
+              />
 
               <FieldLabel htmlFor="email">Email Address</FieldLabel>
-              <InputWrapper>
-                <InputIcon>✉️</InputIcon>
-                <StyledInput
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                />
-              </InputWrapper>
+              <IonInput
+                id="email"
+                fill="outline"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onIonInput={(e) => setEmail(e.detail.value || '')}
+                autocomplete="email"
+                style={{ marginBottom: 'var(--space-md)' }}
+              />
 
-              {error && <ErrorText>{error}</ErrorText>}
+              {error && (
+                <IonText color="danger">
+                  <p style={{ fontSize: '13px', margin: '0 0 12px' }}>{error}</p>
+                </IonText>
+              )}
 
-              <CTAButton type="submit" disabled={!isValid}>
+              <IonButton
+                type="submit"
+                expand="block"
+                disabled={!isValid}
+                style={{ marginBottom: 'var(--space-md)', '--border-radius': '50px' }}
+              >
                 Get Started →
-              </CTAButton>
+              </IonButton>
             </form>
 
             <AlreadyHaveAccount>
