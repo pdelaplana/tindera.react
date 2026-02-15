@@ -1,7 +1,7 @@
 // src/features/auth/MerchantWelcomePage.tsx
 import AppLogo from '@/components/shared/AppLogo';
 import { FieldLabel } from '@/components/shared/FieldLabel';
-import { IonButton, IonIcon, IonInput, IonPage, IonText } from '@ionic/react';
+import { IonButton, IonContent, IonIcon, IonInput, IonPage, IonText } from '@ionic/react';
 import { archive, barChart, flash } from 'ionicons/icons';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
@@ -24,16 +24,20 @@ const PageGrid = styled.div`
 // ─── Left Panel ─────────────────────────────────────────────────────────────
 
 const LeftPanel = styled.div`
-  background-color: #e8713c;
-  padding: 64px 108px ;
+  background-image:
+    linear-gradient(rgba(180, 70, 10, 0.82), rgba(120, 40, 5, 0.88)),
+    url('/images/merchant-welcome-bg.png');
+  background-size: cover;
+  background-position: center;
+  padding: 64px 108px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  justify-content: center;
   overflow: hidden;
   position: relative;
 
   @media (max-width: 767px) {
-    order: 2;
+    order: 1;
     padding: 40px 24px;
     gap: 24px;
   }
@@ -121,29 +125,19 @@ const FeatureDesc = styled.div`
   line-height: 1.5;
 `;
 
-const PhotoBlock = styled.div`
-  border-radius: 16px;
-  overflow: hidden;
-  position: relative;
-  background: linear-gradient(135deg, #c25e28 0%, #a84d1e 50%, #7c3510 100%);
-  min-height: 180px;
-  display: flex;
-  align-items: flex-end;
-`;
-
-const PhotoOverlay = styled.div`
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.65) 0%, transparent 60%);
+const LeftPanelInner = styled.div`
   width: 100%;
-  padding: 20px 20px 16px;
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  @media (max-width: 767px) {
+    gap: 24px;
+  }
 `;
 
-const TestimonialText = styled.p`
-  font-size: 13px;
-  font-style: italic;
-  color: rgba(255, 255, 255, 0.9);
-  margin: 0;
-  line-height: 1.5;
-`;
 
 // ─── Right Panel ─────────────────────────────────────────────────────────────
 
@@ -155,7 +149,7 @@ const RightPanel = styled.div`
   padding: 48px 40px;
 
   @media (max-width: 767px) {
-    order: 1;
+    order: 2;
     padding: 40px 24px 32px;
   }
 `;
@@ -268,52 +262,46 @@ const MerchantWelcomePage: React.FC = () => {
 
   return (
     <IonPage>
+      <IonContent>
       <PageGrid>
         {/* ── Left: Marketing Pitch ── */}
         <LeftPanel>
-          <LogoRow>
-            <LogoIcon><AppLogo /></LogoIcon>
-            <LogoText>Tindera POS</LogoText>
-          </LogoRow>
+          <LeftPanelInner>
+            <LogoRow>
+              <LogoIcon><AppLogo /></LogoIcon>
+              <LogoText>Tindera POS</LogoText>
+            </LogoRow>
 
-          <HeadlineBlock>
-            <HeadlineLine1>Start Selling in 2 Minutes</HeadlineLine1>
-            
-          </HeadlineBlock>
+            <HeadlineBlock>
+              <HeadlineLine1>Start Selling in 2 Minutes</HeadlineLine1>
+            </HeadlineBlock>
 
-          <Subheadline>
-            The simplest POS designed specifically for food stalls, micro-merchants, and side
-            hustlers.
-          </Subheadline>
+            <Subheadline>
+              The simplest POS designed specifically for food stalls, micro-merchants, and side
+              hustlers.
+            </Subheadline>
 
-          <FeatureList>
-            {FEATURES.map((f) => (
-              <FeatureRow key={f.title}>
-                <FeatureIconBox>
-                  <IonIcon icon={f.icon} style={{ fontSize: '22px', color: 'white' }} />
-                </FeatureIconBox>
-                <FeatureTextBlock>
-                  <FeatureTitle>{f.title}</FeatureTitle>
-                  <FeatureDesc>{f.desc}</FeatureDesc>
-                </FeatureTextBlock>
-              </FeatureRow>
-            ))}
-          </FeatureList>
-
-          <PhotoBlock>
-            <PhotoOverlay>
-              <TestimonialText>
-                "I saved 3 hours a day on inventory with Tindera." — Maria, Food Stall Owner
-              </TestimonialText>
-            </PhotoOverlay>
-          </PhotoBlock>
+            <FeatureList>
+              {FEATURES.map((f) => (
+                <FeatureRow key={f.title}>
+                  <FeatureIconBox>
+                    <IonIcon icon={f.icon} style={{ fontSize: '22px', color: 'white' }} />
+                  </FeatureIconBox>
+                  <FeatureTextBlock>
+                    <FeatureTitle>{f.title}</FeatureTitle>
+                    <FeatureDesc>{f.desc}</FeatureDesc>
+                  </FeatureTextBlock>
+                </FeatureRow>
+              ))}
+            </FeatureList>
+          </LeftPanelInner>
         </LeftPanel>
 
         {/* ── Right: Signup Card ── */}
         <RightPanel>
           <SignupCard>
-            <CardHeading>Create Account</CardHeading>
-            <CardSubtext>Join 5,000+ happy merchants today.</CardSubtext>
+            <CardHeading>Sign up</CardHeading>
+            <CardSubtext>Get early access and be first to review.</CardSubtext>
 
             <form onSubmit={handleSubmit} noValidate>
               <FieldLabel htmlFor="businessName">Business Name</FieldLabel>
@@ -373,6 +361,7 @@ const MerchantWelcomePage: React.FC = () => {
           </SignupCard>
         </RightPanel>
       </PageGrid>
+      </IonContent>
     </IonPage>
   );
 };

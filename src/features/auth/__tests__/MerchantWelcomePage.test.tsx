@@ -7,6 +7,8 @@ import MerchantWelcomePage from '../MerchantWelcomePage';
 // Ionic mock — include all components used by MerchantWelcomePage
 vi.mock('@ionic/react', () => ({
   IonPage: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  IonContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  IonIcon: () => null,
   IonInput: ({
     placeholder,
     value,
@@ -69,10 +71,9 @@ describe('MerchantWelcomePage', () => {
     expect(screen.getByPlaceholderText(/you@example\.com/i)).toBeInTheDocument();
   });
 
-  it('renders the Create Account heading and merchant count', () => {
+  it('renders the Sign up heading', () => {
     renderPage();
-    expect(screen.getByText('Create Account')).toBeInTheDocument();
-    expect(screen.getByText(/5,000\+/i)).toBeInTheDocument();
+    expect(screen.getByText('Sign up')).toBeInTheDocument();
   });
 
   it('Get Started button is disabled when fields are empty', () => {
