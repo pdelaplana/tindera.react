@@ -4,7 +4,7 @@ import type React from 'react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { logger } from '@/services/sentry';
 import { type ShopWithRole, shopService } from '@/services/shop.service';
-import type { Shop, ShopInsert, ShopUpdate } from '@/types';
+import type { Shop, ShopInsert, ShopRole, ShopUpdate } from '@/types';
 import { useAuthContext } from './AuthContext';
 
 const SELECTED_SHOP_KEY = 'tindera_selected_shop';
@@ -12,7 +12,7 @@ const SELECTED_SHOP_KEY = 'tindera_selected_shop';
 interface ShopState {
   shops: ShopWithRole[];
   currentShop: ShopWithRole | null;
-  currentRole: string | null;
+  currentRole: ShopRole | null;
   isLoading: boolean;
   error: string | null;
 }

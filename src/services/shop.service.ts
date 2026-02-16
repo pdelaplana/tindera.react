@@ -1,11 +1,11 @@
 // Shop Service - Supabase Shop Operations
 
-import type { ApiResponse, Shop, ShopInsert, ShopUpdate, ShopUser } from '@/types';
+import type { ApiResponse, Shop, ShopInsert, ShopRole, ShopUpdate, ShopUser } from '@/types';
 import { logger } from './sentry';
 import { supabase } from './supabase';
 
 export interface ShopWithRole extends Shop {
-  role: string;
+  role: ShopRole;
 }
 
 export const shopService = {

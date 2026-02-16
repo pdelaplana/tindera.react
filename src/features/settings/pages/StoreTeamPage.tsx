@@ -116,17 +116,21 @@ const StoreTeamPage: React.FC = () => {
 
   const handleAdd = addForm.handleSubmit(async (values) => {
     if (!shopId) return;
-    await createMember.mutateAsync({
-      shopId,
-      data: {
-        email: values.email,
-        displayName: values.displayName,
-        password: values.password,
-        role: values.role,
-      },
-    });
-    addForm.reset();
-    setShowAddModal(false);
+    try {
+      await createMember.mutateAsync({
+        shopId,
+        data: {
+          email: values.email,
+          displayName: values.displayName,
+          password: values.password,
+          role: values.role,
+        },
+      });
+      addForm.reset();
+      setShowAddModal(false);
+    } catch {
+      // error displayed via createMember.isError
+    }
   });
 
   const openEditModal = (member: ShopUser) => {
@@ -136,21 +140,33 @@ const StoreTeamPage: React.FC = () => {
 
   const handleEditRole = editForm.handleSubmit(async (values) => {
     if (!shopId || !editingMember) return;
-    await updateRole.mutateAsync({ shopId, userId: editingMember.user_id, role: values.role });
-    setEditingMember(null);
+    try {
+      await updateRole.mutateAsync({ shopId, userId: editingMember.user_id, role: values.role });
+      setEditingMember(null);
+    } catch {
+      // error silently prevented from becoming unhandled rejection
+    }
   });
 
   const handleResetPassword = resetForm.handleSubmit(async (values) => {
     if (!shopId || !resetMember) return;
-    await resetPassword.mutateAsync({ shopId, userId: resetMember.user_id, password: values.password });
-    resetForm.reset();
-    setResetMember(null);
+    try {
+      await resetPassword.mutateAsync({ shopId, userId: resetMember.user_id, password: values.password });
+      resetForm.reset();
+      setResetMember(null);
+    } catch {
+      // error displayed via resetPassword.isError
+    }
   });
 
   const handleRemove = async () => {
     if (!shopId || !removingMember) return;
-    await removeMember.mutateAsync({ shopId, userId: removingMember.user_id });
-    setRemovingMember(null);
+    try {
+      await removeMember.mutateAsync({ shopId, userId: removingMember.user_id });
+      setRemovingMember(null);
+    } catch {
+      // error silently prevented from becoming unhandled rejection
+    }
   };
 
   if (isLoading) return <LoadingSpinner />;
