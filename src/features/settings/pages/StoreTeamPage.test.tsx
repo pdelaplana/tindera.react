@@ -1,0 +1,243 @@
+// src/features/settings/pages/StoreTeamPage.test.tsx
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { describe, expect, it, vi } from 'vitest';
+import StoreTeamPage from './StoreTeamPage';
+
+// Mock Ionic components used by StoreTeamPage and its dependencies
+vi.mock('@ionic/react', () => ({
+  IonPage: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  IonContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  IonHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  IonToolbar: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  IonTitle: ({ children }: { children: React.ReactNode }) => <h1>{children}</h1>,
+  IonButtons: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  IonBackButton: () => <button>Back</button>,
+  IonList: ({ children }: { children: React.ReactNode }) => <ul>{children}</ul>,
+  IonItem: ({ children }: { children: React.ReactNode }) => <li>{children}</li>,
+  IonLabel: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  IonAvatar: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  IonBadge: ({ children, color }: { children: React.ReactNode; color?: string }) => (
+    <span data-color={color}>{children}</span>
+  ),
+  IonButton: ({
+    children,
+    onClick,
+    fill,
+  }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    fill?: string;
+  }) => (
+    <button onClick={onClick} data-fill={fill}>
+      {children}
+    </button>
+  ),
+  IonFab: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  IonFabButton: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
+    <button onClick={onClick} aria-label="fab-button">
+      {children}
+    </button>
+  ),
+  IonIcon: () => null,
+  IonActionSheet: () => null,
+  IonText: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  IonSpinner: () => <span>loading</span>,
+  IonModal: ({ children, isOpen }: { children: React.ReactNode; isOpen?: boolean }) =>
+    isOpen ? <div role="dialog">{children}</div> : null,
+  IonAlert: () => null,
+  IonSelect: ({ children }: { children: React.ReactNode }) => <select>{children}</select>,
+  IonSelectOption: ({ children, value }: { children: React.ReactNode; value?: string }) => (
+    <option value={value}>{children}</option>
+  ),
+  IonInput: ({
+    placeholder,
+    value,
+    onIonInput,
+    id,
+  }: {
+    placeholder?: string;
+    value?: string;
+    onIonInput?: (e: { detail: { value: string } }) => void;
+    id?: string;
+  }) => (
+    <input
+      id={id}
+      placeholder={placeholder}
+      value={value ?? ''}
+      onChange={(e) => onIonInput?.({ detail: { value: e.target.value } })}
+    />
+  ),
+}));
+
+// Mock all hooks imported by StoreTeamPage
+vi.mock('@/hooks/useShop', () => ({
+  useShop: vi.fn(),
+  useShopUsers: vi.fn(),
+  useUpdateUserRole: vi.fn(),
+  useCreateTeamMember: vi.fn(),
+  useResetTeamMemberPassword: vi.fn(),
+  useRemoveTeamMember: vi.fn(),
+}));
+
+// Mock layout and shared components so we don't need to set up their full dependency trees
+vi.mock('@/components/layouts', () => ({
+  BasePage: ({ children, title }: { children: React.ReactNode; title?: string }) => (
+    <div>
+      <h1>{title}</h1>
+      {children}
+    </div>
+  ),
+  CenteredLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+vi.mock('@/components/shared', () => ({
+  BaseModal: ({
+    children,
+    isOpen,
+    title,
+  }: {
+    children: React.ReactNode;
+    isOpen?: boolean;
+    title?: string;
+  }) => (isOpen ? <div role="dialog" aria-label={title}>{children}</div> : null),
+}));
+
+vi.mock('@/components/shared/FormFields', () => ({
+  TextField: () => <input />,
+  SelectField: () => <select />,
+}));
+
+vi.mock('@/components/shared/DeleteConfirmationAlert', () => ({
+  default: () => null,
+}));
+
+vi.mock('@/components/ui', () => ({
+  LoadingSpinner: () => <span>Loading...</span>,
+}));
+
+import {
+  useShop,
+  useShopUsers,
+  useUpdateUserRole,
+  useCreateTeamMember,
+  useResetTeamMemberPassword,
+  useRemoveTeamMember,
+} from '@/hooks/useShop';
+
+const mockUseShop = useShop as ReturnType<typeof vi.fn>;
+const mockUseShopUsers = useShopUsers as ReturnType<typeof vi.fn>;
+const mockUseUpdateUserRole = useUpdateUserRole as ReturnType<typeof vi.fn>;
+const mockUseCreateTeamMember = useCreateTeamMember as ReturnType<typeof vi.fn>;
+const mockUseResetTeamMemberPassword = useResetTeamMemberPassword as ReturnType<typeof vi.fn>;
+const mockUseRemoveTeamMember = useRemoveTeamMember as ReturnType<typeof vi.fn>;
+
+const mockMutationResult = {
+  mutateAsync: vi.fn(),
+  isPending: false,
+  isError: false,
+  error: null,
+};
+
+const ownerMember = {
+  shop_id: 'shop-1',
+  user_id: 'user-owner',
+  role: 'owner' as const,
+  email: 'owner@example.com',
+  user_profiles: { display_name: 'Alice Owner' },
+};
+
+const staffMember = {
+  shop_id: 'shop-1',
+  user_id: 'user-staff',
+  role: 'staff' as const,
+  email: 'staff@example.com',
+  user_profiles: { display_name: 'Bob Staff' },
+};
+
+function setupDefaultMocks() {
+  mockUseShop.mockReturnValue({ currentShop: { id: 'shop-1', name: 'Test Shop' } });
+  mockUseShopUsers.mockReturnValue({ data: [ownerMember, staffMember], isLoading: false });
+  mockUseUpdateUserRole.mockReturnValue(mockMutationResult);
+  mockUseCreateTeamMember.mockReturnValue(mockMutationResult);
+  mockUseResetTeamMemberPassword.mockReturnValue(mockMutationResult);
+  mockUseRemoveTeamMember.mockReturnValue(mockMutationResult);
+}
+
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <StoreTeamPage />
+    </MemoryRouter>
+  );
+}
+
+describe('StoreTeamPage', () => {
+  beforeEach(() => {
+    setupDefaultMocks();
+  });
+
+  it('renders the page title', () => {
+    renderPage();
+    expect(screen.getByText('Store Team')).toBeInTheDocument();
+  });
+
+  it('renders all team members', () => {
+    renderPage();
+    expect(screen.getByText('Alice Owner')).toBeInTheDocument();
+    expect(screen.getByText('Bob Staff')).toBeInTheDocument();
+  });
+
+  it('renders email for each team member', () => {
+    renderPage();
+    expect(screen.getByText('owner@example.com')).toBeInTheDocument();
+    expect(screen.getByText('staff@example.com')).toBeInTheDocument();
+  });
+
+  it('renders the owner badge for the owner member', () => {
+    renderPage();
+    const badges = screen.getAllByText('owner');
+    expect(badges.length).toBeGreaterThan(0);
+  });
+
+  it('renders a role badge for the non-owner (staff) member', () => {
+    renderPage();
+    const badges = screen.getAllByText('staff');
+    expect(badges.length).toBeGreaterThan(0);
+  });
+
+  it('does not render an action button for the owner', () => {
+    renderPage();
+    // Only the staff member should have an action (ellipsis) button.
+    // The mock IonButton renders as <button>. IonIcon renders null so we check
+    // how many clear-fill buttons are present — there should be exactly one (for staff).
+    const clearButtons = document.querySelectorAll('button[data-fill="clear"]');
+    expect(clearButtons.length).toBe(1);
+  });
+
+  it('renders an action button for the non-owner member', () => {
+    renderPage();
+    const clearButtons = document.querySelectorAll('button[data-fill="clear"]');
+    expect(clearButtons.length).toBe(1);
+  });
+
+  it('renders the FAB button', () => {
+    renderPage();
+    // IonFabButton is mocked with aria-label="fab-button"
+    expect(screen.getByLabelText('fab-button')).toBeInTheDocument();
+  });
+
+  it('shows loading spinner while data is loading', () => {
+    mockUseShopUsers.mockReturnValue({ data: undefined, isLoading: true });
+    renderPage();
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
+  });
+
+  it('renders an empty list when there are no members', () => {
+    mockUseShopUsers.mockReturnValue({ data: [], isLoading: false });
+    renderPage();
+    expect(screen.queryByText('Alice Owner')).not.toBeInTheDocument();
+    expect(screen.queryByText('Bob Staff')).not.toBeInTheDocument();
+  });
+});
