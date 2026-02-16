@@ -1,4 +1,4 @@
-// Store Team Page - Manage shop team members
+// Shop Team Page - Manage shop team members
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -79,7 +79,7 @@ function avatarInitial(name: string | null | undefined): string {
 
 // --- Page ---
 
-const StoreTeamPage: React.FC = () => {
+const ShopTeamPage: React.FC = () => {
   const { currentShop } = useShop();
   const shopId = currentShop?.id;
 
@@ -363,4 +363,4 @@ const StoreTeamPage: React.FC = () => {
   );
 };
 
-export default StoreTeamPage;
+export default ShopTeamPage;

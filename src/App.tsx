@@ -36,7 +36,7 @@ import {
   ProductCategoriesPage,
   SettingsPage,
   ShopSettingsPage,
-  StoreTeamPage,
+  ShopTeamPage,
   TaxSettingsPage,
   VoidRefundSettingsPage,
 } from '@/features/settings';
@@ -208,7 +208,7 @@ const App: React.FC = () => (
               <Route exact path="/shops/:shopId/settings/team">
                 <AuthGuard>
                   <OwnerOnlyGuard>
-                    <StoreTeamPage />
+                    <ShopTeamPage />
                   </OwnerOnlyGuard>
                 </AuthGuard>
               </Route>

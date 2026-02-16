@@ -7,4 +7,4 @@ export { default as SettingsPage } from './pages/SettingsPage';
 export { default as ShopSettingsPage } from './pages/ShopSettingsPage';
 export { default as TaxSettingsPage } from './pages/TaxSettingsPage';
 export { default as VoidRefundSettingsPage } from './pages/VoidRefundSettingsPage';
-export { default as StoreTeamPage } from './pages/StoreTeamPage';
+export { default as ShopTeamPage } from './pages/ShopTeamPage';

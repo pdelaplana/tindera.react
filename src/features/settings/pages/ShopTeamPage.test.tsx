@@ -1,11 +1,11 @@
-// src/features/settings/pages/StoreTeamPage.test.tsx
+// src/features/settings/pages/ShopTeamPage.test.tsx
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
-import StoreTeamPage from './StoreTeamPage';
+import ShopTeamPage from './ShopTeamPage';
 
-// Mock Ionic components used by StoreTeamPage and its dependencies
+// Mock Ionic components used by ShopTeamPage and its dependencies
 vi.mock('@ionic/react', () => ({
   IonPage: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   IonContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -70,7 +70,7 @@ vi.mock('@ionic/react', () => ({
   ),
 }));
 
-// Mock all hooks imported by StoreTeamPage
+// Mock all hooks imported by ShopTeamPage
 vi.mock('@/hooks/useShop', () => ({
   useShop: vi.fn(),
   useShopUsers: vi.fn(),
@@ -183,12 +183,12 @@ function setupDefaultMocks() {
 function renderPage() {
   return render(
     <MemoryRouter>
-      <StoreTeamPage />
+      <ShopTeamPage />
     </MemoryRouter>
   );
 }
 
-describe('StoreTeamPage', () => {
+describe('ShopTeamPage', () => {
   beforeEach(() => {
     setupDefaultMocks();
   });
