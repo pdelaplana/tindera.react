@@ -208,6 +208,59 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === 'update') {
+      const { userId, displayName, role } = body;
+
+      if (!userId) {
+        return new Response(JSON.stringify({ error: 'Missing userId' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Verify the target user is in this shop
+      const { data: targetShopUser } = await supabaseAdmin
+        .from('shop_users')
+        .select('role')
+        .eq('shop_id', shopId)
+        .eq('user_id', userId)
+        .single();
+
+      if (!targetShopUser) {
+        return new Response(JSON.stringify({ error: 'User not in shop' }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (displayName) {
+        await supabaseAdmin
+          .from('user_profiles')
+          .update({ display_name: displayName })
+          .eq('id', userId);
+      }
+
+      if (role && ['manager', 'staff'].includes(role)) {
+        const { error: roleError } = await supabaseAdmin
+          .from('shop_users')
+          .update({ role })
+          .eq('shop_id', shopId)
+          .eq('user_id', userId);
+
+        if (roleError) {
+          return new Response(JSON.stringify({ error: roleError.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     return new Response(JSON.stringify({ error: 'Unknown action' }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

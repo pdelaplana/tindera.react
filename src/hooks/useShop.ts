@@ -254,6 +254,31 @@ export function useCreateTeamMember() {
 }
 
 /**
+ * Hook to update a team member's display name and/or role.
+ */
+export function useUpdateTeamMember() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      shopId,
+      userId,
+      data,
+    }: {
+      shopId: string;
+      userId: string;
+      data: { displayName?: string; role?: string };
+    }) => {
+      const { error } = await shopService.updateTeamMember(shopId, userId, data);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: shopKeys.users(variables.shopId) });
+    },
+  });
+}
+
+/**
  * Hook to reset a team member's password.
  */
 export function useResetTeamMemberPassword() {

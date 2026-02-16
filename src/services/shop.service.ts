@@ -186,24 +186,43 @@ export const shopService = {
    */
   async getShopUsers(shopId: string): Promise<ApiResponse<ShopUser[]>> {
     try {
-      // Join with user_profiles using the user_id field
-      // shop_users.user_id -> user_profiles.id
-      const { data, error } = await supabase
+      // Step 1: fetch shop_users rows
+      const { data: shopUsersData, error: shopUsersError } = await supabase
         .from('shop_users')
-        .select(`
-					shop_id,
-					user_id,
-					role,
-					user_profiles!user_id(display_name)
-				`)
+        .select('shop_id, user_id, role')
         .eq('shop_id', shopId);
 
-      if (error) {
-        logger.error(new Error(error.message), { context: 'getShopUsers', shopId });
-        return { data: null, error: new Error(error.message) };
+      if (shopUsersError) {
+        logger.error(new Error(shopUsersError.message), { context: 'getShopUsers', shopId });
+        return { data: null, error: new Error(shopUsersError.message) };
       }
 
-      return { data: data as unknown as ShopUser[], error: null };
+      if (!shopUsersData || shopUsersData.length === 0) {
+        return { data: [], error: null };
+      }
+
+      // Step 2: fetch display names from user_profiles
+      // (requires "Users can view profiles of shop members" RLS policy)
+      const userIds = shopUsersData.map((u) => u.user_id);
+      const { data: profilesData } = await supabase
+        .from('user_profiles')
+        .select('id, display_name, email')
+        .in('id', userIds);
+
+      const profileMap = new Map((profilesData ?? []).map((p) => [p.id, p]));
+
+      const result: ShopUser[] = shopUsersData.map((u) => {
+        const profile = profileMap.get(u.user_id);
+        return {
+          shop_id: u.shop_id,
+          user_id: u.user_id,
+          role: u.role as ShopUser['role'],
+          email: profile?.email ?? null,
+          user_profiles: profile ? { display_name: profile.display_name } : undefined,
+        };
+      });
+
+      return { data: result, error: null };
     } catch (err) {
       const error = err as Error;
       logger.error(error, { context: 'getShopUsers', shopId });
@@ -339,6 +358,33 @@ export const shopService = {
       const error = err as Error;
       logger.error(error, { context: 'createTeamMember', shopId });
       return { userId: null, error };
+    }
+  },
+
+  /**
+   * Update a team member's display name and/or role via Edge Function
+   */
+  async updateTeamMember(
+    shopId: string,
+    userId: string,
+    data: { displayName?: string; role?: string }
+  ): Promise<{ error: Error | null }> {
+    try {
+      const { error } = await supabase.functions.invoke('manage-shop-user', {
+        body: { action: 'update', shopId, userId, ...data },
+      });
+
+      if (error) {
+        const message = await extractFunctionError(error);
+        logger.error(new Error(message), { context: 'updateTeamMember', shopId, userId });
+        return { error: new Error(message) };
+      }
+
+      return { error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'updateTeamMember', shopId, userId });
+      return { error };
     }
   },
 
