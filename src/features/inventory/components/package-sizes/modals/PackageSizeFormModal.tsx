@@ -99,7 +99,7 @@ const PackageSizeFormModal: React.FC<PackageSizeFormModalProps> = ({
     },
   });
 
-  const canDelete = hasPermission('admin');
+  const canDelete = hasPermission('manager');
   const isSaving =
     createPackageSize.isPending || updatePackageSize.isPending || deletePackageSize.isPending;
 

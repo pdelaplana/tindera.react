@@ -83,7 +83,7 @@ const ProductManagePage: React.FC = () => {
 
   // Permissions
   const canEdit = hasPermission('staff');
-  const canDelete = hasPermission('admin');
+  const canDelete = hasPermission('manager');
 
   // Currency formatter
   const formatCurrency = useMemo(

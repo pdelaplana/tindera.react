@@ -51,7 +51,7 @@ const ModifierGroupManagePage: React.FC = () => {
   const [selectedModifier, setSelectedModifier] = useState<Modifier | null>(null);
 
   const canEdit = hasPermission('staff');
-  const canDelete = hasPermission('admin');
+  const canDelete = hasPermission('manager');
 
   const formatCurrency = useMemo(
     () => createCurrencyFormatter(currentShop?.currency_code || 'USD'),

@@ -72,7 +72,7 @@ const ProductDetailPanel: React.FC<ProductDetailPanelProps> = ({ productId, onPr
 
   // Permissions
   const canEdit = hasPermission('staff');
-  const canDelete = hasPermission('admin');
+  const canDelete = hasPermission('manager');
 
   // Currency formatter
   const formatCurrency = useMemo(

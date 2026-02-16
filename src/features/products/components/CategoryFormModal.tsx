@@ -55,7 +55,7 @@ const CategoryFormModal: React.FC<CategoryFormModalProps> = ({ isOpen, onClose, 
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   const canEdit = hasPermission('staff');
-  const canDelete = hasPermission('admin');
+  const canDelete = hasPermission('manager');
   const isNew = !category;
 
   const {

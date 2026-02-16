@@ -97,7 +97,7 @@ const InventoryItemFormModal: React.FC<InventoryItemFormModalProps> = ({
   const { showSuccess, showError } = useToastNotification();
 
   const canEdit = hasPermission('staff');
-  const canDelete = hasPermission('admin');
+  const canDelete = hasPermission('manager');
   const isSaving = createItem.isPending || updateItem.isPending || deleteItem.isPending;
 
   // Form setup - Main inventory item form

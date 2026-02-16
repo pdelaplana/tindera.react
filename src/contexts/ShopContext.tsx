@@ -28,7 +28,7 @@ interface ShopContextValue extends ShopState {
   ) => Promise<{ success: boolean; error: string | null }>;
   deleteShop: (shopId: string) => Promise<{ success: boolean; error: string | null }>;
   refreshShops: () => Promise<void>;
-  hasPermission: (requiredRole: 'owner' | 'admin' | 'staff') => boolean;
+  hasPermission: (requiredRole: 'owner' | 'manager' | 'staff') => boolean;
 }
 
 const ShopContext = createContext<ShopContextValue | undefined>(undefined);
@@ -40,7 +40,7 @@ interface ShopProviderProps {
 // Role hierarchy for permission checks
 const ROLE_HIERARCHY: Record<string, number> = {
   owner: 3,
-  admin: 2,
+  manager: 2,
   staff: 1,
 };
 
@@ -247,7 +247,7 @@ export function ShopProvider({ children }: ShopProviderProps) {
   };
 
   const hasPermission = useCallback(
-    (requiredRole: 'owner' | 'admin' | 'staff'): boolean => {
+    (requiredRole: 'owner' | 'manager' | 'staff'): boolean => {
       if (!state.currentRole) return false;
 
       const userLevel = ROLE_HIERARCHY[state.currentRole] || 0;
