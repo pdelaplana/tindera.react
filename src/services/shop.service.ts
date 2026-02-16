@@ -8,6 +8,19 @@ export interface ShopWithRole extends Shop {
   role: ShopRole;
 }
 
+/** Extract the error message from a Supabase FunctionsHttpError response body. */
+async function extractFunctionError(error: { message: string; context?: Response }): Promise<string> {
+  try {
+    if (error.context) {
+      const body = await error.context.json();
+      if (body?.error) return body.error;
+    }
+  } catch {
+    // fall through to generic message
+  }
+  return error.message;
+}
+
 export const shopService = {
   /**
    * Get all shops for a user
@@ -316,8 +329,9 @@ export const shopService = {
       });
 
       if (error) {
-        logger.error(new Error(error.message), { context: 'createTeamMember', shopId });
-        return { userId: null, error: new Error(error.message) };
+        const message = await extractFunctionError(error);
+        logger.error(new Error(message), { context: 'createTeamMember', shopId });
+        return { userId: null, error: new Error(message) };
       }
 
       return { userId: result?.userId ?? null, error: null };
@@ -342,8 +356,9 @@ export const shopService = {
       });
 
       if (error) {
-        logger.error(new Error(error.message), { context: 'resetTeamMemberPassword', shopId, userId });
-        return { error: new Error(error.message) };
+        const message = await extractFunctionError(error);
+        logger.error(new Error(message), { context: 'resetTeamMemberPassword', shopId, userId });
+        return { error: new Error(message) };
       }
 
       return { error: null };
@@ -367,8 +382,9 @@ export const shopService = {
       });
 
       if (error) {
-        logger.error(new Error(error.message), { context: 'removeTeamMember', shopId, userId });
-        return { error: new Error(error.message) };
+        const message = await extractFunctionError(error);
+        logger.error(new Error(message), { context: 'removeTeamMember', shopId, userId });
+        return { error: new Error(message) };
       }
 
       return { error: null };
