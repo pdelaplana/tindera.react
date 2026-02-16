@@ -6,21 +6,20 @@ import {
   IonAvatar,
   IonBadge,
   IonButton,
-  IonFab,
-  IonFabButton,
   IonIcon,
   IonItem,
   IonLabel,
   IonList,
   IonText,
 } from '@ionic/react';
-import { add, ellipsisVertical } from 'ionicons/icons';
+import { ellipsisVertical } from 'ionicons/icons';
 import type React from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { BasePage, CenteredLayout } from '@/components/layouts';
 import { BaseModal } from '@/components/shared';
+import { CardContainer } from '@/components/shared/CardContainer';
 import { SelectField, TextField } from '@/components/shared/FormFields';
 import { LoadingSpinner } from '@/components/ui';
 import DeleteConfirmationAlert from '@/components/shared/DeleteConfirmationAlert';
@@ -176,39 +175,48 @@ const StoreTeamPage: React.FC = () => {
   return (
     <BasePage title="Store Team" backHref={`/shops/${shopId}/settings`}>
       <CenteredLayout>
-        <IonList lines="none" className="ion-no-padding">
-          {(members ?? []).map((member) => (
-            <IonItem key={member.user_id}>
-              <IonAvatar
-                slot="start"
-                style={{
-                  width: 36,
-                  height: 36,
-                  background: 'var(--ion-color-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <span style={{ color: 'white', fontWeight: 600 }}>
-                  {avatarInitial(member.user_profiles?.display_name)}
-                </span>
-              </IonAvatar>
-              <IonLabel>
-                <h2>{memberName(member)}</h2>
-                {member.email && <p>{member.email}</p>}
-              </IonLabel>
-              <IonBadge color={roleBadgeColor[member.role]} slot="end" style={{ marginRight: 8 }}>
-                {member.role}
-              </IonBadge>
-              {member.role !== 'owner' && (
-                <IonButton fill="clear" slot="end" onClick={() => setActionSheetMember(member)}>
-                  <IonIcon icon={ellipsisVertical} />
-                </IonButton>
-              )}
-            </IonItem>
-          ))}
-        </IonList>
+        <CardContainer
+          title="Team Members"
+          onActionClick={() => {
+            addForm.reset({ role: 'staff' });
+            setShowAddModal(true);
+          }}
+          noPadding
+        >
+          <IonList lines="none">
+            {(members ?? []).map((member) => (
+              <IonItem key={member.user_id}>
+                <IonAvatar
+                  slot="start"
+                  style={{
+                    width: 36,
+                    height: 36,
+                    background: 'var(--ion-color-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <span style={{ color: 'white', fontWeight: 600 }}>
+                    {avatarInitial(member.user_profiles?.display_name)}
+                  </span>
+                </IonAvatar>
+                <IonLabel>
+                  <h2>{memberName(member)}</h2>
+                  {member.email && <p>{member.email}</p>}
+                </IonLabel>
+                <IonBadge color={roleBadgeColor[member.role]} slot="end" style={{ marginRight: 8 }}>
+                  {member.role}
+                </IonBadge>
+                {member.role !== 'owner' && (
+                  <IonButton fill="clear" slot="end" onClick={() => setActionSheetMember(member)}>
+                    <IonIcon icon={ellipsisVertical} />
+                  </IonButton>
+                )}
+              </IonItem>
+            ))}
+          </IonList>
+        </CardContainer>
 
         {/* Action sheet for member actions */}
         <IonActionSheet
@@ -241,18 +249,6 @@ const StoreTeamPage: React.FC = () => {
             { text: 'Cancel', role: 'cancel' },
           ]}
         />
-
-        {/* Add Member FAB */}
-        <IonFab vertical="bottom" horizontal="end" slot="fixed">
-          <IonFabButton
-            onClick={() => {
-              addForm.reset({ role: 'staff' });
-              setShowAddModal(true);
-            }}
-          >
-            <IonIcon icon={add} />
-          </IonFabButton>
-        </IonFab>
 
         {/* Add Member Modal */}
         <BaseModal

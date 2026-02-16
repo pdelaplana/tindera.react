@@ -14,6 +14,11 @@ vi.mock('@ionic/react', () => ({
   IonTitle: ({ children }: { children: React.ReactNode }) => <h1>{children}</h1>,
   IonButtons: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   IonBackButton: () => <button>Back</button>,
+  IonCard: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  IonCardHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  IonCardTitle: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  IonCardContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  IonSearchbar: () => <input />,
   IonList: ({ children }: { children: React.ReactNode }) => <ul>{children}</ul>,
   IonItem: ({ children }: { children: React.ReactNode }) => <li>{children}</li>,
   IonLabel: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -31,12 +36,6 @@ vi.mock('@ionic/react', () => ({
     fill?: string;
   }) => (
     <button onClick={onClick} data-fill={fill}>
-      {children}
-    </button>
-  ),
-  IonFab: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  IonFabButton: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
-    <button onClick={onClick} aria-label="fab-button">
       {children}
     </button>
   ),
@@ -107,6 +106,22 @@ vi.mock('@/components/shared', () => ({
 vi.mock('@/components/shared/FormFields', () => ({
   TextField: () => <input />,
   SelectField: () => <select />,
+}));
+
+vi.mock('@/components/shared/CardContainer', () => ({
+  CardContainer: ({
+    children,
+    onActionClick,
+  }: {
+    children: React.ReactNode;
+    title?: string;
+    onActionClick?: () => void;
+  }) => (
+    <div>
+      <button onClick={onActionClick} aria-label="add-member">Add</button>
+      {children}
+    </div>
+  ),
 }));
 
 vi.mock('@/components/shared/DeleteConfirmationAlert', () => ({
@@ -222,10 +237,9 @@ describe('StoreTeamPage', () => {
     expect(clearButtons.length).toBe(1);
   });
 
-  it('renders the FAB button', () => {
+  it('renders the add member button', () => {
     renderPage();
-    // IonFabButton is mocked with aria-label="fab-button"
-    expect(screen.getByLabelText('fab-button')).toBeInTheDocument();
+    expect(screen.getByLabelText('add-member')).toBeInTheDocument();
   });
 
   it('shows loading spinner while data is loading', () => {
