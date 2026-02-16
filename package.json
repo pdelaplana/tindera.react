@@ -18,7 +18,8 @@
     "db:push": "npx supabase db push",
     "db:pull": "npx supabase db pull",
     "db:reset": "npx supabase db reset",
-    "db:types": "npx supabase gen types typescript --project-id bwcrsmbmkmoigzwtuhjn > src/types/supabase.generated.ts"
+    "db:types": "npx supabase gen types typescript --project-id bwcrsmbmkmoigzwtuhjn > src/types/supabase.generated.ts",
+    "functions:deploy": "npx supabase functions deploy"
   },
   "dependencies": {
     "@capacitor/app": "8.0.0",
