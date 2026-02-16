@@ -18,6 +18,7 @@ import {
   chevronForwardOutline,
   cubeOutline,
   optionsOutline,
+  peopleOutline,
   pricetagOutline,
   pricetagsOutline,
   storefrontOutline,
@@ -183,6 +184,31 @@ const SettingsPage: React.FC = () => {
                   </IonList>
                 </IonCardContent>
               </IonCard>
+              {/* Team — owner only */}
+              {currentShop.role === 'owner' && (
+                <>
+                  <IonTitle>Team</IonTitle>
+                  <IonCard className="flat-card">
+                    <IonCardContent>
+                      <IonList lines="none" className="ion-no-padding">
+                        <IonItem
+                          button
+                          onClick={() => navigate(`/shops/${shopId}/settings/team`)}
+                          detail={false}
+                        >
+                          <IonIcon slot="start" icon={peopleOutline} />
+                          <IonLabel>
+                            <h2>Store Team</h2>
+                            <p>Add and manage team members</p>
+                          </IonLabel>
+                          <IonIcon slot="end" icon={chevronForwardOutline} />
+                        </IonItem>
+                      </IonList>
+                    </IonCardContent>
+                  </IonCard>
+                </>
+              )}
+
               {/* Danger Zone */}
               <IonTitle>Danger Zone</IonTitle>
               <IonCard

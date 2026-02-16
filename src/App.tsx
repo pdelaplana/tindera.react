@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Redirect, Route, Switch } from 'react-router-dom';
 // Components
 import AuthGuard from '@/components/AuthGuard';
+import OwnerOnlyGuard from '@/components/OwnerOnlyGuard';
 import SideMenu from '@/components/SideMenu';
 // Contexts
 import { AppProviders } from '@/contexts';
@@ -35,6 +36,7 @@ import {
   ProductCategoriesPage,
   SettingsPage,
   ShopSettingsPage,
+  StoreTeamPage,
   TaxSettingsPage,
   VoidRefundSettingsPage,
 } from '@/features/settings';
@@ -201,6 +203,13 @@ const App: React.FC = () => (
               <Route exact path="/shops/:shopId/settings/pos/void-refund">
                 <AuthGuard>
                   <VoidRefundSettingsPage />
+                </AuthGuard>
+              </Route>
+              <Route exact path="/shops/:shopId/settings/team">
+                <AuthGuard>
+                  <OwnerOnlyGuard>
+                    <StoreTeamPage />
+                  </OwnerOnlyGuard>
                 </AuthGuard>
               </Route>
               {/* Shop Routes */}
