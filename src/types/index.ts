@@ -48,10 +48,13 @@ export interface Shop extends Auditable {
   order_prefix: string | null;
 }
 
+export type ShopRole = 'owner' | 'manager' | 'staff';
+
 export interface ShopUser {
   shop_id: string;
   user_id: string;
-  role: string;
+  role: ShopRole;
+  email?: string | null;
   user_profiles?: {
     display_name: string | null;
   };
