@@ -229,4 +229,65 @@ export function useDeleteShop() {
   });
 }
 
+/**
+ * Hook to create a new team member for a shop.
+ */
+export function useCreateTeamMember() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      shopId,
+      data,
+    }: {
+      shopId: string;
+      data: { email: string; displayName: string; password: string; role: string };
+    }) => {
+      const { userId, error } = await shopService.createTeamMember(shopId, data);
+      if (error) throw error;
+      return userId;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: shopKeys.users(variables.shopId) });
+    },
+  });
+}
+
+/**
+ * Hook to reset a team member's password.
+ */
+export function useResetTeamMemberPassword() {
+  return useMutation({
+    mutationFn: async ({
+      shopId,
+      userId,
+      password,
+    }: {
+      shopId: string;
+      userId: string;
+      password: string;
+    }) => {
+      const { error } = await shopService.resetTeamMemberPassword(shopId, userId, password);
+      if (error) throw error;
+    },
+  });
+}
+
+/**
+ * Hook to remove a team member via Edge Function.
+ */
+export function useRemoveTeamMember() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ shopId, userId }: { shopId: string; userId: string }) => {
+      const { error } = await shopService.removeTeamMember(shopId, userId);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: shopKeys.users(variables.shopId) });
+    },
+  });
+}
+
 export default useShop;

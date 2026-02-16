@@ -302,4 +302,80 @@ export const shopService = {
       return { data: null, error };
     }
   },
+
+  /**
+   * Create a new team member for a shop via Edge Function
+   */
+  async createTeamMember(
+    shopId: string,
+    data: { email: string; displayName: string; password: string; role: string }
+  ): Promise<{ userId: string | null; error: Error | null }> {
+    try {
+      const { data: result, error } = await supabase.functions.invoke('manage-shop-user', {
+        body: { action: 'create', shopId, ...data },
+      });
+
+      if (error) {
+        logger.error(new Error(error.message), { context: 'createTeamMember', shopId });
+        return { userId: null, error: new Error(error.message) };
+      }
+
+      return { userId: result?.userId ?? null, error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'createTeamMember', shopId });
+      return { userId: null, error };
+    }
+  },
+
+  /**
+   * Reset a team member's password via Edge Function
+   */
+  async resetTeamMemberPassword(
+    shopId: string,
+    userId: string,
+    password: string
+  ): Promise<{ error: Error | null }> {
+    try {
+      const { error } = await supabase.functions.invoke('manage-shop-user', {
+        body: { action: 'reset-password', shopId, userId, password },
+      });
+
+      if (error) {
+        logger.error(new Error(error.message), { context: 'resetTeamMemberPassword', shopId, userId });
+        return { error: new Error(error.message) };
+      }
+
+      return { error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'resetTeamMemberPassword', shopId, userId });
+      return { error };
+    }
+  },
+
+  /**
+   * Remove a team member via Edge Function
+   */
+  async removeTeamMember(
+    shopId: string,
+    userId: string
+  ): Promise<{ error: Error | null }> {
+    try {
+      const { error } = await supabase.functions.invoke('manage-shop-user', {
+        body: { action: 'remove', shopId, userId },
+      });
+
+      if (error) {
+        logger.error(new Error(error.message), { context: 'removeTeamMember', shopId, userId });
+        return { error: new Error(error.message) };
+      }
+
+      return { error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'removeTeamMember', shopId, userId });
+      return { error };
+    }
+  },
 };
