@@ -190,8 +190,8 @@ const PackageSizeFormModal: React.FC<PackageSizeFormModalProps> = ({
     <IonModal
       isOpen={isOpen}
       onDidDismiss={onClose}
-      initialBreakpoint={0.5}
-      breakpoints={[0, 0.5, 0.75, 1]}
+      initialBreakpoint={0.75}
+      breakpoints={[0, 0.75, 1]}
     >
       <IonHeader>
         <IonToolbar>
