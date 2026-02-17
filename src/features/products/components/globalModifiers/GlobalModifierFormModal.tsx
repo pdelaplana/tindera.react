@@ -48,6 +48,7 @@ export const GlobalModifierFormModal: React.FC<GlobalModifierFormModalProps> = (
   const { currentShop } = useShop();
   const { showSuccess, showError } = useToastNotification();
   const [linkToInventory, setLinkToInventory] = useState(false);
+  const [initialLinkToInventory, setInitialLinkToInventory] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const isEditMode = !!initialData;
 
@@ -66,7 +67,7 @@ export const GlobalModifierFormModal: React.FC<GlobalModifierFormModalProps> = (
     handleSubmit,
     reset,
     watch,
-    formState: { errors, dirtyFields },
+    formState: { errors, isDirty },
   } = useForm<ModifierFormData>({
     resolver: zodResolver(modifierSchema),
     mode: 'onSubmit',
@@ -104,6 +105,7 @@ export const GlobalModifierFormModal: React.FC<GlobalModifierFormModalProps> = (
             }
       );
       setLinkToInventory(hasInventoryLink);
+      setInitialLinkToInventory(hasInventoryLink);
     }
   }, [isOpen, initialData, nextSequence, reset]);
 
@@ -180,6 +182,7 @@ export const GlobalModifierFormModal: React.FC<GlobalModifierFormModalProps> = (
   const handleClose = () => {
     reset();
     setLinkToInventory(false);
+    setInitialLinkToInventory(false);
     onClose();
   };
 
@@ -268,7 +271,7 @@ export const GlobalModifierFormModal: React.FC<GlobalModifierFormModalProps> = (
           expand="block"
           type="submit"
           disabled={
-            isSaving || (isEditMode && !dirtyFields.name && !dirtyFields.default_price_adjustment)
+            isSaving || (isEditMode && !isDirty && linkToInventory === initialLinkToInventory)
           }
           isSaving={isSaving}
           label={isEditMode ? 'Save Changes' : 'Add Modifier'}
