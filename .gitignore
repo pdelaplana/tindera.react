@@ -32,3 +32,5 @@ yarn-error.log*
 
 # Optional eslint cache
 .eslintcache
+/.playwright-mcp
+.claude/settings.local.json
