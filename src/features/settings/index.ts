@@ -1,4 +1,5 @@
 export { default as DiscountTypeSettingsPage } from './pages/DiscountTypeSettingsPage';
+export { default as PaymentMethodsSettingsPage } from './pages/PaymentMethodsSettingsPage';
 export { default as GlobalModifierGroupManagePage } from './pages/GlobalModifierGroupManagePage';
 export { default as GlobalModifiersPage } from './pages/GlobalModifiersPage';
 export { default as InventoryCategoriesPage } from './pages/InventoryCategoriesPage';

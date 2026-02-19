@@ -23,6 +23,7 @@ import {
   pricetagsOutline,
   storefrontOutline,
   trashOutline,
+  walletOutline,
 } from 'ionicons/icons';
 import type React from 'react';
 import { useState } from 'react';
@@ -145,6 +146,18 @@ const SettingsPage: React.FC = () => {
               <IonCard className="flat-card">
                 <IonCardContent>
                   <IonList lines="none" className="ion-no-padding">
+                    <IonItem
+                      button
+                      onClick={() => navigate(`/shops/${shopId}/settings/pos/payment-methods`)}
+                      detail={false}
+                    >
+                      <IonIcon slot="start" icon={walletOutline} />
+                      <IonLabel>
+                        <h2>Payment Methods</h2>
+                        <p>Enable or disable Cash, GCash, and Maya</p>
+                      </IonLabel>
+                      <IonIcon slot="end" icon={chevronForwardOutline} />
+                    </IonItem>
                     <IonItem
                       button
                       onClick={() => navigate(`/shops/${shopId}/settings/pos/taxes`)}

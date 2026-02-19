@@ -3,10 +3,9 @@
 import { IonIcon, IonText } from '@ionic/react';
 import { card, cash, wallet } from 'ionicons/icons';
 import type React from 'react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import styled from 'styled-components';
-import { OrderTotals } from '../cart/OrderTotals';
 import BaseModal from '@/components/shared/BaseModal';
 import { NumberField, PriceField, SelectField, TextField } from '@/components/shared/FormFields';
 import { PriceDisplay } from '@/components/ui';
@@ -14,10 +13,17 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { useShopContext } from '@/contexts/ShopContext';
 import { useUI } from '@/contexts/UIContext';
 import { useDiscountTypes } from '@/hooks/useDiscountTypes';
-import { useCreateOrder, usePaymentTypes } from '@/hooks/useOrder';
+import {
+  useCreateEwalletOrder,
+  useCreateOrder,
+  useCreateXenditCharge,
+  usePaymentTypes,
+} from '@/hooks/useOrder';
 import { useShopUsers } from '@/hooks/useShop';
 import { designSystem } from '@/theme/designSystem';
 import type { CartItem, CheckoutFormData, PaymentType } from '@/types';
+import { OrderTotals } from '../cart/OrderTotals';
+import XenditPaymentModal from './XenditPaymentModal';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -265,8 +271,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     return [defaultCash, ...paymentTypes];
   }, [paymentTypes, currentShop?.id]);
 
-  // Order creation mutation
+  // Order creation mutations
   const createOrderMutation = useCreateOrder();
+  const createEwalletOrderMutation = useCreateEwalletOrder();
+  const createXenditChargeMutation = useCreateXenditCharge();
+
+  // Xendit payment modal state
+  const [xenditModal, setXenditModal] = useState<{
+    orderId: string;
+    qrString: string | null;
+    checkoutUrl: string | null;
+    expirationTime: string;
+  } | null>(null);
 
   // Form state
   const {
@@ -312,6 +328,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     [selectedPaymentType]
   );
 
+  // Determine if e-wallet payment (GCash or Maya)
+  const isEwalletPayment = useMemo(() => {
+    const code = selectedPaymentType?.code?.toUpperCase();
+    return code === 'GCASH' || code === 'MAYA';
+  }, [selectedPaymentType]);
+
   // Calculate discount amount
   const discountAmount = useMemo(() => {
     if (!discountValue || discountValue <= 0) return 0;
@@ -347,9 +369,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   }, [isCashPayment, cashReceived, grandTotal]);
 
   // Complete button disabled state
+  const isAnyMutationPending =
+    createOrderMutation.isPending ||
+    createEwalletOrderMutation.isPending ||
+    createXenditChargeMutation.isPending;
+
   const isCompleteDisabled = useMemo(() => {
-    return !isValid || !paymentTypeId || !isCashSufficient || createOrderMutation.isPending;
-  }, [isValid, paymentTypeId, isCashSufficient, createOrderMutation.isPending]);
+    return !isValid || !paymentTypeId || !isCashSufficient || isAnyMutationPending;
+  }, [isValid, paymentTypeId, isCashSufficient, isAnyMutationPending]);
 
   // Reset form when modal opens
   useEffect(() => {
@@ -393,6 +420,32 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         tip_recipient_id: formData.tip_recipient_id || null,
       };
 
+      // E-wallet payment flow: create pending order → call Xendit → show QR modal
+      if (isEwalletPayment && selectedPaymentType) {
+        const paymentMethod = selectedPaymentType.code?.toUpperCase() as 'GCASH' | 'MAYA';
+
+        const pendingOrder = await createEwalletOrderMutation.mutateAsync({
+          ...orderData,
+          payment_received: false,
+        });
+
+        const charge = await createXenditChargeMutation.mutateAsync({
+          orderId: pendingOrder.id,
+          amount: grandTotal,
+          currency: currentShop.currency_code,
+          paymentMethod,
+        });
+
+        setXenditModal({
+          orderId: pendingOrder.id,
+          qrString: charge.qrString,
+          checkoutUrl: charge.checkoutUrl,
+          expirationTime: charge.expirationTime,
+        });
+        return;
+      }
+
+      // Cash / standard payment flow
       await createOrderMutation.mutateAsync(orderData);
 
       showSuccess('Order created successfully!');
@@ -404,270 +457,305 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
 
+  const handleXenditSuccess = () => {
+    setXenditModal(null);
+    showSuccess('Payment confirmed!');
+    onSuccess();
+    onClose();
+  };
+
+  const handleXenditClose = () => {
+    setXenditModal(null);
+  };
+
   return (
-    <BaseModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Checkout"
-      showFooterButton
-      footerButtonLabel="Complete Order"
-      onFooterButtonClick={handleSubmit(onSubmit)}
-      footerButtonDisabled={isCompleteDisabled}
-      footerButtonLoading={createOrderMutation.isPending}
-      isLoading={paymentTypesLoading || discountTypesLoading || shopUsersLoading}
-      loadingMessage="Loading checkout options..."
-    >
-      {/* Order Summary */}
-      <Section>
-        <SectionTitle>Order Summary</SectionTitle>
-
-        {/* Cart Items */}
-        <CartItemsList>
-          {items.map((item) => (
-            <CartItemRow key={item.cart_item_id}>
-              <CartItemInfo>
-                <CartItemName>
-                  {item.quantity}x {item.product.name}
-                </CartItemName>
-                {(item.modifiers.length > 0 || item.addons.length > 0) && (
-                  <CartItemDetails>
-                    {item.modifiers.map((modifier) => (
-                      <span key={`${item.cart_item_id}-${modifier.modifier_id}`}>
-                        • {modifier.modifier_name}
-                        {modifier.price_adjustment !== 0 && (
-                          <>
-                            {' '}
-                            ({modifier.price_adjustment > 0 ? '+' : ''}
-                            <PriceDisplay amount={modifier.price_adjustment} currency={currency} />)
-                          </>
-                        )}
-                      </span>
-                    ))}
-                    {item.addons.map((addon) => (
-                      <span key={`${item.cart_item_id}-${addon.addon_id}`}>
-                        • {addon.quantity}x {addon.name} (+
-                        <PriceDisplay amount={addon.price * addon.quantity} currency={currency} />)
-                      </span>
-                    ))}
-                  </CartItemDetails>
-                )}
-              </CartItemInfo>
-              <CartItemPrice>
-                <PriceDisplay amount={item.amount} currency={currency} />
-              </CartItemPrice>
-            </CartItemRow>
-          ))}
-        </CartItemsList>
-
-        <OrderTotals
-          subtotal={subtotal}
-          taxBreakdown={taxBreakdown}
-          discount={discountAmount}
-          tip={tipAmount ?? 0}
-          total={grandTotal}
-          currency={currency}
-        />
-      </Section>
-
-      {/* Discount */}
-      <Section>
-        <SectionTitle>Discount (Optional)</SectionTitle>
-
-        <SelectField
-          name="discount_type_id"
-          control={control}
-          label="Discount Type"
-          placeholder="Select discount type"
-          options={discountTypes.map((dt) => ({ value: dt.id, label: dt.name }))}
-          error={errors.discount_type_id}
-        />
-
-        {discountTypeId && (
-          <>
-            <RadioGroup>
-              <RadioButton
-                type="button"
-                $isSelected={discountMethod === 'percentage'}
-                onClick={() => setValue('discount_method', 'percentage', { shouldValidate: true })}
-              >
-                Percentage
-              </RadioButton>
-              <RadioButton
-                type="button"
-                $isSelected={discountMethod === 'fixed'}
-                onClick={() => setValue('discount_method', 'fixed', { shouldValidate: true })}
-              >
-                Fixed Amount
-              </RadioButton>
-            </RadioGroup>
-
-            {discountMethod === 'percentage' ? (
-              <NumberField
-                name="discount_value"
-                control={control}
-                label="Discount Percentage"
-                placeholder="0"
-                min={0}
-                max={100}
-                rules={{ min: 0, max: 100 }}
-                error={errors.discount_value}
-              />
-            ) : (
-              <PriceField
-                name="discount_value"
-                control={control}
-                label="Discount Amount"
-                placeholder="0.00"
-                currency={currency}
-                error={errors.discount_value}
-              />
-            )}
-
-            {discountAmount > 0 && (
-              <DiscountAmountDisplay>
-                <DiscountLabel>Calculated Discount</DiscountLabel>
-                <DiscountValue>
-                  -<PriceDisplay amount={discountAmount} currency={currency} />
-                </DiscountValue>
-              </DiscountAmountDisplay>
-            )}
-          </>
-        )}
-      </Section>
-
-      {/* Tip */}
-      <Section>
-        <SectionTitle>Tip (Optional)</SectionTitle>
-
-        <PriceField
-          name="tip_amount"
-          control={control}
-          label="Tip Amount"
-          placeholder="0.00"
-          currency={currency}
-          error={errors.tip_amount}
-        />
-
-        {tipAmount && tipAmount > 0 && (
-          <SelectField
-            name="tip_recipient_id"
-            control={control}
-            label="Tip Recipient"
-            placeholder="Select staff member"
-            options={shopUsers.map((su) => ({
-              value: su.user_id,
-              label: su.user_profiles?.display_name || su.user_id,
-            }))}
-            error={errors.tip_recipient_id}
-          />
-        )}
-      </Section>
-
-      {/* Payment Method */}
-      <Section>
-        <SectionTitle>Payment Method</SectionTitle>
-
-        <PaymentMethodGroup>
-          {availablePaymentTypes.map((paymentType) => {
-            const isCash = paymentType.code?.toLowerCase() === 'cash';
-            const isCard =
-              paymentType.code?.toLowerCase().includes('card') ||
-              paymentType.code?.toLowerCase().includes('credit') ||
-              paymentType.code?.toLowerCase().includes('debit');
-            const icon = isCash ? cash : isCard ? card : wallet;
-
-            return (
-              <PaymentMethodCard
-                key={paymentType.id}
-                type="button"
-                $isSelected={paymentTypeId === paymentType.id}
-                onClick={() => {
-                  setValue('payment_type_id', paymentType.id, {
-                    shouldValidate: true,
-                  });
-                }}
-              >
-                <PaymentMethodIcon icon={icon} $isSelected={paymentTypeId === paymentType.id} />
-                <PaymentMethodContent>
-                  <PaymentMethodName $isSelected={paymentTypeId === paymentType.id}>
-                    {paymentType.code}
-                  </PaymentMethodName>
-                  {paymentType.description && (
-                    <PaymentMethodDescription $isSelected={paymentTypeId === paymentType.id}>
-                      {paymentType.description}
-                    </PaymentMethodDescription>
-                  )}
-                </PaymentMethodContent>
-              </PaymentMethodCard>
-            );
-          })}
-        </PaymentMethodGroup>
-
-        {errors.payment_type_id && (
-          <IonText color="danger">
-            <p style={{ fontSize: '0.75rem', marginTop: '4px' }}>
-              {errors.payment_type_id.message}
-            </p>
-          </IonText>
-        )}
-      </Section>
-
-      {/* Payment Details */}
-      {isCashPayment && (
+    <>
+      <BaseModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Checkout"
+        showFooterButton
+        footerButtonLabel="Complete Order"
+        onFooterButtonClick={handleSubmit(onSubmit)}
+        footerButtonDisabled={isCompleteDisabled}
+        footerButtonLoading={isAnyMutationPending}
+        isLoading={paymentTypesLoading || discountTypesLoading || shopUsersLoading}
+        loadingMessage="Loading checkout options..."
+      >
+        {/* Order Summary */}
         <Section>
-          <SectionTitle>Payment Details</SectionTitle>
-          <PriceField
-            name="cash_received"
-            control={control}
-            label="Cash Received"
-            placeholder="0.00"
-            required
+          <SectionTitle>Order Summary</SectionTitle>
+
+          {/* Cart Items */}
+          <CartItemsList>
+            {items.map((item) => (
+              <CartItemRow key={item.cart_item_id}>
+                <CartItemInfo>
+                  <CartItemName>
+                    {item.quantity}x {item.product.name}
+                  </CartItemName>
+                  {(item.modifiers.length > 0 || item.addons.length > 0) && (
+                    <CartItemDetails>
+                      {item.modifiers.map((modifier) => (
+                        <span key={`${item.cart_item_id}-${modifier.modifier_id}`}>
+                          • {modifier.modifier_name}
+                          {modifier.price_adjustment !== 0 && (
+                            <>
+                              {' '}
+                              ({modifier.price_adjustment > 0 ? '+' : ''}
+                              <PriceDisplay
+                                amount={modifier.price_adjustment}
+                                currency={currency}
+                              />
+                              )
+                            </>
+                          )}
+                        </span>
+                      ))}
+                      {item.addons.map((addon) => (
+                        <span key={`${item.cart_item_id}-${addon.addon_id}`}>
+                          • {addon.quantity}x {addon.name} (+
+                          <PriceDisplay amount={addon.price * addon.quantity} currency={currency} />
+                          )
+                        </span>
+                      ))}
+                    </CartItemDetails>
+                  )}
+                </CartItemInfo>
+                <CartItemPrice>
+                  <PriceDisplay amount={item.amount} currency={currency} />
+                </CartItemPrice>
+              </CartItemRow>
+            ))}
+          </CartItemsList>
+
+          <OrderTotals
+            subtotal={subtotal}
+            taxBreakdown={taxBreakdown}
+            discount={discountAmount}
+            tip={tipAmount ?? 0}
+            total={grandTotal}
             currency={currency}
-            error={errors.cash_received}
           />
-          {!isCashSufficient && cashReceived !== null && (
-            <IonText color="danger" style={{ fontSize: '0.875rem' }}>
-              Cash received must be at least{' '}
-              <PriceDisplay amount={grandTotal} currency={currency} />
+        </Section>
+
+        {/* Discount */}
+        <Section>
+          <SectionTitle>Discount (Optional)</SectionTitle>
+
+          <SelectField
+            name="discount_type_id"
+            control={control}
+            label="Discount Type"
+            placeholder="Select discount type"
+            options={discountTypes.map((dt) => ({ value: dt.id, label: dt.name }))}
+            error={errors.discount_type_id}
+          />
+
+          {discountTypeId && (
+            <>
+              <RadioGroup>
+                <RadioButton
+                  type="button"
+                  $isSelected={discountMethod === 'percentage'}
+                  onClick={() =>
+                    setValue('discount_method', 'percentage', { shouldValidate: true })
+                  }
+                >
+                  Percentage
+                </RadioButton>
+                <RadioButton
+                  type="button"
+                  $isSelected={discountMethod === 'fixed'}
+                  onClick={() => setValue('discount_method', 'fixed', { shouldValidate: true })}
+                >
+                  Fixed Amount
+                </RadioButton>
+              </RadioGroup>
+
+              {discountMethod === 'percentage' ? (
+                <NumberField
+                  name="discount_value"
+                  control={control}
+                  label="Discount Percentage"
+                  placeholder="0"
+                  min={0}
+                  max={100}
+                  rules={{ min: 0, max: 100 }}
+                  error={errors.discount_value}
+                />
+              ) : (
+                <PriceField
+                  name="discount_value"
+                  control={control}
+                  label="Discount Amount"
+                  placeholder="0.00"
+                  currency={currency}
+                  error={errors.discount_value}
+                />
+              )}
+
+              {discountAmount > 0 && (
+                <DiscountAmountDisplay>
+                  <DiscountLabel>Calculated Discount</DiscountLabel>
+                  <DiscountValue>
+                    -<PriceDisplay amount={discountAmount} currency={currency} />
+                  </DiscountValue>
+                </DiscountAmountDisplay>
+              )}
+            </>
+          )}
+        </Section>
+
+        {/* Tip */}
+        <Section>
+          <SectionTitle>Tip (Optional)</SectionTitle>
+
+          <PriceField
+            name="tip_amount"
+            control={control}
+            label="Tip Amount"
+            placeholder="0.00"
+            currency={currency}
+            error={errors.tip_amount}
+          />
+
+          {tipAmount && tipAmount > 0 && (
+            <SelectField
+              name="tip_recipient_id"
+              control={control}
+              label="Tip Recipient"
+              placeholder="Select staff member"
+              options={shopUsers.map((su) => ({
+                value: su.user_id,
+                label: su.user_profiles?.display_name || su.user_id,
+              }))}
+              error={errors.tip_recipient_id}
+            />
+          )}
+        </Section>
+
+        {/* Payment Method */}
+        <Section>
+          <SectionTitle>Payment Method</SectionTitle>
+
+          <PaymentMethodGroup>
+            {availablePaymentTypes.map((paymentType) => {
+              const isCash = paymentType.code?.toLowerCase() === 'cash';
+              const isCard =
+                paymentType.code?.toLowerCase().includes('card') ||
+                paymentType.code?.toLowerCase().includes('credit') ||
+                paymentType.code?.toLowerCase().includes('debit');
+              const icon = isCash ? cash : isCard ? card : wallet;
+
+              return (
+                <PaymentMethodCard
+                  key={paymentType.id}
+                  type="button"
+                  $isSelected={paymentTypeId === paymentType.id}
+                  onClick={() => {
+                    setValue('payment_type_id', paymentType.id, {
+                      shouldValidate: true,
+                    });
+                  }}
+                >
+                  <PaymentMethodIcon icon={icon} $isSelected={paymentTypeId === paymentType.id} />
+                  <PaymentMethodContent>
+                    <PaymentMethodName $isSelected={paymentTypeId === paymentType.id}>
+                      {paymentType.code}
+                    </PaymentMethodName>
+                    {paymentType.description && (
+                      <PaymentMethodDescription $isSelected={paymentTypeId === paymentType.id}>
+                        {paymentType.description}
+                      </PaymentMethodDescription>
+                    )}
+                  </PaymentMethodContent>
+                </PaymentMethodCard>
+              );
+            })}
+          </PaymentMethodGroup>
+
+          {errors.payment_type_id && (
+            <IonText color="danger">
+              <p style={{ fontSize: '0.75rem', marginTop: '4px' }}>
+                {errors.payment_type_id.message}
+              </p>
             </IonText>
           )}
-          <ChangeDisplay>
-            <ChangeLabel>Change</ChangeLabel>
-            <ChangeAmount>
-              <PriceDisplay amount={change} currency={currency} />
-            </ChangeAmount>
-          </ChangeDisplay>
         </Section>
-      )}
 
-      {/* Customer Information */}
-      <Section>
-        <SectionTitle>Customer Information (Optional)</SectionTitle>
-        <TextField
-          name="customer_name"
-          control={control}
-          label="Name"
-          placeholder="Enter customer name"
-          error={errors.customer_name}
+        {/* Payment Details */}
+        {isCashPayment && (
+          <Section>
+            <SectionTitle>Payment Details</SectionTitle>
+            <PriceField
+              name="cash_received"
+              control={control}
+              label="Cash Received"
+              placeholder="0.00"
+              required
+              currency={currency}
+              error={errors.cash_received}
+            />
+            {!isCashSufficient && cashReceived !== null && (
+              <IonText color="danger" style={{ fontSize: '0.875rem' }}>
+                Cash received must be at least{' '}
+                <PriceDisplay amount={grandTotal} currency={currency} />
+              </IonText>
+            )}
+            <ChangeDisplay>
+              <ChangeLabel>Change</ChangeLabel>
+              <ChangeAmount>
+                <PriceDisplay amount={change} currency={currency} />
+              </ChangeAmount>
+            </ChangeDisplay>
+          </Section>
+        )}
+
+        {/* Customer Information */}
+        <Section>
+          <SectionTitle>Customer Information (Optional)</SectionTitle>
+          <TextField
+            name="customer_name"
+            control={control}
+            label="Name"
+            placeholder="Enter customer name"
+            error={errors.customer_name}
+          />
+          <TextField
+            name="customer_email"
+            control={control}
+            label="Email"
+            type="email"
+            placeholder="customer@example.com"
+            error={errors.customer_email}
+          />
+          <TextField
+            name="customer_phone"
+            control={control}
+            label="Phone"
+            type="tel"
+            placeholder="+1 (555) 123-4567"
+            error={errors.customer_phone}
+          />
+        </Section>
+      </BaseModal>
+
+      {xenditModal && selectedPaymentType && (
+        <XenditPaymentModal
+          isOpen={!!xenditModal}
+          onClose={handleXenditClose}
+          onSuccess={handleXenditSuccess}
+          paymentMethod={selectedPaymentType.code?.toUpperCase() as 'GCASH' | 'MAYA'}
+          orderId={xenditModal.orderId}
+          amount={grandTotal}
+          currency={currentShop?.currency_code ?? 'PHP'}
+          qrString={xenditModal.qrString}
+          checkoutUrl={xenditModal.checkoutUrl}
+          expirationTime={xenditModal.expirationTime}
         />
-        <TextField
-          name="customer_email"
-          control={control}
-          label="Email"
-          type="email"
-          placeholder="customer@example.com"
-          error={errors.customer_email}
-        />
-        <TextField
-          name="customer_phone"
-          control={control}
-          label="Phone"
-          type="tel"
-          placeholder="+1 (555) 123-4567"
-          error={errors.customer_phone}
-        />
-      </Section>
-    </BaseModal>
+      )}
+    </>
   );
 };
 
