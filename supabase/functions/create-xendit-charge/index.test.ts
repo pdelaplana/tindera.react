@@ -6,13 +6,13 @@ import { describe, expect, it } from 'vitest';
 
 // --- Unit: EWALLET_CHANNEL_MAP ---
 const EWALLET_CHANNEL_MAP: Record<string, string> = {
-  GCASH: 'PH_GCASH',
+  GCASH: 'GCASH',
   MAYA: 'PAYMAYA',
 };
 
 describe('EWALLET_CHANNEL_MAP', () => {
-  it('maps GCASH to PH_GCASH channel code', () => {
-    expect(EWALLET_CHANNEL_MAP['GCASH']).toBe('PH_GCASH');
+  it('maps GCASH to GCASH channel code', () => {
+    expect(EWALLET_CHANNEL_MAP['GCASH']).toBe('GCASH');
   });
 
   it('maps MAYA to PAYMAYA channel code', () => {
@@ -77,22 +77,22 @@ describe('buildXenditPayload', () => {
   const baseUrl = 'https://project.supabase.co/functions/v1';
 
   it('sets reference_id to orderId', () => {
-    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'PH_GCASH', shopId, baseUrl);
+    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'GCASH', shopId, baseUrl);
     expect(payload.reference_id).toBe(orderId);
   });
 
   it('sets type to PAY', () => {
-    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'PH_GCASH', shopId, baseUrl);
+    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'GCASH', shopId, baseUrl);
     expect(payload.type).toBe('PAY');
   });
 
   it('sets capture_method to AUTOMATIC', () => {
-    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'PH_GCASH', shopId, baseUrl);
+    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'GCASH', shopId, baseUrl);
     expect(payload.capture_method).toBe('AUTOMATIC');
   });
 
   it('sets country from currency map', () => {
-    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'PH_GCASH', shopId, baseUrl);
+    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'GCASH', shopId, baseUrl);
     expect(payload.country).toBe('PH');
   });
 
@@ -103,13 +103,13 @@ describe('buildXenditPayload', () => {
   });
 
   it('includes order_id and shop_id in metadata', () => {
-    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'PH_GCASH', shopId, baseUrl);
+    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'GCASH', shopId, baseUrl);
     expect(payload.metadata.order_id).toBe(orderId);
     expect(payload.metadata.shop_id).toBe(shopId);
   });
 
   it('constructs correct return URLs including cancel', () => {
-    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'PH_GCASH', shopId, baseUrl);
+    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'GCASH', shopId, baseUrl);
     expect(payload.channel_properties.success_return_url).toBe(`${baseUrl}/xendit-webhook`);
     expect(payload.channel_properties.failure_return_url).toBe(`${baseUrl}/xendit-webhook`);
     expect(payload.channel_properties.cancel_return_url).toBe(`${baseUrl}/xendit-webhook`);
