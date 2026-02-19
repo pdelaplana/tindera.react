@@ -21,6 +21,7 @@ interface XenditPaymentModalProps {
   qrString: string | null;
   checkoutUrl: string | null;
   expirationTime: string; // ISO string
+  testMode?: boolean;
 }
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
@@ -92,8 +93,18 @@ const XenditPaymentModal: React.FC<XenditPaymentModalProps> = ({
   qrString,
   checkoutUrl,
   expirationTime,
+  testMode = false,
 }) => {
   const label = PAYMENT_METHOD_LABELS[paymentMethod] ?? paymentMethod;
+
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyUrl = () => {
+    if (!checkoutUrl) return;
+    navigator.clipboard.writeText(checkoutUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const [secondsLeft, setSecondsLeft] = useState(() => {
     const diff = Math.floor((new Date(expirationTime).getTime() - Date.now()) / 1000);
@@ -212,6 +223,19 @@ const XenditPaymentModal: React.FC<XenditPaymentModalProps> = ({
           <IonText color="danger">
             <p>This QR code has expired. Please restart the checkout process.</p>
           </IonText>
+        )}
+
+        {/* Test mode: copy checkout URL for manual browser testing */}
+        {testMode && checkoutUrl && (
+          <IonButton
+            expand="block"
+            fill="outline"
+            color="medium"
+            onClick={handleCopyUrl}
+            aria-label={copied ? 'Copied' : 'Copy checkout URL'}
+          >
+            {copied ? 'Copied!' : 'Copy URL'}
+          </IonButton>
         )}
 
         {/* Cancel */}

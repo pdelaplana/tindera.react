@@ -753,6 +753,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           qrString={xenditModal.qrString}
           checkoutUrl={xenditModal.checkoutUrl}
           expirationTime={xenditModal.expirationTime}
+          testMode={import.meta.env.DEV}
         />
       )}
     </>

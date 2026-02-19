@@ -171,6 +171,51 @@ describe('XenditPaymentModal', () => {
   });
 });
 
+describe('XenditPaymentModal - test mode', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    Object.assign(navigator, {
+      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+    });
+  });
+
+  it('does not show copy button when testMode is false', () => {
+    render(
+      <XenditPaymentModal
+        {...baseProps}
+        testMode={false}
+        checkoutUrl="https://checkout.xendit.co/pay/123"
+      />
+    );
+    expect(screen.queryByRole('button', { name: /copy/i })).not.toBeInTheDocument();
+  });
+
+  it('does not show copy button when testMode is true but checkoutUrl is null', () => {
+    render(
+      <XenditPaymentModal {...baseProps} testMode={true} checkoutUrl={null} qrString={null} />
+    );
+    expect(screen.queryByRole('button', { name: /copy/i })).not.toBeInTheDocument();
+  });
+
+  it('shows copy button when testMode is true and checkoutUrl is present', () => {
+    render(
+      <XenditPaymentModal
+        {...baseProps}
+        testMode={true}
+        checkoutUrl="https://checkout.xendit.co/pay/123"
+      />
+    );
+    expect(screen.getByRole('button', { name: /copy/i })).toBeInTheDocument();
+  });
+
+  it('copies checkoutUrl to clipboard when copy button is clicked', async () => {
+    const url = 'https://checkout.xendit.co/pay/123';
+    render(<XenditPaymentModal {...baseProps} testMode={true} checkoutUrl={url} />);
+    screen.getByRole('button', { name: /copy/i }).click();
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(url);
+  });
+});
+
 describe('XenditPaymentModal - Realtime subscription', () => {
   beforeEach(() => {
     vi.clearAllMocks();
