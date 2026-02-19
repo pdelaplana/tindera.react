@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 // --- Unit: EWALLET_CHANNEL_MAP ---
 const EWALLET_CHANNEL_MAP: Record<string, string> = {
   GCASH: 'PH_GCASH',
-  MAYA: 'PH_PAYMAYA',
+  MAYA: 'PAYMAYA',
 };
 
 describe('EWALLET_CHANNEL_MAP', () => {
@@ -15,8 +15,8 @@ describe('EWALLET_CHANNEL_MAP', () => {
     expect(EWALLET_CHANNEL_MAP['GCASH']).toBe('PH_GCASH');
   });
 
-  it('maps MAYA to PH_PAYMAYA channel code', () => {
-    expect(EWALLET_CHANNEL_MAP['MAYA']).toBe('PH_PAYMAYA');
+  it('maps MAYA to PAYMAYA channel code', () => {
+    expect(EWALLET_CHANNEL_MAP['MAYA']).toBe('PAYMAYA');
   });
 
   it('returns undefined for unsupported methods', () => {

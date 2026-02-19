@@ -11,10 +11,11 @@ const corsHeaders = {
 
 const XENDIT_API_URL = 'https://api.xendit.co/payment_requests';
 
-// Map our internal codes to Xendit's Payment Request API channel codes (country-prefixed)
+// Map our internal codes to Xendit's Payment Request API channel codes
+// GCash uses PH_GCASH (country-prefixed); Maya uses PAYMAYA (no prefix) in the nested payment_method structure
 const EWALLET_CHANNEL_MAP: Record<string, string> = {
   GCASH: 'PH_GCASH',
-  MAYA: 'PH_PAYMAYA',
+  MAYA: 'PAYMAYA',
 };
 
 // ISO 3166-1 alpha-2 country code inferred from currency
