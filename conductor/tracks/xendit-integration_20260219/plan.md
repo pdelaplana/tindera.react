@@ -46,4 +46,4 @@
     - [x] Deduction runs inside xendit-webhook edge function after payment confirmation
     - [x] Handles product recipe components (product_items), modifiers, and addons
     - [x] Idempotent: skips if order.payment_received is already true
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Webhook & Real-time Fulfillment' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Webhook & Real-time Fulfillment' (Protocol in workflow.md)
