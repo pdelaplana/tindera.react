@@ -90,7 +90,7 @@ describe('XenditPaymentModal', () => {
     expect(screen.getByTestId('qr-code')).toHaveAttribute('data-value', 'GCASH_QR_STRING');
   });
 
-  it('renders checkout URL button when no qrString but checkoutUrl provided', () => {
+  it('renders QR code from checkoutUrl when qrString is null', () => {
     render(
       <XenditPaymentModal
         {...baseProps}
@@ -98,24 +98,27 @@ describe('XenditPaymentModal', () => {
         checkoutUrl="https://checkout.xendit.co/pay/123"
       />
     );
-    expect(screen.getByRole('button', { name: /open gcash/i })).toBeInTheDocument();
-    expect(screen.queryByTestId('qr-code')).not.toBeInTheDocument();
+    expect(screen.getByTestId('qr-code')).toBeInTheDocument();
+    expect(screen.getByTestId('qr-code')).toHaveAttribute(
+      'data-value',
+      'https://checkout.xendit.co/pay/123'
+    );
   });
 
-  it('shows redirect instruction text when only checkoutUrl is provided', () => {
+  it('prefers qrString over checkoutUrl for QR code value', () => {
     render(
       <XenditPaymentModal
         {...baseProps}
-        qrString={null}
+        qrString="NATIVE_QR_STRING"
         checkoutUrl="https://checkout.xendit.co/pay/123"
       />
     );
-    expect(screen.getByText(/tap the button below/i)).toBeInTheDocument();
+    expect(screen.getByTestId('qr-code')).toHaveAttribute('data-value', 'NATIVE_QR_STRING');
   });
 
-  it('shows QR instruction text when qrString is provided', () => {
-    render(<XenditPaymentModal {...baseProps} qrString="GCASH_QR_STRING" checkoutUrl={null} />);
-    expect(screen.getByText(/scan the qr code/i)).toBeInTheDocument();
+  it('shows scan instruction when QR code is displayed', () => {
+    render(<XenditPaymentModal {...baseProps} qrString={null} checkoutUrl="https://xendit.co" />);
+    expect(screen.getByText(/scan this qr code/i)).toBeInTheDocument();
   });
 
   it('shows a countdown timer', () => {
