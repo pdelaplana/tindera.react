@@ -206,7 +206,7 @@ export const shopService = {
       const userIds = shopUsersData.map((u) => u.user_id);
       const { data: profilesData } = await supabase
         .from('user_profiles')
-        .select('id, display_name, email')
+        .select('id, display_name')
         .in('id', userIds);
 
       const profileMap = new Map((profilesData ?? []).map((p) => [p.id, p]));
@@ -217,7 +217,6 @@ export const shopService = {
           shop_id: u.shop_id,
           user_id: u.user_id,
           role: u.role as ShopUser['role'],
-          email: profile?.email ?? null,
           user_profiles: profile ? { display_name: profile.display_name } : undefined,
         };
       });
