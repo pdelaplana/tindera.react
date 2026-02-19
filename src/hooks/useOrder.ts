@@ -16,6 +16,7 @@ export const orderKeys = {
   details: () => [...orderKeys.all, 'detail'] as const,
   detail: (orderId: string) => [...orderKeys.details(), orderId] as const,
   paymentTypes: (shopId: string) => [...orderKeys.all, 'payment-types', shopId] as const,
+  allPaymentTypes: (shopId: string) => [...orderKeys.all, 'payment-types-all', shopId] as const,
   productSummary: (shopId: string, productId: string, period: string) =>
     [...orderKeys.all, 'product-summary', shopId, productId, period] as const,
   productOrders: (shopId: string, productId: string, period: string) =>
@@ -115,6 +116,122 @@ export function usePaymentTypes() {
     },
     enabled: !!currentShop,
     staleTime: 5 * 60 * 1000, // 5 minutes - payment types rarely change
+  });
+}
+
+/**
+ * Hook to fetch all payment types (including inactive) for the current shop.
+ * Used by the Payment Methods settings page.
+ */
+export function useAllPaymentTypes() {
+  const { currentShop } = useShopContext();
+
+  return useQuery({
+    queryKey: orderKeys.allPaymentTypes(currentShop?.id || ''),
+    queryFn: async () => {
+      if (!currentShop) return [];
+
+      const { data, error } = await orderService.getAllPaymentTypes(currentShop.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!currentShop,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to upsert a payment type (create or toggle active status).
+ * Invalidates both the active-only and all-payment-types queries on success.
+ */
+export function useUpsertPaymentType() {
+  const { user } = useAuthContext();
+  const { currentShop } = useShopContext();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      code,
+      isActive,
+      description,
+    }: {
+      code: string;
+      isActive: boolean;
+      description: string | null;
+    }) => {
+      if (!user) throw new Error('User not authenticated');
+      if (!currentShop) throw new Error('No shop selected');
+
+      const { data, error } = await orderService.upsertPaymentType(
+        currentShop.id,
+        code,
+        isActive,
+        description,
+        user.id
+      );
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      if (currentShop) {
+        queryClient.invalidateQueries({ queryKey: orderKeys.paymentTypes(currentShop.id) });
+        queryClient.invalidateQueries({ queryKey: orderKeys.allPaymentTypes(currentShop.id) });
+      }
+    },
+  });
+}
+
+/**
+ * Hook to create a pending e-wallet order (payment_received: false, no inventory deduction).
+ * Used for GCash/Maya checkout flow before Xendit charge is created.
+ */
+export function useCreateEwalletOrder() {
+  const { user } = useAuthContext();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (orderData: import('@/types').CreateOrderData) => {
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await orderService.createEwalletOrder(orderData, user.id);
+      if (error) throw error;
+      if (!data) throw new Error('No data returned from e-wallet order creation');
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderKeys.all });
+    },
+  });
+}
+
+/**
+ * Hook to invoke the create-xendit-charge Edge Function.
+ */
+export function useCreateXenditCharge() {
+  return useMutation({
+    mutationFn: async ({
+      orderId,
+      amount,
+      currency,
+      paymentMethod,
+    }: {
+      orderId: string;
+      amount: number;
+      currency: string;
+      paymentMethod: 'GCASH' | 'MAYA';
+    }) => {
+      const { data, error } = await orderService.createXenditCharge(
+        orderId,
+        amount,
+        currency,
+        paymentMethod
+      );
+      if (error) throw error;
+      if (!data) throw new Error('No charge data returned from Xendit');
+
+      return data;
+    },
   });
 }
 
@@ -228,7 +345,11 @@ export function useProductSalesSummary(productId: string | undefined, period: Sa
     queryFn: async () => {
       if (!currentShop || !productId) return { totalQty: 0, totalAmount: 0 };
       const dateRange = getDateRange(period);
-      const result = await orderService.getProductSalesSummary(currentShop.id, productId, dateRange);
+      const result = await orderService.getProductSalesSummary(
+        currentShop.id,
+        productId,
+        dateRange
+      );
       if (result.error) throw result.error;
       return result.data ?? { totalQty: 0, totalAmount: 0 };
     },

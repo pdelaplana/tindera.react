@@ -33,6 +33,7 @@ import {
   GlobalModifierGroupManagePage,
   GlobalModifiersPage,
   InventoryCategoriesPage,
+  PaymentMethodsSettingsPage,
   ProductCategoriesPage,
   SettingsPage,
   ShopSettingsPage,
@@ -190,6 +191,11 @@ const App: React.FC = () => (
               </Route>
 
               {/* Settings — POS Configuration */}
+              <Route exact path="/shops/:shopId/settings/pos/payment-methods">
+                <AuthGuard>
+                  <PaymentMethodsSettingsPage />
+                </AuthGuard>
+              </Route>
               <Route exact path="/shops/:shopId/settings/pos/taxes">
                 <AuthGuard>
                   <TaxSettingsPage />

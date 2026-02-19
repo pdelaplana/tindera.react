@@ -40,6 +40,102 @@ export const orderService = {
   },
 
   /**
+   * Get all payment types for a shop (including inactive) — used for settings management
+   */
+  async getAllPaymentTypes(shopId: string): Promise<ApiResponse<PaymentType[]>> {
+    try {
+      const { data, error } = await supabase
+        .from('payment_types')
+        .select('*')
+        .eq('shop_id', shopId)
+        .order('code');
+
+      if (error) {
+        logger.error(new Error(error.message), { context: 'getAllPaymentTypes', shopId });
+        return { data: null, error: new Error(error.message) };
+      }
+
+      return { data: data as PaymentType[], error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'getAllPaymentTypes', shopId });
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Upsert a payment type for a shop — creates if not exists, updates if exists.
+   * Used by the Payment Methods settings page.
+   */
+  async upsertPaymentType(
+    shopId: string,
+    code: string,
+    isActive: boolean,
+    description: string | null,
+    userId: string
+  ): Promise<ApiResponse<PaymentType>> {
+    try {
+      const now = new Date().toISOString();
+
+      // Check if record exists
+      const { data: existing } = await supabase
+        .from('payment_types')
+        .select('id')
+        .eq('shop_id', shopId)
+        .eq('code', code)
+        .maybeSingle();
+
+      if (existing) {
+        const { data, error } = await supabase
+          .from('payment_types')
+          .update({ is_active: isActive, updated_at: now, updated_by: userId })
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        if (error) {
+          logger.error(new Error(error.message), {
+            context: 'upsertPaymentType.update',
+            shopId,
+            code,
+          });
+          return { data: null, error: new Error(error.message) };
+        }
+        return { data: data as PaymentType, error: null };
+      }
+
+      const { data, error } = await supabase
+        .from('payment_types')
+        .insert({
+          shop_id: shopId,
+          code,
+          description,
+          is_active: isActive,
+          created_at: now,
+          updated_at: now,
+          created_by: userId,
+          updated_by: userId,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        logger.error(new Error(error.message), {
+          context: 'upsertPaymentType.insert',
+          shopId,
+          code,
+        });
+        return { data: null, error: new Error(error.message) };
+      }
+      return { data: data as PaymentType, error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'upsertPaymentType', shopId, code });
+      return { data: null, error };
+    }
+  },
+
+  /**
    * Create a complete order with items, modifiers, addons, and inventory adjustments
    * Uses a rollback pattern for transaction safety
    */
@@ -151,6 +247,133 @@ export const orderService = {
     } catch (err) {
       const error = err as Error;
       logger.error(error, { context: 'createOrder' });
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Create a pending e-wallet order (payment_received: false, no inventory deduction).
+   * Inventory is deducted later by the webhook handler (Phase 3).
+   */
+  async createEwalletOrder(
+    orderData: CreateOrderData,
+    userId: string
+  ): Promise<ApiResponse<Order>> {
+    try {
+      const now = new Date().toISOString();
+
+      // Validate inventory availability upfront
+      const inventoryChecks = await this._validateInventoryAvailability(orderData.items);
+      if (inventoryChecks.error) {
+        return { data: null, error: inventoryChecks.error };
+      }
+
+      // Insert order with payment_received = false
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          shop_id: orderData.shop_id,
+          order_date: orderData.order_date,
+          total_sale: orderData.total_sale,
+          served_by_id: orderData.served_by_id,
+          customer_name: orderData.customer_name,
+          customer_email: orderData.customer_email,
+          customer_phone: orderData.customer_phone,
+          payment_type_id: orderData.payment_type_id,
+          payment_received: false,
+          payment_amount_received: null,
+          payment_change: null,
+          status: 'completed',
+          discount_type_id: orderData.discount_type_id,
+          discount_method: orderData.discount_method,
+          discount_value: orderData.discount_value,
+          discount_amount: orderData.discount_amount,
+          tip_amount: orderData.tip_amount,
+          tip_recipient_id: orderData.tip_recipient_id,
+          created_at: now,
+          updated_at: now,
+          created_by: userId,
+          updated_by: userId,
+        })
+        .select()
+        .single();
+
+      if (orderError || !order) {
+        logger.error(new Error(orderError?.message || 'Order creation failed'), {
+          context: 'createEwalletOrder_insert',
+        });
+        return { data: null, error: new Error(orderError?.message || 'Order creation failed') };
+      }
+
+      // Create order items
+      const orderItemsResult = await this._createOrderItems(order.id, orderData.items, userId);
+      if (orderItemsResult.error) {
+        await supabase.from('orders').delete().eq('id', order.id);
+        return { data: null, error: orderItemsResult.error };
+      }
+
+      // Create tax breakdown
+      if (orderData.taxes && orderData.taxes.length > 0) {
+        const orderTaxes = orderData.taxes.map((tax) => ({
+          order_id: order.id,
+          shop_tax_id: tax.shop_tax_id,
+          tax_name: tax.tax_name,
+          tax_rate: tax.tax_rate,
+          tax_amount: tax.tax_amount,
+          created_at: now,
+          updated_at: now,
+          created_by: userId,
+          updated_by: userId,
+        }));
+
+        const { error: taxError } = await supabase.from('order_taxes').insert(orderTaxes);
+        if (taxError) {
+          await supabase.from('orders').delete().eq('id', order.id);
+          return {
+            data: null,
+            error: new Error(`Failed to create order taxes: ${taxError.message}`),
+          };
+        }
+      }
+
+      return { data: order as Order, error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'createEwalletOrder' });
+      return { data: null, error };
+    }
+  },
+
+  /**
+   * Call the create-xendit-charge Edge Function to initiate an e-wallet payment.
+   */
+  async createXenditCharge(
+    orderId: string,
+    amount: number,
+    currency: string,
+    paymentMethod: 'GCASH' | 'MAYA'
+  ): Promise<
+    ApiResponse<{
+      chargeId: string;
+      checkoutUrl: string | null;
+      qrString: string | null;
+      expirationTime: string;
+    }>
+  > {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-xendit-charge', {
+        body: { orderId, amount, currency, paymentMethod },
+      });
+
+      if (error) {
+        logger.error(new Error(error.message), { context: 'createXenditCharge', orderId });
+        return { data: null, error: new Error(error.message) };
+      }
+
+      return { data, error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'createXenditCharge', orderId });
       return { data: null, error };
     }
   },
