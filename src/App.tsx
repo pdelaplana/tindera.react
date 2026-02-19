@@ -9,6 +9,8 @@ import SideMenu from '@/components/SideMenu';
 // Contexts
 import { AppProviders } from '@/contexts';
 import AuthCallbackPage from '@/features/auth/AuthCallbackPage';
+import PaymentFailedPage from '@/features/payment/PaymentFailedPage';
+import PaymentSuccessPage from '@/features/payment/PaymentSuccessPage';
 import LoginPage from '@/features/auth/LoginPage';
 import LogoutPage from '@/features/auth/LogoutPage';
 import MerchantWelcomePage from '@/features/auth/MerchantWelcomePage';
@@ -82,6 +84,12 @@ const App: React.FC = () => (
               </Route>
               <Route exact path="/auth/callback">
                 <AuthCallbackPage />
+              </Route>
+              <Route exact path="/payment/success">
+                <PaymentSuccessPage />
+              </Route>
+              <Route exact path="/payment/failed">
+                <PaymentFailedPage />
               </Route>
               {/* Protected Routes */}
               <Route exact path="/shops/:shopId/home">

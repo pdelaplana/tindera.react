@@ -384,6 +384,27 @@ export const orderService = {
     }
   },
 
+  async deletePendingOrder(orderId: string): Promise<ApiResponse<null>> {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .delete()
+        .eq('id', orderId)
+        .eq('payment_received', false);
+
+      if (error) {
+        logger.error(new Error(error.message), { context: 'deletePendingOrder', orderId });
+        return { data: null, error: new Error(error.message) };
+      }
+
+      return { data: null, error: null };
+    } catch (err) {
+      const error = err as Error;
+      logger.error(error, { context: 'deletePendingOrder', orderId });
+      return { data: null, error };
+    }
+  },
+
   /**
    * Validate that all required inventory items have sufficient quantity
    * @private

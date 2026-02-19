@@ -9,6 +9,7 @@ import styled from 'styled-components';
 import BaseModal from '@/components/shared/BaseModal';
 import { NumberField, PriceField, SelectField, TextField } from '@/components/shared/FormFields';
 import { PriceDisplay } from '@/components/ui';
+import { supabase } from '@/services/supabase';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useShopContext } from '@/contexts/ShopContext';
 import { useUI } from '@/contexts/UIContext';
@@ -17,6 +18,7 @@ import {
   useCreateEwalletOrder,
   useCreateOrder,
   useCreateXenditCharge,
+  useDeletePendingOrder,
   usePaymentTypes,
 } from '@/hooks/useOrder';
 import { useShopUsers } from '@/hooks/useShop';
@@ -275,6 +277,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const createOrderMutation = useCreateOrder();
   const createEwalletOrderMutation = useCreateEwalletOrder();
   const createXenditChargeMutation = useCreateXenditCharge();
+  const deletePendingOrderMutation = useDeletePendingOrder();
 
   // Xendit payment modal state
   const [xenditModal, setXenditModal] = useState<{
@@ -464,7 +467,23 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     onClose();
   };
 
-  const handleXenditClose = () => {
+  const handleXenditClose = async () => {
+    if (xenditModal) {
+      // Final check: if payment came in right as the user clicked Cancel, treat it as success
+      const { data } = await supabase
+        .from('orders')
+        .select('payment_received')
+        .eq('id', xenditModal.orderId)
+        .single();
+
+      if (data?.payment_received) {
+        handleXenditSuccess();
+        return;
+      }
+
+      // Order is still unpaid — delete it so it doesn't become a ghost order
+      await deletePendingOrderMutation.mutateAsync(xenditModal.orderId);
+    }
     setXenditModal(null);
   };
 

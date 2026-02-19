@@ -236,6 +236,24 @@ export function useCreateXenditCharge() {
 }
 
 /**
+ * Hook to delete a pending (unpaid) order — used when the user cancels a Xendit payment.
+ * Only deletes if payment_received is still false, so it's safe to call even in a race.
+ */
+export function useDeletePendingOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (orderId: string) => {
+      const { error } = await orderService.deletePendingOrder(orderId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderKeys.all });
+    },
+  });
+}
+
+/**
  * Hook to create an order
  * Automatically invalidates related queries on success
  */

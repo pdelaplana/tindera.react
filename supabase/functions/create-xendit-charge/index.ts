@@ -81,7 +81,8 @@ Deno.serve(async (req) => {
 
     // Parse request body
     const body: CreateChargeRequest = await req.json();
-    const { orderId, amount, currency, paymentMethod } = body;
+    const { orderId, currency, paymentMethod } = body;
+    const amount = Math.round(body.amount * 100) / 100;
 
     if (!orderId || !amount || !currency || !paymentMethod) {
       return errorResponse('Missing required fields: orderId, amount, currency, paymentMethod');
@@ -123,7 +124,9 @@ Deno.serve(async (req) => {
     // Expiration: 15 minutes from now
     const expirationTime = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
-    const webhookBaseUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1`;
+    // Return URLs: where the customer's browser is redirected after payment (mobile URL flow only).
+    // For QR code flows these are unused — payment confirmation comes via the server webhook instead.
+    const appUrl = Deno.env.get('APP_URL') ?? Deno.env.get('SUPABASE_URL') ?? '';
 
     // Xendit Payment Request API payload (POST /payment_requests)
     const xenditPayload = {
@@ -137,9 +140,9 @@ Deno.serve(async (req) => {
         ewallet: {
           channel_code: channelCode,
           channel_properties: {
-            success_return_url: `${webhookBaseUrl}/xendit-webhook`,
-            failure_return_url: `${webhookBaseUrl}/xendit-webhook`,
-            cancel_return_url: `${webhookBaseUrl}/xendit-webhook`,
+            success_return_url: `${appUrl}/payment/success`,
+            failure_return_url: `${appUrl}/payment/failed`,
+            cancel_return_url: `${appUrl}/payment/failed`,
           },
         },
       },

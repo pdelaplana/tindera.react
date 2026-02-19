@@ -4,19 +4,18 @@ import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import XenditPaymentModal from './XenditPaymentModal';
 
-// Mock supabase realtime — use vi.hoisted so variables are available in the hoisted vi.mock factory
-const { mockChannel, mockRemoveChannel, mockOn, mockSubscribe } = vi.hoisted(() => {
-  const mockSubscribe = vi.fn().mockReturnValue({});
-  const mockOn = vi.fn().mockImplementation(() => ({ subscribe: mockSubscribe }));
-  const mockChannel = vi.fn().mockReturnValue({ on: mockOn });
-  const mockRemoveChannel = vi.fn();
-  return { mockChannel, mockRemoveChannel, mockOn, mockSubscribe };
+// Mock supabase polling — use vi.hoisted so variables are available in the hoisted vi.mock factory
+const { mockSingle, mockFrom } = vi.hoisted(() => {
+  const mockSingle = vi.fn().mockResolvedValue({ data: { payment_received: false } });
+  const mockEq = vi.fn().mockReturnValue({ single: mockSingle });
+  const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
+  const mockFrom = vi.fn().mockReturnValue({ select: mockSelect });
+  return { mockSingle, mockFrom };
 });
 
 vi.mock('@/services/supabase', () => ({
   supabase: {
-    channel: mockChannel,
-    removeChannel: mockRemoveChannel,
+    from: mockFrom,
   },
 }));
 
@@ -216,66 +215,49 @@ describe('XenditPaymentModal - test mode', () => {
   });
 });
 
-describe('XenditPaymentModal - Realtime subscription', () => {
+describe('XenditPaymentModal - Polling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+    mockSingle.mockResolvedValue({ data: { payment_received: false } });
   });
 
-  it('subscribes to order updates when modal is open', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('polls the order when modal is open', async () => {
     render(<XenditPaymentModal {...baseProps} />);
-    expect(mockChannel).toHaveBeenCalledWith(`order-payment-${baseProps.orderId}`);
-    expect(mockOn).toHaveBeenCalledWith(
-      'postgres_changes',
-      expect.objectContaining({
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'orders',
-        filter: `id=eq.${baseProps.orderId}`,
-      }),
-      expect.any(Function)
-    );
-    expect(mockSubscribe).toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(mockFrom).toHaveBeenCalledWith('orders');
   });
 
-  it('does not subscribe when modal is closed', () => {
+  it('does not poll when modal is closed', async () => {
     render(<XenditPaymentModal {...baseProps} isOpen={false} />);
-    expect(mockChannel).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(mockFrom).not.toHaveBeenCalled();
   });
 
-  it('calls onSuccess when payment_received becomes true via realtime', () => {
+  it('calls onSuccess when payment_received becomes true', async () => {
     const onSuccess = vi.fn();
+    mockSingle.mockResolvedValueOnce({ data: { payment_received: true } });
     render(<XenditPaymentModal {...baseProps} onSuccess={onSuccess} />);
-
-    // Get the postgres_changes callback registered via .on()
-    const realtimeCallback = mockOn.mock.calls[0][2] as (payload: {
-      new: Record<string, unknown>;
-    }) => void;
-
-    act(() => {
-      realtimeCallback({ new: { payment_received: true } });
-    });
-
+    await vi.advanceTimersByTimeAsync(3000);
     expect(onSuccess).toHaveBeenCalled();
   });
 
-  it('does not call onSuccess when payment_received is false', () => {
+  it('does not call onSuccess when payment_received is false', async () => {
     const onSuccess = vi.fn();
     render(<XenditPaymentModal {...baseProps} onSuccess={onSuccess} />);
-
-    const realtimeCallback = mockOn.mock.calls[0][2] as (payload: {
-      new: Record<string, unknown>;
-    }) => void;
-
-    act(() => {
-      realtimeCallback({ new: { payment_received: false } });
-    });
-
+    await vi.advanceTimersByTimeAsync(3000);
     expect(onSuccess).not.toHaveBeenCalled();
   });
 
-  it('removes the channel when modal unmounts', () => {
+  it('stops polling when modal unmounts', async () => {
     const { unmount } = render(<XenditPaymentModal {...baseProps} />);
     unmount();
-    expect(mockRemoveChannel).toHaveBeenCalled();
+    vi.clearAllMocks();
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(mockFrom).not.toHaveBeenCalled();
   });
 });

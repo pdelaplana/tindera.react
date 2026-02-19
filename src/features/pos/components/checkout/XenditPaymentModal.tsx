@@ -139,32 +139,24 @@ const XenditPaymentModal: React.FC<XenditPaymentModalProps> = ({
     setSecondsLeft(Math.max(0, diff));
   }, [expirationTime]);
 
-  // Subscribe to Realtime updates on this order.
+  // Poll the order every 3 seconds while the modal is open.
   // When the webhook sets payment_received = true, call onSuccess() automatically.
   useEffect(() => {
     if (!isOpen || !orderId) return;
 
-    const channel = supabase
-      .channel(`order-payment-${orderId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'orders',
-          filter: `id=eq.${orderId}`,
-        },
-        (payload) => {
-          if ((payload.new as { payment_received?: boolean }).payment_received) {
-            onSuccessRef.current();
-          }
-        }
-      )
-      .subscribe();
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from('orders')
+        .select('payment_received')
+        .eq('id', orderId)
+        .single();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      if (data?.payment_received) {
+        onSuccessRef.current();
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, [isOpen, orderId]);
 
   const isExpiring = secondsLeft > 0 && secondsLeft <= 60;
