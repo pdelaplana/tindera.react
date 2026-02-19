@@ -27,3 +27,7 @@ additional_redirect_urls = ["http://localhost:8100"]
 enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
+
+
+[functions.xendit-webhook]
+verify_jwt = false
