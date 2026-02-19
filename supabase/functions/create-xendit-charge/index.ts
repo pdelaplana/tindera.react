@@ -125,18 +125,18 @@ Deno.serve(async (req) => {
 
     // Xendit Payment Request API payload (POST /payment_requests)
     const xenditPayload = {
-      referenceId: orderId,
+      reference_id: orderId,
       amount,
       currency,
       country,
-      paymentMethod: {
+      payment_method: {
         type: 'EWALLET',
         reusability: 'ONE_TIME_USE',
         ewallet: {
-          channelCode,
-          channelProperties: {
-            successReturnUrl: `${webhookBaseUrl}/xendit-webhook`,
-            failureReturnUrl: `${webhookBaseUrl}/xendit-webhook`,
+          channel_code: channelCode,
+          channel_properties: {
+            success_return_url: `${webhookBaseUrl}/xendit-webhook`,
+            failure_return_url: `${webhookBaseUrl}/xendit-webhook`,
           },
         },
       },
