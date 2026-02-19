@@ -1,5 +1,6 @@
 // Order Service - Supabase Order Operations
 
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import type {
   ApiResponse,
   CartItem,
@@ -366,8 +367,13 @@ export const orderService = {
       });
 
       if (error) {
-        logger.error(new Error(error.message), { context: 'createXenditCharge', orderId });
-        return { data: null, error: new Error(error.message) };
+        let message = error.message;
+        if (error instanceof FunctionsHttpError) {
+          const body = await error.context.json().catch(() => null);
+          if (body?.error) message = body.error;
+        }
+        logger.error(new Error(message), { context: 'createXenditCharge', orderId });
+        return { data: null, error: new Error(message) };
       }
 
       return { data, error: null };
