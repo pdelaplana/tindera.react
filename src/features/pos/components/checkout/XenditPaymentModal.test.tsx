@@ -90,7 +90,7 @@ describe('XenditPaymentModal', () => {
     expect(screen.getByTestId('qr-code')).toHaveAttribute('data-value', 'GCASH_QR_STRING');
   });
 
-  it('renders checkout URL link when no qrString but checkoutUrl provided', () => {
+  it('renders checkout URL button when no qrString but checkoutUrl provided', () => {
     render(
       <XenditPaymentModal
         {...baseProps}
@@ -98,7 +98,24 @@ describe('XenditPaymentModal', () => {
         checkoutUrl="https://checkout.xendit.co/pay/123"
       />
     );
-    expect(screen.getByText(/open payment page/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /open gcash/i })).toBeInTheDocument();
+    expect(screen.queryByTestId('qr-code')).not.toBeInTheDocument();
+  });
+
+  it('shows redirect instruction text when only checkoutUrl is provided', () => {
+    render(
+      <XenditPaymentModal
+        {...baseProps}
+        qrString={null}
+        checkoutUrl="https://checkout.xendit.co/pay/123"
+      />
+    );
+    expect(screen.getByText(/tap the button below/i)).toBeInTheDocument();
+  });
+
+  it('shows QR instruction text when qrString is provided', () => {
+    render(<XenditPaymentModal {...baseProps} qrString="GCASH_QR_STRING" checkoutUrl={null} />);
+    expect(screen.getByText(/scan the qr code/i)).toBeInTheDocument();
   });
 
   it('shows a countdown timer', () => {

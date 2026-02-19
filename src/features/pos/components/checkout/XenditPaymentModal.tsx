@@ -132,22 +132,26 @@ const XenditPaymentModal: React.FC<XenditPaymentModalProps> = ({
       breakpoints={[0, 0.95, 1]}
     >
       <Container>
-        <InstructionText>
-          Open your {label} app and scan the QR code below to complete payment.
-        </InstructionText>
-
-        {/* QR Code */}
-        {qrString && (
-          <QRContainer>
-            <QRCodeSVG value={qrString} size={220} level="M" />
-          </QRContainer>
-        )}
-
-        {/* Fallback: checkout URL link */}
-        {!qrString && checkoutUrl && (
-          <IonButton expand="block" href={checkoutUrl} target="_blank" rel="noopener noreferrer">
-            Open Payment Page
-          </IonButton>
+        {qrString ? (
+          <>
+            <InstructionText>
+              Open your {label} app and scan the QR code below to complete payment.
+            </InstructionText>
+            <QRContainer>
+              <QRCodeSVG value={qrString} size={220} level="M" />
+            </QRContainer>
+          </>
+        ) : checkoutUrl ? (
+          <>
+            <InstructionText>
+              Tap the button below to open {label} and complete payment.
+            </InstructionText>
+            <IonButton expand="block" href={checkoutUrl} target="_blank" rel="noopener noreferrer">
+              Open {label}
+            </IonButton>
+          </>
+        ) : (
+          <InstructionText>Preparing payment link…</InstructionText>
         )}
 
         {/* Order details */}
