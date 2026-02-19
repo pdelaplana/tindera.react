@@ -16,7 +16,9 @@
       "mcp__sequential-thinking__sequentialthinking",
       "Bash(ls:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run biome:check:*)"
     ]
   }
 }
