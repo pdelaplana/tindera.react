@@ -1,6 +1,6 @@
 // Edge Function: create-xendit-charge
 // Creates a Xendit e-wallet payment request (GCash or Maya) for a given order.
-// Uses Xendit Payment Request API (POST /payments).
+// Uses Xendit Payment Request API: POST /payment_requests
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -9,9 +9,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const XENDIT_API_URL = 'https://api.xendit.co/payments';
+const XENDIT_API_URL = 'https://api.xendit.co/payment_requests';
 
-// Map our internal codes to Xendit's Payment Request API channel codes
+// Map our internal codes to Xendit's channel codes
 const EWALLET_CHANNEL_MAP: Record<string, string> = {
   GCASH: 'GCASH',
   MAYA: 'PAYMAYA',
@@ -38,7 +38,6 @@ interface XenditPaymentAction {
 interface XenditPaymentResponse {
   id: string;
   status: string;
-  channel_code: string;
   actions?: XenditPaymentAction[];
   failure_code?: string;
   metadata?: Record<string, unknown>;
@@ -96,7 +95,7 @@ Deno.serve(async (req) => {
       return errorResponse(`Unsupported currency: ${currency}`);
     }
 
-    // Validate order exists and belongs to a shop the user can access
+    // Validate order exists
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -124,18 +123,22 @@ Deno.serve(async (req) => {
 
     const webhookBaseUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1`;
 
-    // Call Xendit Payment Request API (POST /payments)
+    // Xendit Payment Request API payload (POST /payment_requests)
     const xenditPayload = {
-      reference_id: orderId,
-      type: 'PAY',
-      country,
+      referenceId: orderId,
+      amount,
       currency,
-      request_amount: amount,
-      capture_method: 'AUTOMATIC',
-      channel_code: channelCode,
-      channel_properties: {
-        success_return_url: `${webhookBaseUrl}/xendit-webhook`,
-        failure_return_url: `${webhookBaseUrl}/xendit-webhook`,
+      country,
+      paymentMethod: {
+        type: 'EWALLET',
+        reusability: 'ONE_TIME_USE',
+        ewallet: {
+          channelCode,
+          channelProperties: {
+            successReturnUrl: `${webhookBaseUrl}/xendit-webhook`,
+            failureReturnUrl: `${webhookBaseUrl}/xendit-webhook`,
+          },
+        },
       },
       metadata: {
         order_id: orderId,
@@ -154,7 +157,7 @@ Deno.serve(async (req) => {
 
     if (!xenditResponse.ok) {
       const xenditError = await xenditResponse.json().catch(() => ({})) as Record<string, unknown>;
-      const message = (xenditError?.message as string) || 'Failed to create charge';
+      const message = (xenditError?.message as string) || 'Failed to create payment request';
       const errors = xenditError?.errors;
       const detail = Array.isArray(errors) && errors.length > 0
         ? ` (${errors.map((e: Record<string, string>) => `${e.path ?? e.field ?? '?'}: ${e.message}`).join(', ')})`
@@ -164,6 +167,7 @@ Deno.serve(async (req) => {
     }
 
     const payment: XenditPaymentResponse = await xenditResponse.json();
+    console.log('Xendit payment created:', JSON.stringify({ id: payment.id, status: payment.status }));
 
     // Extract checkout URL and QR string from actions array
     const redirectAction = payment.actions?.find(
