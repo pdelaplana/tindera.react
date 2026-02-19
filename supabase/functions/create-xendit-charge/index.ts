@@ -11,10 +11,10 @@ const corsHeaders = {
 
 const XENDIT_API_URL = 'https://api.xendit.co/payment_requests';
 
-// Map our internal codes to Xendit's channel codes
+// Map our internal codes to Xendit's Payment Request API channel codes (country-prefixed)
 const EWALLET_CHANNEL_MAP: Record<string, string> = {
-  GCASH: 'GCASH',
-  MAYA: 'PAYMAYA',
+  GCASH: 'PH_GCASH',
+  MAYA: 'PH_PAYMAYA',
 };
 
 // ISO 3166-1 alpha-2 country code inferred from currency
@@ -139,6 +139,7 @@ Deno.serve(async (req) => {
           channel_properties: {
             success_return_url: `${webhookBaseUrl}/xendit-webhook`,
             failure_return_url: `${webhookBaseUrl}/xendit-webhook`,
+            cancel_return_url: `${webhookBaseUrl}/xendit-webhook`,
           },
         },
       },

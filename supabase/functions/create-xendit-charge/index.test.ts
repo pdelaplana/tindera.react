@@ -6,17 +6,17 @@ import { describe, expect, it } from 'vitest';
 
 // --- Unit: EWALLET_CHANNEL_MAP ---
 const EWALLET_CHANNEL_MAP: Record<string, string> = {
-  GCASH: 'GCASH',
-  MAYA: 'PAYMAYA',
+  GCASH: 'PH_GCASH',
+  MAYA: 'PH_PH_PAYMAYA',
 };
 
 describe('EWALLET_CHANNEL_MAP', () => {
-  it('maps GCASH to GCASH channel code', () => {
-    expect(EWALLET_CHANNEL_MAP['GCASH']).toBe('GCASH');
+  it('maps GCASH to PH_GCASH channel code', () => {
+    expect(EWALLET_CHANNEL_MAP['GCASH']).toBe('PH_GCASH');
   });
 
-  it('maps MAYA to PAYMAYA channel code', () => {
-    expect(EWALLET_CHANNEL_MAP['MAYA']).toBe('PAYMAYA');
+  it('maps MAYA to PH_PH_PAYMAYA channel code', () => {
+    expect(EWALLET_CHANNEL_MAP['MAYA']).toBe('PH_PH_PAYMAYA');
   });
 
   it('returns undefined for unsupported methods', () => {
@@ -62,6 +62,7 @@ function buildXenditPayload(
     channel_properties: {
       success_return_url: `${webhookBaseUrl}/xendit-webhook`,
       failure_return_url: `${webhookBaseUrl}/xendit-webhook`,
+      cancel_return_url: `${webhookBaseUrl}/xendit-webhook`,
     },
     metadata: {
       order_id: orderId,
@@ -76,47 +77,48 @@ describe('buildXenditPayload', () => {
   const baseUrl = 'https://project.supabase.co/functions/v1';
 
   it('sets reference_id to orderId', () => {
-    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'GCASH', shopId, baseUrl);
+    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'PH_GCASH', shopId, baseUrl);
     expect(payload.reference_id).toBe(orderId);
   });
 
   it('sets type to PAY', () => {
-    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'GCASH', shopId, baseUrl);
+    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'PH_GCASH', shopId, baseUrl);
     expect(payload.type).toBe('PAY');
   });
 
   it('sets capture_method to AUTOMATIC', () => {
-    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'GCASH', shopId, baseUrl);
+    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'PH_GCASH', shopId, baseUrl);
     expect(payload.capture_method).toBe('AUTOMATIC');
   });
 
   it('sets country from currency map', () => {
-    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'GCASH', shopId, baseUrl);
+    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'PH_GCASH', shopId, baseUrl);
     expect(payload.country).toBe('PH');
   });
 
   it('uses request_amount (not amount)', () => {
-    const payload = buildXenditPayload(orderId, 250.5, 'PHP', 'PH', 'PAYMAYA', shopId, baseUrl);
+    const payload = buildXenditPayload(orderId, 250.5, 'PHP', 'PH', 'PH_PAYMAYA', shopId, baseUrl);
     expect(payload.request_amount).toBe(250.5);
     expect((payload as Record<string, unknown>).amount).toBeUndefined();
   });
 
   it('includes order_id and shop_id in metadata', () => {
-    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'GCASH', shopId, baseUrl);
+    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'PH_GCASH', shopId, baseUrl);
     expect(payload.metadata.order_id).toBe(orderId);
     expect(payload.metadata.shop_id).toBe(shopId);
   });
 
-  it('constructs correct return URLs', () => {
-    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'GCASH', shopId, baseUrl);
+  it('constructs correct return URLs including cancel', () => {
+    const payload = buildXenditPayload(orderId, 100, 'PHP', 'PH', 'PH_GCASH', shopId, baseUrl);
     expect(payload.channel_properties.success_return_url).toBe(`${baseUrl}/xendit-webhook`);
     expect(payload.channel_properties.failure_return_url).toBe(`${baseUrl}/xendit-webhook`);
+    expect(payload.channel_properties.cancel_return_url).toBe(`${baseUrl}/xendit-webhook`);
   });
 
   it('passes currency and channel_code correctly', () => {
-    const payload = buildXenditPayload(orderId, 250.5, 'PHP', 'PH', 'PAYMAYA', shopId, baseUrl);
+    const payload = buildXenditPayload(orderId, 250.5, 'PHP', 'PH', 'PH_PAYMAYA', shopId, baseUrl);
     expect(payload.currency).toBe('PHP');
-    expect(payload.channel_code).toBe('PAYMAYA');
+    expect(payload.channel_code).toBe('PH_PAYMAYA');
   });
 });
 
