@@ -4,9 +4,10 @@ import { IonButton, IonIcon, IonText } from '@ionic/react';
 import { timeOutline } from 'ionicons/icons';
 import { QRCodeSVG } from 'qrcode.react';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { BaseModal } from '@/components/shared';
+import { supabase } from '@/services/supabase';
 import { designSystem } from '@/theme/designSystem';
 
 interface XenditPaymentModalProps {
@@ -83,6 +84,7 @@ const InstructionText = styled.p`
 const XenditPaymentModal: React.FC<XenditPaymentModalProps> = ({
   isOpen,
   onClose,
+  onSuccess,
   paymentMethod,
   orderId,
   amount,
@@ -97,6 +99,12 @@ const XenditPaymentModal: React.FC<XenditPaymentModalProps> = ({
     const diff = Math.floor((new Date(expirationTime).getTime() - Date.now()) / 1000);
     return Math.max(0, diff);
   });
+
+  // Keep a stable ref to onSuccess so the realtime handler never captures a stale closure
+  const onSuccessRef = useRef(onSuccess);
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+  }, [onSuccess]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -119,6 +127,34 @@ const XenditPaymentModal: React.FC<XenditPaymentModalProps> = ({
     const diff = Math.floor((new Date(expirationTime).getTime() - Date.now()) / 1000);
     setSecondsLeft(Math.max(0, diff));
   }, [expirationTime]);
+
+  // Subscribe to Realtime updates on this order.
+  // When the webhook sets payment_received = true, call onSuccess() automatically.
+  useEffect(() => {
+    if (!isOpen || !orderId) return;
+
+    const channel = supabase
+      .channel(`order-payment-${orderId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+          filter: `id=eq.${orderId}`,
+        },
+        (payload) => {
+          if ((payload.new as { payment_received?: boolean }).payment_received) {
+            onSuccessRef.current();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isOpen, orderId]);
 
   const isExpiring = secondsLeft > 0 && secondsLeft <= 60;
   const isExpired = secondsLeft === 0;

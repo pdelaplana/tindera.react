@@ -4,6 +4,22 @@ import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import XenditPaymentModal from './XenditPaymentModal';
 
+// Mock supabase realtime — use vi.hoisted so variables are available in the hoisted vi.mock factory
+const { mockChannel, mockRemoveChannel, mockOn, mockSubscribe } = vi.hoisted(() => {
+  const mockSubscribe = vi.fn().mockReturnValue({});
+  const mockOn = vi.fn().mockImplementation(() => ({ subscribe: mockSubscribe }));
+  const mockChannel = vi.fn().mockReturnValue({ on: mockOn });
+  const mockRemoveChannel = vi.fn();
+  return { mockChannel, mockRemoveChannel, mockOn, mockSubscribe };
+});
+
+vi.mock('@/services/supabase', () => ({
+  supabase: {
+    channel: mockChannel,
+    removeChannel: mockRemoveChannel,
+  },
+}));
+
 vi.mock('@ionic/react', () => ({
   IonButton: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
     <button type="button" onClick={onClick}>
@@ -152,5 +168,69 @@ describe('XenditPaymentModal', () => {
   it('shows Maya label for MAYA payment method', () => {
     render(<XenditPaymentModal {...baseProps} paymentMethod="MAYA" />);
     expect(screen.getByRole('dialog', { name: /Maya/i })).toBeInTheDocument();
+  });
+});
+
+describe('XenditPaymentModal - Realtime subscription', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('subscribes to order updates when modal is open', () => {
+    render(<XenditPaymentModal {...baseProps} />);
+    expect(mockChannel).toHaveBeenCalledWith(`order-payment-${baseProps.orderId}`);
+    expect(mockOn).toHaveBeenCalledWith(
+      'postgres_changes',
+      expect.objectContaining({
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'orders',
+        filter: `id=eq.${baseProps.orderId}`,
+      }),
+      expect.any(Function)
+    );
+    expect(mockSubscribe).toHaveBeenCalled();
+  });
+
+  it('does not subscribe when modal is closed', () => {
+    render(<XenditPaymentModal {...baseProps} isOpen={false} />);
+    expect(mockChannel).not.toHaveBeenCalled();
+  });
+
+  it('calls onSuccess when payment_received becomes true via realtime', () => {
+    const onSuccess = vi.fn();
+    render(<XenditPaymentModal {...baseProps} onSuccess={onSuccess} />);
+
+    // Get the postgres_changes callback registered via .on()
+    const realtimeCallback = mockOn.mock.calls[0][2] as (payload: {
+      new: Record<string, unknown>;
+    }) => void;
+
+    act(() => {
+      realtimeCallback({ new: { payment_received: true } });
+    });
+
+    expect(onSuccess).toHaveBeenCalled();
+  });
+
+  it('does not call onSuccess when payment_received is false', () => {
+    const onSuccess = vi.fn();
+    render(<XenditPaymentModal {...baseProps} onSuccess={onSuccess} />);
+
+    const realtimeCallback = mockOn.mock.calls[0][2] as (payload: {
+      new: Record<string, unknown>;
+    }) => void;
+
+    act(() => {
+      realtimeCallback({ new: { payment_received: false } });
+    });
+
+    expect(onSuccess).not.toHaveBeenCalled();
+  });
+
+  it('removes the channel when modal unmounts', () => {
+    const { unmount } = render(<XenditPaymentModal {...baseProps} />);
+    unmount();
+    expect(mockRemoveChannel).toHaveBeenCalled();
   });
 });
