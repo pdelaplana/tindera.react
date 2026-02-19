@@ -1,5 +1,6 @@
 // Edge Function: create-xendit-charge
-// Creates a Xendit e-wallet charge (GCash or Maya) for a given order.
+// Creates a Xendit e-wallet payment request (GCash or Maya) for a given order.
+// Uses Xendit Payment Request API (POST /payments).
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -8,12 +9,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const XENDIT_API_URL = 'https://api.xendit.co/ewallets/charges';
+const XENDIT_API_URL = 'https://api.xendit.co/payments';
 
-// Map our internal codes to Xendit's channel codes
+// Map our internal codes to Xendit's Payment Request API channel codes
 const EWALLET_CHANNEL_MAP: Record<string, string> = {
   GCASH: 'GCASH',
   MAYA: 'PAYMAYA',
+};
+
+// ISO 3166-1 alpha-2 country code inferred from currency
+const CURRENCY_COUNTRY_MAP: Record<string, string> = {
+  PHP: 'PH',
 };
 
 interface CreateChargeRequest {
@@ -23,17 +29,17 @@ interface CreateChargeRequest {
   paymentMethod: 'GCASH' | 'MAYA';
 }
 
-interface XenditEwalletCharge {
+interface XenditPaymentAction {
+  type: string;
+  descriptor: string;
+  value: string;
+}
+
+interface XenditPaymentResponse {
   id: string;
   status: string;
   channel_code: string;
-  checkout_method: string;
-  actions?: {
-    desktop_web_checkout_url?: string;
-    mobile_web_checkout_url?: string;
-    mobile_deeplink_checkout_url?: string;
-    qr_checkout_string?: string;
-  };
+  actions?: XenditPaymentAction[];
   failure_code?: string;
   metadata?: Record<string, unknown>;
 }
@@ -85,6 +91,11 @@ Deno.serve(async (req) => {
       return errorResponse(`Unsupported payment method: ${paymentMethod}`);
     }
 
+    const country = CURRENCY_COUNTRY_MAP[currency];
+    if (!country) {
+      return errorResponse(`Unsupported currency: ${currency}`);
+    }
+
     // Validate order exists and belongs to a shop the user can access
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -111,16 +122,20 @@ Deno.serve(async (req) => {
     // Expiration: 15 minutes from now
     const expirationTime = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
-    // Call Xendit e-wallets charges API
+    const webhookBaseUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1`;
+
+    // Call Xendit Payment Request API (POST /payments)
     const xenditPayload = {
       reference_id: orderId,
+      type: 'PAY',
+      country,
       currency,
-      amount,
-      checkout_method: 'ONE_TIME_PAYMENT',
+      request_amount: amount,
+      capture_method: 'AUTOMATIC',
       channel_code: channelCode,
       channel_properties: {
-        success_redirect_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/xendit-webhook`,
-        failure_redirect_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/xendit-webhook`,
+        success_return_url: `${webhookBaseUrl}/xendit-webhook`,
+        failure_return_url: `${webhookBaseUrl}/xendit-webhook`,
       },
       metadata: {
         order_id: orderId,
@@ -138,23 +153,33 @@ Deno.serve(async (req) => {
     });
 
     if (!xenditResponse.ok) {
-      const xenditError = await xenditResponse.json().catch(() => ({}));
-      const message = (xenditError as Record<string, string>)?.message || 'Failed to create charge';
-      return errorResponse(`Payment provider error: ${message}`, 502);
+      const xenditError = await xenditResponse.json().catch(() => ({})) as Record<string, unknown>;
+      const message = (xenditError?.message as string) || 'Failed to create charge';
+      const errors = xenditError?.errors;
+      const detail = Array.isArray(errors) && errors.length > 0
+        ? ` (${errors.map((e: Record<string, string>) => `${e.path ?? e.field ?? '?'}: ${e.message}`).join(', ')})`
+        : '';
+      console.error('Xendit error:', JSON.stringify(xenditError));
+      return errorResponse(`Payment provider error: ${message}${detail}`, 502);
     }
 
-    const charge: XenditEwalletCharge = await xenditResponse.json();
+    const payment: XenditPaymentResponse = await xenditResponse.json();
+
+    // Extract checkout URL and QR string from actions array
+    const redirectAction = payment.actions?.find(
+      (a) => a.type === 'REDIRECT_CUSTOMER' && a.descriptor === 'WEB_URL'
+    );
+    const qrAction = payment.actions?.find(
+      (a) => a.descriptor === 'QR_STRING'
+    );
 
     return new Response(
       JSON.stringify({
-        chargeId: charge.id,
-        checkoutUrl:
-          charge.actions?.mobile_web_checkout_url ||
-          charge.actions?.desktop_web_checkout_url ||
-          null,
-        qrString: charge.actions?.qr_checkout_string || null,
+        chargeId: payment.id,
+        checkoutUrl: redirectAction?.value ?? null,
+        qrString: qrAction?.value ?? null,
         expirationTime,
-        status: charge.status,
+        status: payment.status,
       }),
       {
         status: 200,
