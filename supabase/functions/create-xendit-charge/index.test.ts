@@ -120,53 +120,59 @@ describe('buildXenditPayload', () => {
   });
 });
 
-// --- Unit: response shape extraction from actions array ---
+// --- Unit: response shape extraction from actual Xendit actions array ---
+// Actual response format: { action, url, url_type, method, qr_code }
 interface XenditAction {
-  type: string;
-  descriptor: string;
-  value: string;
+  action: string;
+  url: string;
+  url_type: string;
+  method: string;
+  qr_code: string | null;
 }
 
 function extractCheckoutData(actions?: XenditAction[]) {
-  const redirectAction = actions?.find(
-    (a) => a.type === 'REDIRECT_CUSTOMER' && a.descriptor === 'WEB_URL'
-  );
-  const qrAction = actions?.find((a) => a.descriptor === 'QR_STRING');
-  return {
-    checkoutUrl: redirectAction?.value ?? null,
-    qrString: qrAction?.value ?? null,
-  };
+  const mobileAction = actions?.find((a) => a.url_type === 'MOBILE');
+  const webAction = actions?.find((a) => a.url_type === 'WEB');
+  const checkoutUrl = mobileAction?.url ?? webAction?.url ?? null;
+  const qrString = actions?.find((a) => a.qr_code)?.qr_code ?? null;
+  return { checkoutUrl, qrString };
 }
 
+const makeAction = (url_type: string, url: string, qr_code: string | null = null): XenditAction =>
+  ({ action: 'AUTH', url, url_type, method: 'GET', qr_code });
+
 describe('extractCheckoutData', () => {
-  it('extracts checkout URL from REDIRECT_CUSTOMER WEB_URL action', () => {
-    const result = extractCheckoutData([
-      { type: 'REDIRECT_CUSTOMER', descriptor: 'WEB_URL', value: 'https://checkout.url' },
-    ]);
-    expect(result.checkoutUrl).toBe('https://checkout.url');
+  it('extracts MOBILE url as checkoutUrl', () => {
+    const result = extractCheckoutData([makeAction('MOBILE', 'https://mobile.url')]);
+    expect(result.checkoutUrl).toBe('https://mobile.url');
   });
 
-  it('extracts QR string from QR_STRING action', () => {
+  it('falls back to WEB url when no MOBILE action', () => {
+    const result = extractCheckoutData([makeAction('WEB', 'https://web.url')]);
+    expect(result.checkoutUrl).toBe('https://web.url');
+  });
+
+  it('prefers MOBILE over WEB when both present', () => {
     const result = extractCheckoutData([
-      { type: 'PRESENT_TO_CUSTOMER', descriptor: 'QR_STRING', value: '00020101021226...' },
+      makeAction('WEB', 'https://web.url'),
+      makeAction('MOBILE', 'https://mobile.url'),
+    ]);
+    expect(result.checkoutUrl).toBe('https://mobile.url');
+  });
+
+  it('extracts qr_code when present on an action', () => {
+    const result = extractCheckoutData([
+      makeAction('WEB', 'https://web.url', '00020101021226...'),
     ]);
     expect(result.qrString).toBe('00020101021226...');
   });
 
-  it('extracts both URL and QR string when both present', () => {
+  it('returns null qrString when all qr_code fields are null', () => {
     const result = extractCheckoutData([
-      { type: 'REDIRECT_CUSTOMER', descriptor: 'WEB_URL', value: 'https://checkout.url' },
-      { type: 'PRESENT_TO_CUSTOMER', descriptor: 'QR_STRING', value: '00020101...' },
+      makeAction('MOBILE', 'https://mobile.url', null),
+      makeAction('WEB', 'https://web.url', null),
     ]);
-    expect(result.checkoutUrl).toBe('https://checkout.url');
-    expect(result.qrString).toBe('00020101...');
-  });
-
-  it('returns null checkoutUrl when no REDIRECT_CUSTOMER action', () => {
-    const result = extractCheckoutData([
-      { type: 'PRESENT_TO_CUSTOMER', descriptor: 'QR_STRING', value: 'qr...' },
-    ]);
-    expect(result.checkoutUrl).toBeNull();
+    expect(result.qrString).toBeNull();
   });
 
   it('returns null when actions is undefined', () => {
@@ -179,13 +185,6 @@ describe('extractCheckoutData', () => {
     const result = extractCheckoutData([]);
     expect(result.checkoutUrl).toBeNull();
     expect(result.qrString).toBeNull();
-  });
-
-  it('does not match WEB_URL action with wrong type', () => {
-    const result = extractCheckoutData([
-      { type: 'PRESENT_TO_CUSTOMER', descriptor: 'WEB_URL', value: 'https://some.url' },
-    ]);
-    expect(result.checkoutUrl).toBeNull();
   });
 });
 

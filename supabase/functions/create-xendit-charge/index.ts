@@ -30,9 +30,11 @@ interface CreateChargeRequest {
 }
 
 interface XenditPaymentAction {
-  type: string;
-  descriptor: string;
-  value: string;
+  action: string;
+  url: string;
+  url_type: string; // 'WEB' | 'MOBILE' | 'DEEPLINK' | 'SDK'
+  method: string;
+  qr_code: string | null;
 }
 
 interface XenditPaymentResponse {
@@ -167,21 +169,21 @@ Deno.serve(async (req) => {
     }
 
     const payment: XenditPaymentResponse = await xenditResponse.json();
-    console.log('Xendit payment created:', JSON.stringify({ id: payment.id, status: payment.status }));
+    console.log('Xendit payment response:', JSON.stringify({ id: payment.id, status: payment.status, actions: payment.actions }));
 
-    // Extract checkout URL and QR string from actions array
-    const redirectAction = payment.actions?.find(
-      (a) => a.type === 'REDIRECT_CUSTOMER' && a.descriptor === 'WEB_URL'
-    );
-    const qrAction = payment.actions?.find(
-      (a) => a.descriptor === 'QR_STRING'
-    );
+    // Extract checkout URL: prefer MOBILE, fall back to WEB
+    const mobileAction = payment.actions?.find((a) => a.url_type === 'MOBILE');
+    const webAction = payment.actions?.find((a) => a.url_type === 'WEB');
+    const checkoutUrl = mobileAction?.url ?? webAction?.url ?? null;
+
+    // Extract QR code string if any action provides one
+    const qrString = payment.actions?.find((a) => a.qr_code)?.qr_code ?? null;
 
     return new Response(
       JSON.stringify({
         chargeId: payment.id,
-        checkoutUrl: redirectAction?.value ?? null,
-        qrString: qrAction?.value ?? null,
+        checkoutUrl,
+        qrString,
         expirationTime,
         status: payment.status,
       }),
