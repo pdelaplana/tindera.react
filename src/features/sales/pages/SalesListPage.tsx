@@ -1,7 +1,6 @@
 // Sales List Page - Main sales history page with responsive layout
 
 import {
-  IonChip,
   IonContent,
   IonPage,
   IonSearchbar,
@@ -24,35 +23,29 @@ import { RefundModal } from '../components/orders/modals/RefundModal';
 import { VoidModal } from '../components/orders/modals/VoidModal';
 
 // Styled components
-const FilterTabsContainer = styled.div`
+const FilterRowContainer = styled.div`
 	display: flex;
+	align-items: center;
 	gap: 8px;
-	padding: 12px 16px;
+	padding: 8px 16px;
 	border-bottom: 1px solid var(--ion-color-light-shade);
-	overflow-x: auto;
 `;
 
-const FilterTab = styled(IonChip)<{ isActive: boolean }>`
-	--background: ${(props) => (props.isActive ? 'var(--ion-color-primary)' : 'var(--ion-color-light)')};
-	--color: ${(props) => (props.isActive ? 'var(--ion-color-primary-contrast)' : 'var(--ion-color-dark)')};
-	cursor: pointer;
-`;
-
-const DateFilterContainer = styled.div`
-	padding: 12px 16px 0 16px;
-	display: flex;
-	justify-content: flex-end;
+const PillSelect = styled(IonSelect)`
+	--background: var(--ion-color-light);
+	--color: var(--ion-color-dark);
+	--highlight-color: var(--ion-color-dark);
+	--placeholder-opacity: 1;
+	--border-width: 0;
+	border-radius: 16px;
+	padding: 0 4px;
+	font-size: 0.875rem;
+	min-height: 32px;
+	width: fit-content;
 `;
 
 const SearchBarContainer = styled.div`
 	padding: 12px 16px;
-`;
-
-const DateFilterSelect = styled(IonSelect)`
-	width: 140px;
-	--placeholder-opacity: 1;
-	text-align: right;
-  --highlight-color: 0;
 `;
 
 // Filter type definition
@@ -151,45 +144,30 @@ const SalesListPage: React.FC = () => {
     return orders.find((order) => order.id === selectedOrderId) || null;
   }, [selectedOrderId, orders]);
 
-  // Render status filter tabs
-  const renderFilterTabs = () => (
-    <FilterTabsContainer>
-      <FilterTab isActive={selectedFilter === 'all'} onClick={() => setSelectedFilter('all')}>
-        All
-      </FilterTab>
-      <FilterTab
-        isActive={selectedFilter === 'completed'}
-        onClick={() => setSelectedFilter('completed')}
+  // Render filter row with status and date dropdowns
+  const renderFilterRow = () => (
+    <FilterRowContainer>
+      <PillSelect
+        interface="popover"
+        value={selectedFilter}
+        onIonChange={(e) => setSelectedFilter(e.detail.value as FilterType)}
       >
-        Paid
-      </FilterTab>
-      <FilterTab isActive={selectedFilter === 'voided'} onClick={() => setSelectedFilter('voided')}>
-        Cancelled
-      </FilterTab>
-      <FilterTab
-        isActive={selectedFilter === 'refunded'}
-        onClick={() => setSelectedFilter('refunded')}
-      >
-        Refunded
-      </FilterTab>
-    </FilterTabsContainer>
-  );
-
-  // Render date filter dropdown
-  const renderDateFilter = () => (
-    <DateFilterContainer>
-      <DateFilterSelect
+        <IonSelectOption value="all">All</IonSelectOption>
+        <IonSelectOption value="completed">Paid</IonSelectOption>
+        <IonSelectOption value="voided">Cancelled</IonSelectOption>
+        <IonSelectOption value="refunded">Refunded</IonSelectOption>
+      </PillSelect>
+      <PillSelect
         interface="popover"
         value={selectedDateFilter}
-        justify="end"
         onIonChange={(e) => setSelectedDateFilter(e.detail.value as DateFilterType)}
       >
         <IonSelectOption value="all">All Time</IonSelectOption>
         <IonSelectOption value="today">Today</IonSelectOption>
         <IonSelectOption value="week">This Week</IonSelectOption>
         <IonSelectOption value="month">This Month</IonSelectOption>
-      </DateFilterSelect>
-    </DateFilterContainer>
+      </PillSelect>
+    </FilterRowContainer>
   );
 
   // Render search bar
@@ -223,9 +201,8 @@ const SalesListPage: React.FC = () => {
   // Render left panel content (list)
   const leftPanelContent = (
     <>
-      {renderDateFilter()}
       {renderSearchBar()}
-      {renderFilterTabs()}
+      {renderFilterRow()}
       <OrderList
         orders={orders || []}
         onSelect={handleOrderSelect}
